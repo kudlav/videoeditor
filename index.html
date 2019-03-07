@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="fonts/iconfont/material-design-icons.css">
+	<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+	<header>
+		<button class="error"><i class="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button>
+		<div class="divider"></div>
+		<button><i class="material-icons" aria-hidden="true">language</i>Jazyk</button>
+		<button><i class="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>
+		<button class="success" style="float: right;"><i class="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
+	</header>
+	<main>
+		<div>
+			<div id="sources">
+				<h3><i class="material-icons" aria-hidden="true">video_library</i>Seznam záběrů</h3>
+				<table>
+					<tr>
+						<td><div style="height: 50px; width: 60px; background-color: #4A4; text-align: center;"><i class="material-icons" aria-hidden="true" style="font-size: 3.5em">panorama</i></div></td>
+						<td>intro.png<br><small>Délka: 00:08:20;16</small></td>
+						<td class="column-right">
+							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em; margin-right: 0.3em;">control_point</i></a>
+							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em;">delete</i></a>
+						</td>
+					</tr>
+					<tr>
+						<td><div style="height: 50px; width: 60px; background-color: #44A; text-align: center;"><i class="material-icons" aria-hidden="true" style="font-size: 3.5em">panorama</i></div></td>
+						<td>GOPR0164.MP4<br><small>Délka: 00:01:52;12</small></td>
+						<td class="column-right">
+							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em; margin-right: 0.3em;">control_point</i></a>
+							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em;">delete</i></a>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3">
+							<i class="material-icons" aria-hidden="true" style="font-size: 4em;">add_box</i>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="preview">
+				<h3><i class="material-icons" aria-hidden="true">movie</i>Náhled</h3>
+				<video></video>
+				<div class="prev-toolbar">
+					<button class="no-border" title="Zastavit přehrávání"><i class="material-icons" aria-hidden="true">stop</i></button>
+					<button title="Pokračovat v přehrávání"><i class="material-icons" aria-hidden="true">play_arrow</i></button>
+					<button title="Pozastavit přehrávání"><i class="material-icons" aria-hidden="true">pause</i></button>
+					<button title="Předchozí událost"><i class="material-icons" aria-hidden="true">skip_previous</i></button>
+					<button title="Následující událost"><i class="material-icons" aria-hidden="true">skip_next</i></button>
+					<button title="Předchozí snímek"><i class="material-icons" aria-hidden="true">exposure_minus_1</i></button>
+					<button title="Následující snímek"><i class="material-icons" aria-hidden="true">exposure_plus_1</i></button>
+				</div>
+			</div>
+		</div>
+	</main>
+	<footer>
+		<button><i class="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
+		<button><i class="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>
+		<button><i class="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
+		<button><i class="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
+		<button><i class="material-icons" aria-hidden="true">remove</i>Odebrat</button>
+		<div id="time">00:00:00 / 00:00:00</div>
+		<img src="timeline.jpg">
+	</footer>
+</body>
+</html>
