@@ -1,4 +1,5 @@
-exports.default = function(req, res) {
-	res.render('api', {
-	});
+exports.default = (req, res) => {
+	res.json(
+		{ message: 'hooray! welcome to our api!' }
+	);
 };

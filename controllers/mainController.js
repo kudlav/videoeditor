@@ -1,4 +1,5 @@
-exports.default = function(req, res, next) {
+exports.default = (req, res) => {
 	res.render('main', {
+
 	});
 };

@@ -9,8 +9,8 @@ server.engine('html', require('ejs').renderFile);
 server.set('view engine', 'html');
 
 // Router
-var front = require('./routes/front.js');
-server.use('/', front);
+const router = require('./router.js');
+server.use('/', router);
 
 server.use(express.static('public'));
 
