@@ -1,5 +1,5 @@
 exports.default = (req, res) => {
-	res.render('main', {
+	res.render('main', {});
 
-	});
+
 };

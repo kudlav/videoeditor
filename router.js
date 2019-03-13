@@ -7,7 +7,11 @@ const apiController = require('./controllers/apiController');
 
 // Log access
 router.use((req, res, next) => {
-	console.log(req.url);
+	const date = (new Date()).toLocaleString('en-GB' , {
+		timeZone: 'UTC',
+		hour12: false,
+	});
+	console.log(`[${date}] @ ${req.originalUrl}`);
 	next(); // go to the next routes
 });
 
@@ -15,7 +19,10 @@ router.use((req, res, next) => {
 router.get('/', mainController.default);
 
 // API route
-router.route('/api')
-	.get(apiController.default);
+router.all('/api', apiController.default);
+
+router.post('/api/project', apiController.projectPOST);
+
+router.post('/api/project/:projectID/uploadfile', apiController.projectUploadFilePOST);
 
 module.exports = router;

@@ -20,8 +20,10 @@
   "dependencies": {
     "@babel/node": "^7.2.2",
     "axios": "^0.18.0",
+    "connect-busboy": "0.0.2",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
+    "jsdom": "^14.0.0",
     "json-loader": "0.5.7",
     "prop-types": "^15.7.2",
     "react": "^16.8.4",
