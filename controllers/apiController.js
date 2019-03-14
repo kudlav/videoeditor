@@ -1,5 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const jsdom = require("jsdom");
+
+const { JSDOM } = jsdom;
 
 const PROJECT_PATHS = 'WORKER';
 
@@ -17,13 +20,9 @@ exports.projectPOST = (req, res, next) => {
 
 	const data = `<?xml version="1.0"?>
 		<mlt>
-			 <multitrack>
-				<playlist id="videotrack1">
-					<entry />
-					<blank duration="99" />
-					<entry />
-				</playlist>
-			</multitrack>
+		  <multitrack>
+		    <playlist id="videotrack1"></playlist>
+		  </multitrack>
 		</mlt>
 	`;
 
@@ -46,7 +45,7 @@ exports.projectPOST = (req, res, next) => {
 	});
 };
 
-exports.projectUploadFilePOST = (req, res, next) => {
+exports.projectFilePOST = (req, res, next) => {
 
 	//todo !!! Pokud není s požadavkem nahrávaný soubor, server spadne!!!
 
@@ -69,8 +68,6 @@ exports.projectUploadFilePOST = (req, res, next) => {
 		fstream.on('close', () => {
 			console.log(`Upload of '${filename}' finished`);
 
-			const jsdom = require("jsdom");
-			const { JSDOM } = jsdom;
 			const mltPath = path.join(PROJECT_PATHS, req.params.projectID, 'project.mlt');
 
 			JSDOM.fromFile(mltPath).then(
@@ -110,6 +107,52 @@ exports.projectFileDELETE = (req, res, next) => {
 	JSDOM.fromFile(mltPath).then(
 		dom => {
 			const document = dom.window.document;
+			const root = document.querySelector('mlt');
+
+			const entries = document.querySelectorAll(`mlt>multitrack>playlist entry[producer="${req.params.fileID}"]`);
+			if (entries.length > 0) {
+				res.status(403);
+				res.json({
+					err: 'Položka je používána.',
+					msg: 'Položka je v projektu používána. Před smazáním z projektu ji odstraňte z časové osy.',
+				});
+				return;
+			}
+
+			const producer = document.querySelector(`mlt>producer[id="${req.params.fileID}"]`);
+			if (producer === null) {
+				res.status(404);
+				res.json({
+					err: 'Položka nenalezena.',
+					msg: 'Položka se v projektu již nenachází.'
+				});
+				return;
+			}
+
+			const properties = producer.getElementsByTagName('property');
+			let filename;
+			for (let property of properties) {
+				if (property.getAttribute('name') === 'resource') filename = property.innerHTML;
+			}
+
+			if (filename === undefined)
+				return next(`Project "${req.params.projectID}", file "${req.params.fileID}" property missing resource tag.`);
+
+			// Try to remove file, log failure
+			fs.unlink(filename, (err) => {
+				if (err) console.log(err);
+			});
+
+			producer.remove();
+
+			fs.writeFile(mltPath, root.outerHTML, (err) => {
+				if (err) return next(err);
+
+				console.log(`File ${mltPath} updated.`);
+				res.json({
+					msg: 'Položka byla úspěšně odebrána',
+				});
+			});
 		},
 		err => {
 			return next(err);

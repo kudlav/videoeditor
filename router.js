@@ -23,6 +23,8 @@ router.all('/api', apiController.default);
 
 router.post('/api/project', apiController.projectPOST);
 
-router.post('/api/project/:projectID/uploadfile', apiController.projectUploadFilePOST);
+router.post('/api/project/:projectID/file', apiController.projectFilePOST);
+
+router.delete('/api/project/:projectID/file/:fileID', apiController.projectFileDELETE);
 
 module.exports = router;
