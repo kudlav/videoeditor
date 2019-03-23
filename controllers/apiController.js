@@ -1,49 +1,50 @@
+import config from '../config';
+
 const fs = require('fs');
 const path = require('path');
+const nanoid = require('nanoid')
 const jsdom = require("jsdom");
 
 const { JSDOM } = jsdom;
 
-const PROJECT_PATHS = 'WORKER';
-
 exports.default = (req, res) => {
 
-	res.json(
-		{
+	res.json({
 			msg: 'For API documentation see https://github.com/kudlav/videoeditor',
-		}
+	});
+
+};
+
+
+exports.projectPOST = (req, res, next) => {
+
+	const data = config.declareXML + `
+<mlt>
+  <playlist id="videotrack0"></playlist>
+    <tractor id="main">
+      <multitrack>
+        <track producer="videotrack0" />
+      </multitrack>
+  </tractor>
+</mlt>`;
+
+	const projectID = '1234';
+
+	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
+		if (err) return next(err);
+	});
+
+	saveMLT(projectID, data).then(
+		() => {
+			res.json({
+				project: projectID,
+			});
+		},
+		err => next(err)
 	);
 
 };
 
-exports.projectPOST = (req, res, next) => {
-
-	const data = `<?xml version="1.0"?>
-		<mlt>
-		  <multitrack>
-		    <playlist id="videotrack1"></playlist>
-		  </multitrack>
-		</mlt>
-	`;
-
-	const projectID = '1234';
-
-	fs.mkdir(path.join(PROJECT_PATHS, projectID), { recursive: true }, (err) => {
-		if (err) return next(err);
-	});
-
-	fs.writeFile(path.join(PROJECT_PATHS, projectID, 'project.mlt'), data, (err) => {
-		if (err) return next(err);
-
-		console.log(`File ${path.join(PROJECT_PATHS, projectID, 'project.mlt')} has been saved.`);
-
-		res.json(
-			{
-				projectID: projectID,
-			}
-		);
-	});
-};
 
 exports.projectFilePOST = (req, res, next) => {
 
@@ -51,60 +52,62 @@ exports.projectFilePOST = (req, res, next) => {
 
 	req.busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
 
-		const fileID = Date.now();
+		const fileID = nanoid();
 		const extension = path.extname(filename);
-		let filepath = path.join(PROJECT_PATHS, req.params.projectID, fileID.toString());
+		let filepath = path.join(config.projectPath, req.params.projectID, fileID);
 		if (extension.length > 1) filepath += extension;
 
 		// Create a write stream of the new file
 		const fstream = fs.createWriteStream(filepath);
 
-		console.log(`Upload of '${filename}' started`);
+		console.info(new Date(), `Upload of "${filename}" started`);
 
 		// Pipe it trough
 		file.pipe(fstream);
 
 		// On finish of the upload
 		fstream.on('close', () => {
-			console.log(`Upload of '${filename}' finished`);
+			console.info(new Date(), `Upload of "${filename}" finished`);
 
-			const mltPath = path.join(PROJECT_PATHS, req.params.projectID, 'project.mlt');
+			const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
 
-			JSDOM.fromFile(mltPath).then(
+			JSDOM.fromFile(mltPath, {contentType:'application/xml'}).then(
 				dom => {
 					const document = dom.window.document;
 
-					const node = document.createElement("producer");
-					node.id = fileID.toString();
+					const node = document.createElement('producer');
+					node.id = 'producer' + fileID;
 					node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
+					node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
 
-					const root = document.querySelector('mlt');
-					root.appendChild(node);
-
-					fs.writeFile(mltPath, root.outerHTML, (err) => {
-						if (err) return next(err);
-
-						console.log(`File ${mltPath} updated.`);
-						res.json({
-							msg: `Upload of '${filename}' OK`,
-							resource_id: fileID.toString(),
-						});
-					});
+					const root = document.getElementsByTagName('mlt').item(0);
+					root.prepend(node);
+					saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+						() => {
+							res.json({
+								msg: `Upload of "${filename}" OK`,
+								resource_id: fileID,
+								resource_mime: mimeType,
+							});
+						},
+						err => next(err)
+					);
 				},
-				err => {
-					return next(err);
-				}
+				err => next(err)
 			);
 		});
 	});
 
 	req.pipe(req.busboy); // Pipe it trough busboy
+
 };
 
-exports.projectFileDELETE = (req, res, next) => {
-	const mltPath = path.join(PROJECT_PATHS, req.params.projectID, 'project.mlt');
 
-	JSDOM.fromFile(mltPath).then(
+exports.projectFileDELETE = (req, res, next) => {
+
+	const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
 			const document = dom.window.document;
 			const root = document.querySelector('mlt');
@@ -113,8 +116,8 @@ exports.projectFileDELETE = (req, res, next) => {
 			if (entries.length > 0) {
 				res.status(403);
 				res.json({
-					err: 'Položka je používána.',
-					msg: 'Položka je v projektu používána. Před smazáním z projektu ji odstraňte z časové osy.',
+					err: 'Zdroj je používán.',
+					msg: 'Zdroj je v projektu používán. Před smazáním z projektu jej odstraňte z časové osy.',
 				});
 				return;
 			}
@@ -123,8 +126,8 @@ exports.projectFileDELETE = (req, res, next) => {
 			if (producer === null) {
 				res.status(404);
 				res.json({
-					err: 'Položka nenalezena.',
-					msg: 'Položka se v projektu již nenachází.'
+					err: 'Zdroj nenalezen.',
+					msg: 'Zdroj se v projektu nenachází.'
 				});
 				return;
 			}
@@ -136,26 +139,123 @@ exports.projectFileDELETE = (req, res, next) => {
 			}
 
 			if (filename === undefined)
-				return next(`Project "${req.params.projectID}", file "${req.params.fileID}" property missing resource tag.`);
+				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing resource tag`);
 
 			// Try to remove file, log failure
 			fs.unlink(filename, (err) => {
-				if (err) console.log(err);
+				if (err) console.warn(new Date(), err);
 			});
 
 			producer.remove();
 
-			fs.writeFile(mltPath, root.outerHTML, (err) => {
-				if (err) return next(err);
-
-				console.log(`File ${mltPath} updated.`);
-				res.json({
-					msg: 'Položka byla úspěšně odebrána',
-				});
-			});
+			saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({
+						msg: 'Zdroj byl úspěšně odebrána',
+					});
+				},
+				err => next(err)
+			);
 		},
-		err => {
-			return next(err);
-		}
+		err => next(err)
 	);
+
 };
+
+
+exports.projectFilePUT = (req, res, next) => {
+
+	const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.querySelector('mlt');
+
+			const producer = document.querySelector(`mlt>producer[id="${req.params.fileID}"]`);
+			if (producer === null) {
+				res.status(404);
+				res.json({
+					err: 'Zdroj nenalezen.',
+					msg: 'Zdroj se v projektu nenachází.',
+				});
+				return;
+			}
+
+			const newEntry = document.createElement('entry');
+			newEntry.setAttribute('producer', req.params.fileID);
+
+			const properties = producer.getElementsByTagName('property');
+			let producerMime;
+			for (let property of properties) {
+				if (property.getAttribute('name') === 'musecut:mime_type') producerMime = property.innerHTML;
+			}
+
+			if (producerMime === undefined) {
+				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
+			}
+			else if (new RegExp(/^image\//).test(producerMime)) {
+				// Images needs duration parameter
+				if (!isNaturalNumber(req.body.duration)) {
+					res.status(403);
+					res.json({
+						err: 'Chybí délka trvání.',
+						msg: 'Pro vložení obrázku na časovou osu je nutné zadat celočíselnou délku trvání > 0.',
+					});
+					return;
+				}
+
+				newEntry.setAttribute('in', '0');
+				newEntry.setAttribute('out', (req.body.duration - 1).toString());
+			}
+			else if (new RegExp(/^video\//).test(producerMime) === false) {
+				// Reject everything except images and videos
+				res.status(403);
+				res.json({
+					err: 'Nepodporovaný typ souboru.',
+					msg: 'Na časovou osu lze vložit pouze video nebo obrázek.',
+				});
+				return;
+			}
+
+			document.querySelector('mlt>multitrack>playlist[id="videotrack1"]').appendChild(newEntry);
+
+			saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({
+						msg: 'Položka přidána na časovou osu',
+						timeline: 'videotrack1',
+					});
+				},
+				err => next(err)
+			);
+		},
+		err => next(err)
+	);
+
+};
+
+/**
+ * Check if number is integer greater then zero.
+ * @param number
+ * @return boolean
+ */
+function isNaturalNumber(number) {
+	return (typeof number === 'number' && Number.isInteger(number) && number > 0);
+}
+
+function saveMLT(project, data) {
+	const filepath = path.join(config.projectPath, project, 'project.mlt');
+
+	return new Promise((resolve, reject) => {
+		fs.writeFile(filepath, data, (err) => {
+			if (err) {
+				console.warn(new Date(), `Unable to update file ${filepath}`);
+				reject(err);
+			}
+
+			console.info(new Date(), `File ${filepath} updated.`);
+			resolve();
+		});
+	});
+}

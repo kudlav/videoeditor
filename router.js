@@ -7,11 +7,7 @@ const apiController = require('./controllers/apiController');
 
 // Log access
 router.use((req, res, next) => {
-	const date = (new Date()).toLocaleString('en-GB' , {
-		timeZone: 'UTC',
-		hour12: false,
-	});
-	console.log(`[${date}] @ ${req.originalUrl}`);
+	console.info(new Date(), ` @ ${req.originalUrl}`);
 	next(); // go to the next routes
 });
 
@@ -26,5 +22,7 @@ router.post('/api/project', apiController.projectPOST);
 router.post('/api/project/:projectID/file', apiController.projectFilePOST);
 
 router.delete('/api/project/:projectID/file/:fileID', apiController.projectFileDELETE);
+
+router.put('/api/project/:projectID/file/:fileID', apiController.projectFilePUT);
 
 module.exports = router;

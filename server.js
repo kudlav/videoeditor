@@ -8,6 +8,10 @@ server.use(busboy({
 	highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
 }));
 
+const bodyParser = require('body-parser');
+server.use(bodyParser.urlencoded({ extended: true }));
+server.use(bodyParser.json());
+
 // View
 server.engine('html', require('ejs').renderFile);
 server.set('view engine', 'html');

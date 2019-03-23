@@ -5,39 +5,45 @@ module.exports = {
 		filename: '[name].js'
 	},
 	module: {
-	rules: [
-		{
-			test: /\.json$/,
-			include: /node_modules/,
-			loader: 'json-loader'
-		},
-		{
-			test: /\.js$/,
-			loader: 'babel-loader'
-		},
-		{ // sass / scss loader for webpack
-			test: /\.scss$/,
-			use: [
-				{
-					loader: 'file-loader',
+		rules: [
+			{
+				test: /\.json$/,
+				include: /node_modules/,
+				loader: 'json-loader'
+			},
+			{
+				test: /\.js$/,
+				exclude: /node_modules/,
+				use: {
+					loader: 'babel-loader',
 					options: {
-						name: '/[name].css',
+						presets: ["@babel/preset-react", "@babel/preset-env"]
 					}
-				},
-				{
-					loader: 'extract-loader'
-				},
-				{
-					loader: 'css-loader?-url'
-				},
-				{
-					loader: 'postcss-loader'
-				},
-				{
-					loader: 'sass-loader'
 				}
-			]
-		}
-	]
+			},
+			{ // sass / scss loader for webpack
+				test: /\.scss$/,
+				use: [
+					{
+						loader: 'file-loader',
+						options: {
+							name: '/[name].css',
+						}
+					},
+					{
+						loader: 'extract-loader'
+					},
+					{
+						loader: 'css-loader?-url'
+					},
+					{
+						loader: 'postcss-loader'
+					},
+					{
+						loader: 'sass-loader'
+					}
+				]
+			}
+		]
 	}
 };
