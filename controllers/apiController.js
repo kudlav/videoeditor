@@ -170,9 +170,9 @@ exports.projectFilePUT = (req, res, next) => {
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
 			const document = dom.window.document;
-			const root = document.querySelector('mlt');
+			const root = document.getElementsByTagName('mlt').item(0);
 
-			const producer = document.querySelector(`mlt>producer[id="${req.params.fileID}"]`);
+			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
 			if (producer === null) {
 				res.status(404);
 				res.json({
@@ -218,7 +218,7 @@ exports.projectFilePUT = (req, res, next) => {
 				return;
 			}
 
-			document.querySelector('mlt>multitrack>playlist[id="videotrack1"]').appendChild(newEntry);
+			document.querySelector('mlt>playlist[id="videotrack0"]').appendChild(newEntry);
 
 			saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
