@@ -110,9 +110,9 @@ exports.projectFileDELETE = (req, res, next) => {
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
 			const document = dom.window.document;
-			const root = document.querySelector('mlt');
+			const root = document.getElementsByTagName('mlt').item(0);
 
-			const entries = document.querySelectorAll(`mlt>multitrack>playlist entry[producer="${req.params.fileID}"]`);
+			const entries = document.querySelectorAll(`mlt>playlist>entry[producer="producer${req.params.fileID}"]`);
 			if (entries.length > 0) {
 				res.status(403);
 				res.json({
@@ -122,7 +122,7 @@ exports.projectFileDELETE = (req, res, next) => {
 				return;
 			}
 
-			const producer = document.querySelector(`mlt>producer[id="${req.params.fileID}"]`);
+			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
 			if (producer === null) {
 				res.status(404);
 				res.json({
@@ -139,7 +139,7 @@ exports.projectFileDELETE = (req, res, next) => {
 			}
 
 			if (filename === undefined)
-				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing resource tag`);
+				return next(`Project "${req.params.projectID}", producer${req.params.fileID} misses resource tag`);
 
 			// Try to remove file, log failure
 			fs.unlink(filename, (err) => {
@@ -148,7 +148,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			producer.remove();
 
-			saveMLT(req.params.projectID, root.outerHTML).then(
+			saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
 				() => {
 					res.json({
 						msg: 'Zdroj byl úspěšně odebrána',
