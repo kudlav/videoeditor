@@ -2,7 +2,7 @@ import config from '../config';
 
 const fs = require('fs');
 const path = require('path');
-const nanoid = require('nanoid')
+const nanoid = require('nanoid');
 const jsdom = require("jsdom");
 
 const { JSDOM } = jsdom;
@@ -20,7 +20,7 @@ exports.projectPOST = (req, res, next) => {
 
 	const data = config.declareXML + `
 <mlt>
-  <playlist id="videotrack0"></playlist>
+  <playlist id="videotrack0"/>
     <tractor id="main">
       <multitrack>
         <track producer="videotrack0" />
@@ -183,7 +183,7 @@ exports.projectFilePUT = (req, res, next) => {
 			}
 
 			const newEntry = document.createElement('entry');
-			newEntry.setAttribute('producer', req.params.fileID);
+			newEntry.setAttribute('producer', 'producer' + req.params.fileID);
 
 			const properties = producer.getElementsByTagName('property');
 			let producerMime;
@@ -224,7 +224,7 @@ exports.projectFilePUT = (req, res, next) => {
 				() => {
 					res.json({
 						msg: 'Položka přidána na časovou osu',
-						timeline: 'videotrack1',
+						timeline: 'videotrack0',
 					});
 				},
 				err => next(err)
