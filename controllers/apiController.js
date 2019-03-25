@@ -1,4 +1,5 @@
 import config from '../config';
+import mltxmlManager from '../models/mltxmlManager';
 
 const fs = require('fs');
 const path = require('path');
@@ -34,7 +35,7 @@ exports.projectPOST = (req, res, next) => {
 		if (err) return next(err);
 	});
 
-	saveMLT(projectID, data).then(
+	mltxmlManager.saveMLT(projectID, data).then(
 		() => {
 			res.json({
 				project: projectID,
@@ -69,7 +70,7 @@ exports.projectFilePOST = (req, res, next) => {
 		fstream.on('close', () => {
 			console.info(new Date(), `Upload of "${filename}" finished`);
 
-			const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
+			const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 			JSDOM.fromFile(mltPath, {contentType:'application/xml'}).then(
 				dom => {
@@ -82,7 +83,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 					const root = document.getElementsByTagName('mlt').item(0);
 					root.prepend(node);
-					saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+					mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
 						() => {
 							res.json({
 								msg: `Upload of "${filename}" OK`,
@@ -105,7 +106,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 exports.projectFileDELETE = (req, res, next) => {
 
-	const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
@@ -148,7 +149,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			producer.remove();
 
-			saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
 				() => {
 					res.json({
 						msg: 'Zdroj byl úspěšně odebrána',
@@ -165,7 +166,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 exports.projectFilePUT = (req, res, next) => {
 
-	const mltPath = path.join(config.projectPath, req.params.projectID, 'project.mlt');
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
@@ -220,7 +221,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 			document.querySelector('mlt>playlist[id="videotrack0"]').appendChild(newEntry);
 
-			saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
 				() => {
 					res.json({
 						msg: 'Položka přidána na časovou osu',
@@ -235,27 +236,112 @@ exports.projectFilePUT = (req, res, next) => {
 
 };
 
+
+exports.projectFilterPOST = (req, res, next) => {
+
+	// Required parameters: track, item, filter
+	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
+		res.status(403);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: "track", "item", "filter".',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			const item = mltxmlManager.getItem(document, track, req.body.item);
+			if (item === null) {
+				res.status(404);
+				res.json({
+					err: 'Položka nenalezena.',
+					msg: `Položka "${req.body.item}" se na stopě "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+			if (mltxmlManager.isSimleNode(item)) {
+				// Create playlist after last producer
+				const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
+				const producers = document.getElementsByTagName('producer');
+				const lastProducer = producers.item(producers.length - 1);
+				const newPlaylist = document.createElement('playlist');
+				newPlaylist.id = 'playlist' + playlists.length;
+				newPlaylist.innerHTML = item.outerHTML;
+				lastProducer.parentNode.insertBefore(newPlaylist, lastProducer.nextSibling);
+
+				// Create tractor before videotrack0
+				const tractors = document.querySelectorAll('mlt>playlist[id^="tractor"]');
+				const videotrack0 = document.getElementById('videotrack0');
+				const newTractor = document.createElement('tractor');
+				newTractor.id = 'tractor' + tractors.length;
+				newTractor.innerHTML = `<multitrack><track producer="${newPlaylist.id}"/></multitrack><filter mlt_service="${req.body.filter}" track="0"/>`;
+				videotrack0.parentNode.insertBefore(newTractor, videotrack0);
+
+				// Update track playlist
+				item.removeAttribute('in');
+				item.removeAttribute('out');
+				item.setAttribute('producer', newTractor.id);
+			}
+			else {
+				// Get track index for
+				let trackIndex = 0;
+				let node = item;
+				while (node = node.previousElementSibling) {
+					trackIndex++;
+				}
+
+				// Check if filter is already applied
+				if (document.querySelector(`mlt>tractor>filter[mlt_service="${req.body.filter}"][track="${trackIndex}"]`) !== null) {
+					res.status(403);
+					res.json({
+						err: 'Filtr je již aplikován.',
+						msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter} aplikován".`,
+					});
+					return;
+				}
+
+				// Add new filter
+				const newFilter = document.createElement('filter');
+				newFilter.setAttribute('mlt_service', req.body.filter);
+				newFilter.setAttribute('track', trackIndex.toString());
+				item.parentElement.parentElement.appendChild(newFilter);
+			}
+
+			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+				() => {
+					res.json({msg: 'Filtr přidán'});
+				},
+				err => next(err)
+			);
+		},
+		err => next(err)
+	);
+
+};
+
+
 /**
- * Check if number is integer greater then zero.
- * @param number
- * @return boolean
+ * Check if number is integer greater then zero
+ *
+ * @param {Number} number
+ * @return {boolean}
  */
 function isNaturalNumber(number) {
 	return (typeof number === 'number' && Number.isInteger(number) && number > 0);
-}
-
-function saveMLT(project, data) {
-	const filepath = path.join(config.projectPath, project, 'project.mlt');
-
-	return new Promise((resolve, reject) => {
-		fs.writeFile(filepath, data, (err) => {
-			if (err) {
-				console.warn(new Date(), `Unable to update file ${filepath}`);
-				reject(err);
-			}
-
-			console.info(new Date(), `File ${filepath} updated.`);
-			resolve();
-		});
-	});
 }

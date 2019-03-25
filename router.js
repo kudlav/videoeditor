@@ -25,4 +25,6 @@ router.delete('/api/project/:projectID/file/:fileID', apiController.projectFileD
 
 router.put('/api/project/:projectID/file/:fileID', apiController.projectFilePUT);
 
+router.post('/api/project/:projectID/filter', apiController.projectFilterPOST);
+
 module.exports = router;
