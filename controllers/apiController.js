@@ -19,8 +19,7 @@ exports.default = (req, res) => {
 
 exports.projectPOST = (req, res, next) => {
 
-	const data = config.declareXML + `
-<mlt>
+	const data = `<mlt>
   <playlist id="videotrack0"/>
     <tractor id="main">
       <multitrack>
@@ -83,7 +82,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 					const root = document.getElementsByTagName('mlt').item(0);
 					root.prepend(node);
-					mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+					mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 						() => {
 							res.json({
 								msg: `Upload of "${filename}" OK`,
@@ -149,7 +148,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			producer.remove();
 
-			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
 					res.json({
 						msg: 'Zdroj byl úspěšně odebrána',
@@ -221,7 +220,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 			document.querySelector('mlt>playlist[id="videotrack0"]').appendChild(newEntry);
 
-			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
 					res.json({
 						msg: 'Položka přidána na časovou osu',
@@ -323,7 +322,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				item.parentElement.parentElement.appendChild(newFilter);
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, (config.declareXML + root.outerHTML)).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
 					res.json({msg: 'Filtr přidán'});
 				},

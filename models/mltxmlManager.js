@@ -13,14 +13,14 @@ export default {
 	 * Save string as MLT file for specified project (create new or overwrite existing)
 	 *
 	 * @param project
-	 * @param data
+	 * @param data String without XML declaration and without doctype
 	 * @return {Promise<any>}
 	 */
 	saveMLT(project, data) {
 	const filepath = path.join(config.projectPath, project, 'project.mlt');
 
 		return new Promise((resolve, reject) => {
-			fs.writeFile(filepath, data, (err) => {
+			fs.writeFile(filepath, (config.declareXML + data), (err) => {
 				if (err) {
 					console.warn(new Date(), `Unable to update file ${filepath}`);
 					reject(err);
