@@ -87,7 +87,46 @@ export default {
 	 */
 	getMLTpath(projectID) {
 		return path.join(config.projectPath, projectID, 'project.mlt');
-	}
+	},
 
+
+	/**
+	 * Get index of track in multitrack
+	 *
+	 * @param {Element} track
+	 * @return {number}
+	 */
+	getTrackIndex(track) {
+		let index = 0;
+		while (track = track.previousElementSibling) {
+			index++;
+		}
+		return index;
+	},
+
+
+	/**
+	 * Check if track is used in any filter or transition
+	 *
+	 * @param {Element} track
+	 * @return {boolean}
+	 */
+	isUsedInTractor(track) {
+		const tractor = track.parentElement.parentElement;
+		const trackIndex = this.getTrackIndex(track);
+
+		const filters = tractor.getElementsByTagName('filter');
+		for (let filter of filters) {
+			if (filter.getAttribute('track') === trackIndex.toString()) return true;
+		}
+
+		const transitions = tractor.getElementsByTagName('transition');
+		for (let transition of transitions) {
+			if (transition.getAttribute('a_track') === trackIndex.toString()) return true;
+			if (transition.getAttribute('b_track') === trackIndex.toString()) return true;
+		}
+
+		return false;
+	}
 
 }

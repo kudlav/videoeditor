@@ -333,6 +333,93 @@ exports.projectFilterPOST = (req, res, next) => {
 };
 
 
+exports.projectFilterDELETE = (req, res, next) => {
+
+	// Required parameters: track, item, filter
+	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
+		res.status(403);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: "track", "item", "filter".',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			const item = mltxmlManager.getItem(document, track, req.body.item);
+			if (item === null) {
+				res.status(404);
+				res.json({
+					err: 'Položka nenalezena.',
+					msg: `Položka "${req.body.item}" se na stopě "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+
+			const tractor = item.parentElement.parentElement;
+			const trackIndex = mltxmlManager.getTrackIndex(item);
+			const filters = tractor.getElementsByTagName('filter');
+			let filter;
+			for (let entry of filters) {
+				if (entry.getAttribute('mlt_service') === req.body.filter && entry.getAttribute('track') === trackIndex.toString()) {
+					filter = entry;
+					break;
+				}
+			}
+
+			// Check if filter exists
+			if (mltxmlManager.isSimleNode(item) || filter === undefined) {
+				res.status(404);
+				res.json({
+					err: 'Filtr nenalezen.',
+					msg: `Filtr "${req.body.filter}" se na ${req.body.item}. položce stopy "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+
+			filter.remove();
+
+			// Tractor without filters, with one track
+			if (!mltxmlManager.isUsedInTractor(item) && tractor.getElementsByTagName('multitrack').item(0).childElementCount === 1) {
+				const playlist = document.getElementById(item.getAttribute('producer'));
+				const entry = playlist.getElementsByTagName('entry').item(0);
+				const tractorUsage = document.querySelector(`mlt>playlist>entry[producer="${tractor.id}"]`);
+				tractorUsage.parentElement.insertBefore(entry, tractorUsage);
+
+				tractorUsage.remove();
+				tractor.remove();
+				playlist.remove();
+			}
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({msg: 'Filtr odebrán'});
+				},
+				err => next(err)
+			);
+		},
+		err => next(err)
+	);
+
+};
+
+
 /**
  * Check if number is integer greater then zero
  *
