@@ -282,7 +282,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				const newPlaylist = document.createElement('playlist');
 				newPlaylist.id = 'playlist' + playlists.length;
 				newPlaylist.innerHTML = item.outerHTML;
-				lastProducer.parentNode.insertBefore(newPlaylist, lastProducer.nextSibling);
+				root.insertBefore(newPlaylist, lastProducer.nextSibling);
 
 				// Create tractor before videotrack0
 				const tractors = document.querySelectorAll('mlt>playlist[id^="tractor"]');
@@ -290,7 +290,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				const newTractor = document.createElement('tractor');
 				newTractor.id = 'tractor' + tractors.length;
 				newTractor.innerHTML = `<multitrack><track producer="${newPlaylist.id}"/></multitrack><filter mlt_service="${req.body.filter}" track="0"/>`;
-				videotrack0.parentNode.insertBefore(newTractor, videotrack0);
+				root.insertBefore(newTractor, videotrack0);
 
 				// Update track playlist
 				item.removeAttribute('in');
@@ -306,7 +306,8 @@ exports.projectFilterPOST = (req, res, next) => {
 				}
 
 				// Check if filter is already applied
-				if (document.querySelector(`mlt>tractor>filter[mlt_service="${req.body.filter}"][track="${trackIndex}"]`) !== null) {
+				const tractorID = item.parentElement.parentElement.id;
+				if (document.querySelector(`mlt>tractor[id="${tractorID}"]>filter[mlt_service="${req.body.filter}"][track="${trackIndex}"]`) !== null) {
 					res.status(403);
 					res.json({
 						err: 'Filtr je již aplikován.',
