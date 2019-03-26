@@ -298,22 +298,19 @@ exports.projectFilterPOST = (req, res, next) => {
 				item.setAttribute('producer', newTractor.id);
 			}
 			else {
-				// Get track index for
-				let trackIndex = 0;
-				let node = item;
-				while (node = node.previousElementSibling) {
-					trackIndex++;
-				}
+				const trackIndex = mltxmlManager.getTrackIndex(item);
 
 				// Check if filter is already applied
-				const tractorID = item.parentElement.parentElement.id;
-				if (document.querySelector(`mlt>tractor[id="${tractorID}"]>filter[mlt_service="${req.body.filter}"][track="${trackIndex}"]`) !== null) {
-					res.status(403);
-					res.json({
-						err: 'Filtr je již aplikován.',
-						msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter} aplikován".`,
-					});
-					return;
+				const filters = item.parentElement.parentElement.getElementsByTagName('filter');
+				for (let filter of filters) {
+					if (filter.getAttribute('mlt_service') === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
+						res.status(403);
+						res.json({
+							err: 'Filtr je již aplikován.',
+							msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter} aplikován".`,
+						});
+						return;
+					}
 				}
 
 				// Add new filter
