@@ -285,7 +285,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				root.insertBefore(newPlaylist, lastProducer.nextSibling);
 
 				// Create tractor before videotrack0
-				const tractors = document.querySelectorAll('mlt>playlist[id^="tractor"]');
+				const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
 				const videotrack0 = document.getElementById('videotrack0');
 				const newTractor = document.createElement('tractor');
 				newTractor.id = 'tractor' + tractors.length;
