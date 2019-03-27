@@ -39,7 +39,7 @@ footer {
 }
 
 footer, header {
-	box-shadow: 0 0px 10px #111;
+	box-shadow: 0 0 10px #111;
 	background: #373737;
 }
 
@@ -78,11 +78,15 @@ h3 {
 	top: 3px;
 }
 
+.icon-huge {
+	font-size: 4em;
+}
+
 .prev-toolbar {
 	border: 1px solid #555;
 	display: inline-block;
 	margin-top: 10px;
-	padding: 0px 4px 0px 4px;
+	padding: 0 4px 0 4px;
 	border-radius: 5px;
 	background: #25282d;
 }
@@ -106,7 +110,7 @@ button {
 	color: inherit;
 	border: 1px solid #555;
 	display: inline-block;
-	padding: 0px 7px 2px 7px;
+	padding: 0 7px 2px 7px;
 	margin: 10px 3px;
 	cursor: pointer;
 	font-family: SourceSans;
@@ -162,4 +166,105 @@ tr:nth-child(even) {
 
 .column-right {
 	text-align: right;
+}
+
+/*
+ * DROPZONE
+ */
+.dzu-dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	min-height: 120px;
+	margin: 0 auto;
+	position: relative;
+	box-sizing: border-box;
+	transition: all .15s linear;
+	border: 2px solid #555;
+	border-radius: 4px;
+}
+
+.dzu-dropzoneActive {
+	background-color: #777;
+}
+
+.dzu-dropzoneDisabled {
+	opacity: 0.5;
+}
+
+.dzu-dropzoneDisabled *:hover {
+	cursor: unset;
+}
+
+.dzu-input {
+	display: none;
+}
+
+.dzu-inputLabel {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	font-size: 20px;
+	cursor: pointer;
+}
+
+.dzu-inputLabelWithFiles {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	align-self: flex-start;
+	padding: 0 14px;
+	min-height: 32px;
+	background-color: #25282d;
+	border: 1px solid #555;
+	border-radius: 4px;
+	font-size: 14px;
+	margin: 20px 0 20px 3%;
+	cursor: pointer;
+}
+
+.dzu-previewContainer {
+	padding: 20px 3%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	position: relative;
+	width: 100%;
+	min-height: 60px;
+	z-index: 1;
+	border-bottom: 1px solid #555;
+	box-sizing: border-box;
+}
+
+.dzu-previewStatusContainer {
+	display: flex;
+	align-items: center;
+}
+
+.dzu-previewFileName {
+	font-size: 14px;
+}
+
+.dzu-previewImage {
+	width: auto;
+	max-height: 50px;
+	max-width: 60px;
+}
+
+.dzu-previewButton {
+	background-size: 14px 14px;
+	background-position: center;
+	background-repeat: no-repeat;
+	width: 14px;
+	height: 14px;
+	cursor: pointer;
+	opacity: 0.9;
+	margin: 0 0 2px 10px;
 }

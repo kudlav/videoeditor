@@ -31,7 +31,8 @@
     "node-mlt": "git+https://github.com/redmantech/node-mlt.git",
     "prop-types": "^15.7.2",
     "react": "^16.8.5",
-    "react-dom": "^16.8.5"
+    "react-dom": "^16.8.5",
+    "react-dropzone-uploader": "^2.7.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

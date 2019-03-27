@@ -16,36 +16,7 @@
 	</header>
 	<main>
 		<div>
-			<div id="sources">
-				<h3><i class="material-icons" aria-hidden="true">video_library</i>Seznam záběrů</h3>
-				<table>
-					<tr>
-						<td><div style="height: 50px; width: 60px; background-color: #4A4; text-align: center;"><i class="material-icons" aria-hidden="true" style="font-size: 3.5em">panorama</i></div></td>
-						<td>intro.png<br><small>Délka: 00:08:20;16</small></td>
-						<td class="column-right">
-							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em; margin-right: 0.3em;">control_point</i></a>
-							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em;">delete</i></a>
-						</td>
-					</tr>
-					<tr>
-						<td><div style="height: 50px; width: 60px; background-color: #44A; text-align: center;"><i class="material-icons" aria-hidden="true" style="font-size: 3.5em">panorama</i></div></td>
-						<td>GOPR0164.MP4<br><small>Délka: 00:01:52;12</small></td>
-						<td class="column-right">
-							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em; margin-right: 0.3em;">control_point</i></a>
-							<a><i class="material-icons" aria-hidden="true" style="font-size: 2em;">delete</i></a>
-						</td>
-					</tr>
-					<tr>
-						<td colspan="3">
-							<form action="api/project/1234/file" method="post" enctype="multipart/form-data">
-								<input type="file" name="fileToUpload">
-								<input type="submit">
-							</form>
-							<i class="material-icons" aria-hidden="true" style="font-size: 4em;">add_box</i>
-						</td>
-					</tr>
-				</table>
-			</div>
+			<div id="sources"></div>
 			<div id="preview">
 				<h3><i class="material-icons" aria-hidden="true">movie</i>Náhled</h3>
 				<video></video>
