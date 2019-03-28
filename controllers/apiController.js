@@ -48,7 +48,14 @@ exports.projectPOST = (req, res, next) => {
 
 exports.projectFilePOST = (req, res, next) => {
 
-	//todo !!! Pokud není s požadavkem nahrávaný soubor, server spadne!!!
+	if (typeof req.busboy === 'undefined') {
+		res.status(400);
+		res.json({
+			err: 'Chybí soubor.',
+			msg: 'Tělo požadavku musí obsahovat soubor k nahrání.',
+		});
+		return;
+	}
 
 	req.busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
 
