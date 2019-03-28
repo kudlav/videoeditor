@@ -204,7 +204,7 @@ exports.projectFilePUT = (req, res, next) => {
 			else if (new RegExp(/^image\//).test(producerMime)) {
 				// Images needs duration parameter
 				if (!isNaturalNumber(req.body.duration)) {
-					res.status(403);
+					res.status(400);
 					res.json({
 						err: 'Chybí délka trvání.',
 						msg: 'Pro vložení obrázku na časovou osu je nutné zadat celočíselnou délku trvání > 0.',
@@ -247,7 +247,7 @@ exports.projectFilterPOST = (req, res, next) => {
 
 	// Required parameters: track, item, filter
 	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
-		res.status(403);
+		res.status(400);
 		res.json({
 			err: 'Chybí parametry.',
 			msg: 'Chybí povinné parametry: "track", "item", "filter".',
@@ -344,7 +344,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 
 	// Required parameters: track, item, filter
 	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
-		res.status(403);
+		res.status(400);
 		res.json({
 			err: 'Chybí parametry.',
 			msg: 'Chybí povinné parametry: "track", "item", "filter".',
