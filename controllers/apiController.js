@@ -48,7 +48,7 @@ exports.projectPOST = (req, res, next) => {
 
 exports.projectFilePOST = (req, res, next) => {
 
-	if (typeof req.busboy === 'undefined') {
+	if (!isset(req.busboy)) {
 		res.status(400);
 		res.json({
 			err: 'Chybí soubor.',
@@ -246,7 +246,7 @@ exports.projectFilePUT = (req, res, next) => {
 exports.projectFilterPOST = (req, res, next) => {
 
 	// Required parameters: track, item, filter
-	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
+	if (!isset(req.body.track, req.body.item, req.body.filter)) {
 		res.status(400);
 		res.json({
 			err: 'Chybí parametry.',
@@ -343,7 +343,7 @@ exports.projectFilterPOST = (req, res, next) => {
 exports.projectFilterDELETE = (req, res, next) => {
 
 	// Required parameters: track, item, filter
-	if (typeof req.body.track === 'undefined' || typeof req.body.item === 'undefined' || typeof req.body.filter === 'undefined') {
+	if (!isset(req.body.track, req.body.item, req.body.filter)) {
 		res.status(400);
 		res.json({
 			err: 'Chybí parametry.',
@@ -435,4 +435,18 @@ exports.projectFilterDELETE = (req, res, next) => {
  */
 function isNaturalNumber(number) {
 	return (typeof number === 'number' && Number.isInteger(number) && number > 0);
+}
+
+
+/**
+ * Determine if variables are declared
+ *
+ * @param variables Rest parameters
+ * @return {boolean} Return TRUE only if all of the parameters are set
+ */
+function isset(...variables) {
+	for (let variable of variables) {
+		if (typeof variable === 'undefined') return false;
+	}
+	return true;
 }
