@@ -1,0 +1,357 @@
+openapi: 3.0.1
+info:
+  title: Videoeditor
+  description: API for clients of Web Based Video Editor.
+  termsOfService: https://github.com/kudlav/videoeditor/blob/master/LICENSE
+  contact:
+    email: xkudla15@vut.cz
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+externalDocs:
+  description: Github repository
+  url: https://github.com/kudlav/videoeditor/
+servers:
+- url: https://editor.prednasky.com/api
+tags:
+- name: project
+  description: Everything about project
+paths:
+  /project:
+    post:
+      tags:
+      - project
+      summary: Start new project
+      operationId: projectPOST
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    type: string
+                    description: ID of new project.
+  /project/{projectID}:
+    get:
+      tags:
+      - project
+      summary: Get state of project
+      operationId: projectGET
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      deprecated: true
+    delete:
+      tags:
+      - project
+      summary: Remove project and all files
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      deprecated: true
+  /project/{projectID}/submit:
+    put:
+      tags:
+      - project
+      summary: Finish project, get video
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      deprecated: true
+    
+  /project/{projectID}/file:
+    post:
+      tags:
+      - file
+      summary: Upload new file
+      operationId: projectFilePOST
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                file:
+                  type: string
+                  description: file to upload
+                  format: binary
+        required: true
+      responses:
+        200:
+          description: File uploaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    description: info message
+                  resource_id:
+                    type: string
+                    description: uploaded file ID
+        400:
+          description: Bad request, missing file in request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /project/{projectID}/file/{fileID}:
+    delete:
+      tags:
+      - file
+      summary: Remove file from project
+      operationId: projectFileDELETE
+      parameters:
+      - name: projectID
+        in: path
+        description: project ID
+        required: true
+        schema:
+          type: string
+      - name: fileID
+        in: path
+        description: file ID
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: File removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        403:
+          description: Unable to remove, resource is in use.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+      - file
+      summary: Add file to the end of default timeline
+      operationId: projectFilePUT
+      parameters:
+      - name: projectID
+        in: path
+        description: project ID
+        required: true
+        schema:
+          type: string
+      - name: fileID
+        in: path
+        description: file ID
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: File added to a timeline.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    description: info message
+                  timeline:
+                    type: string
+                    description: file added to timeline with following ID
+        400:
+          description: Bad request, missing duration of image.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Unsupported file type for the timeline.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Resource not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /project/{projectID}/filter:
+    post:
+      tags:
+      - filter
+      summary: Apply filter to a timeline item
+      operationId: projectFilterPOST
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Filter applied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track, item or filter parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Filter already applied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track or item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+      - filter
+      summary: Remove filter from a timeline item
+      operationId: projectFilterDELETE
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      responses:
+        200:
+          description: Filter removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track, item or filter parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track, item or filter not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /project/{projectID}/transition:
+    post:
+      tags:
+      - transition
+      summary: Apply transition between two timeline items
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      deprecated: true
+    delete:
+      tags:
+      - transition
+      summary: Remove transition between two timeline items
+      parameters:
+      - name: projectID
+        in: path
+        description: ID of project.
+        required: true
+        schema:
+          type: string
+      deprecated: true
+  /project/{projectID}/item:
+    delete:
+      tags:
+      - item
+      summary: Remove item from timeline
+      deprecated: true
+      parameters:
+      - name: projectID
+        in: path
+        description: project ID
+        required: true
+        schema:
+          type: string
+    put:
+      tags:
+      - item
+      summary: Move item in timeline
+      deprecated: true
+      parameters:
+      - name: projectID
+        in: path
+        description: project ID
+        required: true
+        schema:
+          type: string
+    patch:
+      tags:
+      - item
+      summary: Split item in timeline into two parts
+      deprecated: true
+      parameters:
+      - name: projectID
+        in: path
+        description: project ID
+        required: true
+        schema:
+          type: string
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        err:
+          type: string
+          description: error message title
+        msg:
+          type: string
+          description: error description
+    SuccessResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          description: info message
