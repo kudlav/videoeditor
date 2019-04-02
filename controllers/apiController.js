@@ -1,5 +1,6 @@
 import config from '../config';
 import mltxmlManager from '../models/mltxmlManager';
+import fileManager from '../models/fileManager';
 
 const fs = require('fs');
 const path = require('path');
@@ -76,31 +77,39 @@ exports.projectFilePOST = (req, res, next) => {
 		fstream.on('close', () => {
 			console.info(new Date(), `Upload of "${filename}" finished`);
 
-			const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+			fileManager.getDuration(filepath, mimeType).then(
+				length => {
 
-			JSDOM.fromFile(mltPath, {contentType:'application/xml'}).then(
-				dom => {
-					const document = dom.window.document;
+					const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
-					const node = document.createElement('producer');
-					node.id = 'producer' + fileID;
-					node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
-					node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
+					JSDOM.fromFile(mltPath, {contentType:'application/xml'}).then(
+						dom => {
+							const document = dom.window.document;
 
-					const root = document.getElementsByTagName('mlt').item(0);
-					root.prepend(node);
-					mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
-						() => {
-							res.json({
-								msg: `Upload of "${filename}" OK`,
-								resource_id: fileID,
-								resource_mime: mimeType,
-							});
+							const node = document.createElement('producer');
+							node.id = 'producer' + fileID;
+							node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
+							node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
+							if (isValidDuration(length))
+								node.innerHTML += `<property name="length">${length}</property>`;
+
+							const root = document.getElementsByTagName('mlt').item(0);
+							root.prepend(node);
+							mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+								() => {
+									res.json({
+										msg: `Upload of "${filename}" OK`,
+										resource_id: fileID,
+										resource_mime: mimeType,
+										length: length,
+									});
+								},
+								err => next(err)
+							);
 						},
 						err => next(err)
 					);
-				},
-				err => next(err)
+				}
 			);
 		});
 	});
