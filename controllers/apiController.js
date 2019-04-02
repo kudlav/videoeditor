@@ -203,11 +203,11 @@ exports.projectFilePUT = (req, res, next) => {
 			}
 			else if (new RegExp(/^image\//).test(producerMime)) {
 				// Images needs duration parameter
-				if (!isNaturalNumber(req.body.duration)) {
+				if (!isValidDuration(req.body.duration)) {
 					res.status(400);
 					res.json({
 						err: 'Chybí délka trvání.',
-						msg: 'Pro vložení obrázku na časovou osu je nutné zadat celočíselnou délku trvání > 0.',
+						msg: 'Pro vložení obrázku na časovou osu je nutné zadat trvání ve formátu 00:00:00,000.',
 					});
 					return;
 				}
@@ -428,13 +428,29 @@ exports.projectFilterDELETE = (req, res, next) => {
 
 
 /**
- * Check if number is integer greater then zero
+ * Check if numbers are positive integers
  *
- * @param {Number} number
+ * @param numbers
+ * @return {boolean} Return TRUE only if all of the parameters fits
+ */
+function isNaturalNumber(...numbers) {
+	for (let number of numbers) {
+		if (typeof number !== 'number' || !Number.isInteger(number) || number < 0) return false;
+	}
+	return true;
+}
+
+
+/**
+ * Check if the string is valid duration with non-zero value.
+ *
+ * @param {string} text In format 00:00:00,000
  * @return {boolean}
  */
-function isNaturalNumber(number) {
-	return (typeof number === 'number' && Number.isInteger(number) && number > 0);
+function isValidDuration(text) {
+	const regexpFormat = new RegExp(/^\d{2,}:\d{2}:\d{2},\d{3}$/);
+	const regexpZero = new RegExp(/^0{2,}:00:00,000$/);
+	return (regexpFormat.test(text) && !regexpZero.test(text));
 }
 
 
