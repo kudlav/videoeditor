@@ -222,7 +222,7 @@ exports.projectFilePUT = (req, res, next) => {
 				}
 
 				newEntry.setAttribute('in', '0');
-				newEntry.setAttribute('out', (req.body.duration - 1).toString());
+				newEntry.setAttribute('out', req.body.duration);
 			}
 			else if (new RegExp(/^video\//).test(producerMime) === false) {
 				// Reject everything except images and videos
