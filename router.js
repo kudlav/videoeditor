@@ -29,4 +29,6 @@ router.post('/api/project/:projectID/filter', apiController.projectFilterPOST);
 
 router.delete('/api/project/:projectID/filter', apiController.projectFilterDELETE);
 
+router.post('/api/project/:projectID/transition', apiController.projectTransitionPOST);
+
 module.exports = router;

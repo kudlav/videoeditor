@@ -79,6 +79,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
+					length += '0';
 
 					const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
@@ -429,6 +430,120 @@ exports.projectFilterDELETE = (req, res, next) => {
 				},
 				err => next(err)
 			);
+		},
+		err => next(err)
+	);
+
+};
+
+
+exports.projectTransitionPOST = (req, res, next) => {
+
+	// Required parameters: track, itemA, itemB, transition, duration
+	if (!isset(req.body.track, req.body.itemA, req.body.itemB, req.body.transition, req.body.duration)) {
+		res.status(400);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: track, itemA, itemB, transition, duration.',
+		});
+		return;
+	}
+
+	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !isValidDuration(req.body.duration)) {
+		res.status(400);
+		res.json({
+			err: 'Chybné parametry.',
+			msg: 'Parametry itemA, itemB musí být celočíselné, nezáporné, duration musí být nenulové, ve formátu 00:00:00,000.',
+		});
+		return;
+	}
+
+	if ((req.body.itemB - req.body.itemA) !== 1) {
+		res.status(400);
+		res.json({
+			err: 'Chybné parametry.',
+			msg: 'itemA musí přímo následovat po itemB.',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			const itemA = mltxmlManager.getItem(document, track, req.body.itemA);
+			const itemB = mltxmlManager.getItem(document, track, req.body.itemB);
+
+			if (itemA === null || itemB === null) {
+				res.status(404);
+				res.json({
+					err: 'Polozka nenalezena.',
+					msg: `Položka ${req.body.itemA} nebo ${req.body.itemA} se na stopě "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+
+			const durationA = mltxmlManager.getDuration(itemA, document);
+			const durationB = mltxmlManager.getDuration(itemB, document);
+			const waitBeforeTransition = mltxmlManager.subDuration(durationA.out, req. body.duration);
+			if (req.body.duration > durationA.time || req.body.duration > durationB.time) {
+				res.status(400);
+				res.json({
+					err: 'Příliš dlouhá doba přechodu.',
+					msg: 'Přechod je delší než jedna z položek přechodu.',
+				});
+				return;
+			}
+
+			if (mltxmlManager.isSimleNode(itemA) && mltxmlManager.isSimleNode(itemB)) {
+				// Create playlist after last producer
+				const producers = document.getElementsByTagName('producer');
+				const lastProducer = producers.item(producers.length - 1);
+				const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
+				const newPlaylistA = document.createElement('playlist');
+				newPlaylistA.id = 'playlist' + playlists.length;
+				newPlaylistA.innerHTML = itemA.outerHTML;
+				root.insertBefore(newPlaylistA, lastProducer.nextSibling);
+				const newPlaylistB = document.createElement('playlist');
+				newPlaylistB.id = 'playlist' + (playlists.length + 1);
+				newPlaylistB.innerHTML = `<blank length="${waitBeforeTransition}"/>` + itemB.outerHTML;
+				root.insertBefore(newPlaylistB, lastProducer.nextSibling);
+
+				// Create tractor before videotrack0
+				const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
+				const videotrack0 = document.getElementById('videotrack0');
+				const newTractor = document.createElement('tractor');
+				newTractor.id = 'tractor' + tractors.length;
+				newTractor.innerHTML = `<multitrack><track producer="${newPlaylistA.id}"/><track producer="${newPlaylistB.id}"/></multitrack>`;
+				newTractor.innerHTML += `<transition mlt_service="${req.body.transition}" in="${waitBeforeTransition}" out="${durationA.out}" a_track="0" b_track="1"/>`;
+				root.insertBefore(newTractor, videotrack0);
+
+				// Update track
+				itemA.removeAttribute('in');
+				itemA.removeAttribute('out');
+				itemA.setAttribute('producer', newTractor.id);
+				itemB.remove();
+
+				mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+					() => {
+						res.json({msg: 'Přechod aplikován'});
+					},
+					err => next(err)
+				);
+			}
 		},
 		err => next(err)
 	);
