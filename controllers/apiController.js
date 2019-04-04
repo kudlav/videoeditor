@@ -503,6 +503,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				// Create playlist after last producer
 				const newPlaylistA = mltxmlManager.entryToPlaylist(itemA, document);
 				const newPlaylistB = mltxmlManager.entryToPlaylist(itemB, document);
+				newPlaylistB.innerHTML = `<blank length="${waitBeforeTransition}" />` + newPlaylistB.innerHTML;
 
 				// Create tractor before videotrack0
 				const newTractor = mltxmlManager.createTractor(document);
@@ -514,14 +515,77 @@ exports.projectTransitionPOST = (req, res, next) => {
 				itemA.removeAttribute('out');
 				itemA.setAttribute('producer', newTractor.id);
 				itemB.remove();
-
-				mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
-					() => {
-						res.json({msg: 'Přechod aplikován'});
-					},
-					err => next(err)
-				);
 			}
+			// Complex + Simple
+			else if (!mltxmlManager.isSimpleNode(itemA) && mltxmlManager.isSimpleNode(itemB)) {
+				const newPlaylist = mltxmlManager.entryToPlaylist(itemB, document);
+				mltxmlManager.appendPlaylistToMultitrack(itemA.parentElement, newPlaylist, req.body.duration, req.body.transition, document);
+				itemB.remove();
+			}
+			// Complex + Complex
+			else if (!mltxmlManager.isSimpleNode(itemA)) {
+				const multitrackA = itemA.parentElement;
+				const multitrackB = itemB.parentElement;
+				if (multitrackA === multitrackB) {
+					res.status(403);
+					res.json({
+						err: 'Přechod již aplikován.',
+						msg: 'Zvolené prvky již mají vzájemný přechod.',
+					});
+					return;
+				}
+
+				let duration = req.body.duration;
+				let transition = req.body.transition;
+				let newTrackIndex = multitrackB.childElementCount;
+				let oldTrackIndex = 0;
+				const transitions = multitrackB.parentElement.getElementsByTagName('transition');
+				const filters = multitrackB.parentElement.getElementsByTagName('filter');
+				const tracksB = multitrackB.childNodes;
+				for (let
+					track of tracksB) {
+					// Merge transition
+					if (!isset(transition)) {
+						for (let transitionElement of transitions) {
+							if (transitionElement.getAttribute('b_track') === oldTrackIndex.toString()) {
+								transition = transitionElement.getAttribute('mlt_service');
+								duration = mltxmlManager.subDuration(transitionElement.getAttribute('out'), transitionElement.getAttribute('in'));
+							}
+						}
+					}
+
+					// Merge filters
+					for (let filter of filters) {
+						if (filter.getAttribute('track') === oldTrackIndex.toString()) {
+							filter.setAttribute('track', newTrackIndex.toString());
+							multitrackA.parentElement.append(filter);
+						}
+					}
+
+					let playlist = document.getElementById(track.getAttribute('producer'));
+					mltxmlManager.appendPlaylistToMultitrack(multitrackA, playlist, duration, transition, document);
+
+					transition = undefined;
+					duration = undefined;
+					newTrackIndex++;
+					oldTrackIndex++;
+				}
+				const tractorB = multitrackB.parentElement;
+				const tractorBentry = document.querySelector(`mlt>playlist>entry[producer="${tractorB.id}"]`);
+				tractorBentry.remove();
+				tractorB.remove();
+			}
+			// Simple + Complex
+			else {
+
+			}
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({msg: 'Přechod aplikován'});
+				},
+				err => next(err)
+			);
 		},
 		err => next(err)
 	);
