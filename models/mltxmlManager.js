@@ -39,7 +39,7 @@ export default {
 	 * @param {Element} node
 	 * @return {boolean}
 	 */
-	isSimleNode(node) {
+	isSimpleNode(node) {
 		return (node.tagName === 'entry');
 	},
 
@@ -190,7 +190,7 @@ export default {
 	 * @return {{in: string, time: string, out: string}}
 	 */
 	getDuration(element, document) {
-		if (!this.isSimleNode(element)) {
+		if (!this.isSimpleNode(element)) {
 			const playlist = document.getElementById(element.getAttribute('producer'));
 			element = playlist.getElementsByTagName('entry').item(0);
 		}
@@ -218,5 +218,40 @@ export default {
 		duration.time = this.subDuration(duration.out, duration.in);
 
 		return duration;
+	},
+
+
+	/**
+	 * Create playlist and put the item as entry into it
+	 *
+	 * @param {Element} item
+	 * @param {Document} document
+	 * @return {Element} new playlist element
+	 */
+	entryToPlaylist(item, document) {
+		const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
+		const producers = document.getElementsByTagName('producer');
+		const lastProducer = producers.item(producers.length - 1);
+		const newPlaylist = document.createElement('playlist');
+		newPlaylist.id = 'playlist' + playlists.length;
+		newPlaylist.innerHTML = item.outerHTML;
+		root.insertBefore(newPlaylist, lastProducer.nextSibling);
+		return newPlaylist;
+	},
+
+
+	/**
+	 * Create tractor and put it before videotrack0
+	 *
+	 * @param {Document} document
+	 * @return {Element} new tractor element
+	 */
+	createTractor(document) {
+		const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
+		const videotrack0 = document.getElementById('videotrack0');
+		const newTractor = document.createElement('tractor');
+		newTractor.id = 'tractor' + tractors.length;
+		root.insertBefore(newTractor, videotrack0);
+		return newTractor;
 	}
 }

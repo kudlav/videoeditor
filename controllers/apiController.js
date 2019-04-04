@@ -291,23 +291,13 @@ exports.projectFilterPOST = (req, res, next) => {
 				});
 				return;
 			}
-			if (mltxmlManager.isSimleNode(item)) {
+			if (mltxmlManager.isSimpleNode(item)) {
 				// Create playlist after last producer
-				const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
-				const producers = document.getElementsByTagName('producer');
-				const lastProducer = producers.item(producers.length - 1);
-				const newPlaylist = document.createElement('playlist');
-				newPlaylist.id = 'playlist' + playlists.length;
-				newPlaylist.innerHTML = item.outerHTML;
-				root.insertBefore(newPlaylist, lastProducer.nextSibling);
+				const newPlaylist = mltxmlManager.entryToPlaylist(item, document);
 
 				// Create tractor before videotrack0
-				const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
-				const videotrack0 = document.getElementById('videotrack0');
-				const newTractor = document.createElement('tractor');
-				newTractor.id = 'tractor' + tractors.length;
+				const newTractor = mltxmlManager.createTractor(document);
 				newTractor.innerHTML = `<multitrack><track producer="${newPlaylist.id}"/></multitrack><filter mlt_service="${req.body.filter}" track="0"/>`;
-				root.insertBefore(newTractor, videotrack0);
 
 				// Update track playlist
 				item.removeAttribute('in');
@@ -401,7 +391,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 			}
 
 			// Check if filter exists
-			if (mltxmlManager.isSimleNode(item) || filter === undefined) {
+			if (mltxmlManager.isSimpleNode(item) || filter === undefined) {
 				res.status(404);
 				res.json({
 					err: 'Filtr nenalezen.',
@@ -508,28 +498,16 @@ exports.projectTransitionPOST = (req, res, next) => {
 				return;
 			}
 
-			if (mltxmlManager.isSimleNode(itemA) && mltxmlManager.isSimleNode(itemB)) {
+			// Simple + Simple
+			if (mltxmlManager.isSimpleNode(itemA) && mltxmlManager.isSimpleNode(itemB)) {
 				// Create playlist after last producer
-				const producers = document.getElementsByTagName('producer');
-				const lastProducer = producers.item(producers.length - 1);
-				const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
-				const newPlaylistA = document.createElement('playlist');
-				newPlaylistA.id = 'playlist' + playlists.length;
-				newPlaylistA.innerHTML = itemA.outerHTML;
-				root.insertBefore(newPlaylistA, lastProducer.nextSibling);
-				const newPlaylistB = document.createElement('playlist');
-				newPlaylistB.id = 'playlist' + (playlists.length + 1);
-				newPlaylistB.innerHTML = `<blank length="${waitBeforeTransition}"/>` + itemB.outerHTML;
-				root.insertBefore(newPlaylistB, lastProducer.nextSibling);
+				const newPlaylistA = mltxmlManager.entryToPlaylist(itemA, document);
+				const newPlaylistB = mltxmlManager.entryToPlaylist(itemB, document);
 
 				// Create tractor before videotrack0
-				const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
-				const videotrack0 = document.getElementById('videotrack0');
-				const newTractor = document.createElement('tractor');
-				newTractor.id = 'tractor' + tractors.length;
+				const newTractor = mltxmlManager.createTractor(document);
 				newTractor.innerHTML = `<multitrack><track producer="${newPlaylistA.id}"/><track producer="${newPlaylistB.id}"/></multitrack>`;
 				newTractor.innerHTML += `<transition mlt_service="${req.body.transition}" in="${waitBeforeTransition}" out="${durationA.out}" a_track="0" b_track="1"/>`;
-				root.insertBefore(newTractor, videotrack0);
 
 				// Update track
 				itemA.removeAttribute('in');
