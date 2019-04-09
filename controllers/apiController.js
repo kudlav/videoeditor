@@ -577,7 +577,38 @@ exports.projectTransitionPOST = (req, res, next) => {
 			}
 			// Simple + Complex
 			else {
+				const durationA = mltxmlManager.subDuration(mltxmlManager.getDuration(itemA, document).time, req.body.duration);
+				const multitrackB = itemB.parentElement;
+				// Re-index transition, adjust IN/OUT timing
+				const transitions = multitrackB.parentElement.getElementsByTagName('transition');
+				for (let transition of transitions) {
+					transition.setAttribute('a_track', Number(transition.getAttribute('a_track')) + 1);
+					transition.setAttribute('b_track', Number(transition.getAttribute('b_track')) + 1);
+					transition.setAttribute('in', mltxmlManager.addDuration(transition.getAttribute('in'), durationA));
+					transition.setAttribute('out', mltxmlManager.addDuration(transition.getAttribute('out'), durationA));
+				}
+				// Re-index filters
+				const filters = multitrackB.parentElement.getElementsByTagName('filter');
+				for (let filter of filters) {
+					filter.setAttribute('track', Number(filter.getAttribute('track')) + 1);
+				}
+				// Adjust blank duration of tracks
+				const tracks = multitrackB.childNodes;
+				for (let track of tracks) {
+					let playlist = document.getElementById(track.getAttribute('producer'));
+					let blank = playlist.getElementsByTagName('blank').item(0);
+					if (blank === null)
+						playlist.innerHTML = `<blank length="${durationA}" />` + playlist.innerHTML;
+					else
+						blank.setAttribute('length', mltxmlManager.addDuration(blank.getAttribute('length'), durationA));
+				}
+				// Prepend multitrack with item
+				const newPlaylist = mltxmlManager.entryToPlaylist(itemA, document);
+				multitrackB.innerHTML = `<track producer="${newPlaylist.id}" />` + multitrackB.innerHTML;
+				// Add new transition
+				multitrackB.parentElement.innerHTML += `<transition mlt_service="${req.body.transition}" in="${durationA}" out="${mltxmlManager.getDuration(itemA, document).time}" a_track="0" b_track="1" />`;
 
+				itemA.remove();
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
