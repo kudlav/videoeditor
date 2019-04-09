@@ -168,6 +168,18 @@ tr:nth-child(even) {
 	text-align: right;
 }
 
+#sources {
+	.preview {
+		height: 50px;
+		text-align: center;
+		font-size: 3.5em;
+	}
+
+	i {
+		font-size: 2em;
+	}
+}
+
 /*
  * DROPZONE
  */
@@ -246,10 +258,6 @@ tr:nth-child(even) {
 .dzu-previewStatusContainer {
 	display: flex;
 	align-items: center;
-}
-
-.dzu-previewFileName {
-	font-size: 14px;
 }
 
 .dzu-previewImage {
