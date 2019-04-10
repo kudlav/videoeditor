@@ -79,7 +79,8 @@ exports.projectFilePOST = (req, res, next) => {
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
-					length += '0';
+					if (length !== null)
+						length += '0';
 
 					const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
@@ -168,7 +169,7 @@ exports.projectFileDELETE = (req, res, next) => {
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
 					res.json({
-						msg: 'Zdroj byl úspěšně odebrána',
+						msg: 'Zdroj byl úspěšně odebrán',
 					});
 				},
 				err => next(err)

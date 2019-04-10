@@ -7,6 +7,13 @@ const { exec } = require('child_process');
 
 export default {
 
+	/**
+	 * Get time duration of file. Return null when file is not video.
+	 *
+	 * @param filepath
+	 * @param mimeType
+	 * @return {Promise<any>}
+	 */
 	getDuration(filepath, mimeType) {
 		return new Promise((resolve) => {
 			if (new RegExp(/^video\//).test(mimeType)) {
