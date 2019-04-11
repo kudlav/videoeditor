@@ -7,40 +7,9 @@
 	<link rel="stylesheet" type="text/css" href="/style.css">
 </head>
 <body>
-	<header>
-		<button class="error"><i class="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button>
-		<div class="divider"></div>
-		<button><i class="material-icons" aria-hidden="true">language</i>Jazyk</button>
-		<button><i class="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>
-		<button class="success" style="float: right;"><i class="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
-	</header>
-	<main>
-		<div>
-			<div id="sources"></div>
-			<div id="preview">
-				<h3><i class="material-icons" aria-hidden="true">movie</i>Náhled</h3>
-				<video><source type="video/mp4" src="https://www.w3schools.com/html/mov_bbb.mp4"></video>
-				<div class="prev-toolbar">
-					<button class="no-border" title="Zastavit přehrávání"><i class="material-icons" aria-hidden="true">stop</i></button>
-					<button title="Pokračovat v přehrávání"><i class="material-icons" aria-hidden="true">play_arrow</i></button>
-					<button title="Pozastavit přehrávání"><i class="material-icons" aria-hidden="true">pause</i></button>
-					<button title="Předchozí událost"><i class="material-icons" aria-hidden="true">skip_previous</i></button>
-					<button title="Následující událost"><i class="material-icons" aria-hidden="true">skip_next</i></button>
-					<button title="Předchozí snímek"><i class="material-icons" aria-hidden="true">exposure_minus_1</i></button>
-					<button title="Následující snímek"><i class="material-icons" aria-hidden="true">exposure_plus_1</i></button>
-				</div>
-			</div>
-		</div>
-	</main>
-	<footer>
-		<button><i class="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
-		<button><i class="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>
-		<button><i class="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
-		<button><i class="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
-		<button><i class="material-icons" aria-hidden="true">remove</i>Odebrat</button>
-		<div id="time">00:00:00 / 00:00:00</div>
-		<img src="timeline.jpg">
-	</footer>
+	<div class="dialog">
+		<div id="newProjectDialog"></div>
+	</div>
 	<script src="/main.js"></script>
 </body>
 </html>

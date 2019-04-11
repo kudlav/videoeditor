@@ -12,12 +12,15 @@ router.use((req, res, next) => {
 });
 
 // Homepage route
-router.get('/', mainController.default);
+router.get('/', mainController.main);
+router.get('/project/:projectID', mainController.project);
 
 // API route
 router.all('/api', apiController.default);
 
 router.post('/api/project', apiController.projectPOST);
+
+router.get('/api/project/:projectID', apiController.projectGET);
 
 router.post('/api/project/:projectID/file', apiController.projectFilePOST);
 

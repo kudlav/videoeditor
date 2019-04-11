@@ -31,7 +31,8 @@
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-dropzone-uploader": "^2.8.1"
+    "react-dropzone-uploader": "^2.8.1",
+    "react-modal": "^3.8.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.3",
@@ -47,7 +48,7 @@
     "extract-loader": "^3.1.0",
     "file-loader": "^3.0.1",
     "node-sass": "^4.11.0",
-    "nodemon": "^1.18.10",
+    "nodemon": "^1.18.11",
     "postcss-loader": "^3.0.0",
     "sass-loader": "^7.1.0",
     "webpack": "^4.29.6",

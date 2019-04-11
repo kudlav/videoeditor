@@ -4,7 +4,7 @@ export default {
 	get serverUrl() {
 		return `http://${this.host}:${this.port}`;
 	},
-	get apiPath() {
+	get apiUrl() {
 		return `http://${this.host}:${this.port}/api`;
 	},
 

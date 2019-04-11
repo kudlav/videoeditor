@@ -71,6 +71,29 @@ h3 {
 	font-size: 22px;
 }
 
+.modal {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	right: auto;
+	bottom: auto;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
+	background-color: #373737;
+	border: 2px solid #555;
+	border-radius: 4px;
+
+	> h2 {
+		padding: 15px 20px;
+		margin: 0;
+		border-bottom: 1px solid #555;
+	}
+
+	> div {
+		padding: 20px;
+	}
+}
+
 .material-icons {
 	font-size: 18px;
 	padding-right: 3px;

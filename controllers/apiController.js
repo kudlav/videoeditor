@@ -29,7 +29,7 @@ exports.projectPOST = (req, res, next) => {
   </tractor>
 </mlt>`;
 
-	const projectID = '1234';
+	let projectID = nanoid(32);
 
 	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
 		if (err) return next(err);
@@ -44,6 +44,47 @@ exports.projectPOST = (req, res, next) => {
 		err => next(err)
 	);
 
+};
+
+
+exports.projectGET = (req, res, next) => {
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+
+			let resources = {};
+			const producerNodes = document.getElementsByTagName('producer');
+			for (let producer of producerNodes) {
+				let resource = {
+					id: producer.id,
+					duration: null,
+				};
+				const properties = producer.getElementsByTagName('property');
+				for (let property of properties) {
+					switch (property.getAttribute('name')) {
+						case 'musecut:mime_type':
+							resource.mime = property.innerHTML;
+							break;
+						case 'length':
+							resource.duration = property.innerHTML;
+							break;
+						case 'musecut:name':
+							resource.name = property.innerHTML;
+					}
+				}
+				resources[producer.id] = resource;
+			}
+
+			res.json({
+				project: req.params.projectID,
+				resources: resources,
+				timeline: [],
+			});
+		},
+		err => next(err)
+	);
 };
 
 
@@ -92,6 +133,7 @@ exports.projectFilePOST = (req, res, next) => {
 							node.id = 'producer' + fileID;
 							node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
 							node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
+							node.innerHTML += `<property name="musecut:name">${filename}</property>`;
 							if (isValidDuration(length))
 								node.innerHTML += `<property name="length">${length}</property>`;
 

@@ -1,5 +1,12 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import Sources from './Sources';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import Sources from './Sources'
+import NewProjectDialog from './NewProjectDialog'
 
-ReactDOM.render(<Sources items={{}} project={'1234'} />, document.getElementById('sources'));
+try {
+	ReactDOM.render(<NewProjectDialog />, document.getElementById('newProjectDialog'));
+}
+catch (e) {}
+
+const project = window.location.href.match(/project\/([^\/]*)/)[1];
+ReactDOM.render(<Sources project={project} />, document.getElementById('sources'));

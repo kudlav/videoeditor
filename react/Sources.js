@@ -6,9 +6,26 @@ export default class Sources extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			items: this.props.items,
+			items: {},
 			project: this.props.project,
 		};
+
+		const url = `${config.apiUrl}/project/${this.props.project}`;
+		const params = {
+			method: 'GET',
+		};
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err === 'undefined') {
+					this.setState({items: data.resources});
+				}
+				else {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	addResource(resource) {
@@ -18,7 +35,7 @@ export default class Sources extends Component {
 	}
 
 	delResource(id) {
-		const url = `${config.apiPath}/project/${this.state.project}/file/${id}`;
+		const url = `${config.apiUrl}/project/${this.state.project}/file/${id}`;
 		const params = {
 			method: 'DELETE',
 		};
@@ -30,7 +47,6 @@ export default class Sources extends Component {
 					const items = Object.assign({}, this.state.items);
 					delete items[id];
 					this.setState({items: items});
-					console.log(data);
 					alert(data.msg);
 				}
 				else {
@@ -50,12 +66,19 @@ export default class Sources extends Component {
 					{Object.keys(this.state.items).map(key =>
 						<SourcesTableRow
 							key={this.state.items[key].id}
-							value={{item: this.state.items[key], onRemove: id => this.delResource(id)}}
+							value={{
+								item: this.state.items[key],
+								onRemove: id => this.delResource(id),
+							}}
 						/>)
 					}
 					<tr>
 						<td colSpan="3">
-							<Uploader value={resource => this.addResource(resource)} />
+							<Uploader value={{
+									onAdd: resource => this.addResource(resource),
+									project: this.state.project,
+								}}
+							/>
 						</td>
 					</tr>
 				</tbody>
@@ -95,17 +118,18 @@ class Uploader extends Component {
 	constructor(props) {
 		super(props);
 		this.handleChangeStatus = this.handleChangeStatus.bind(this);
+		this.getUploadParams = this.getUploadParams.bind(this);
 	}
 
-	static getUploadParams() {
-		return { url: '/api/project/1234/file' };
+	getUploadParams() {
+		return { url: `/api/project/${this.props.value.project}/file` };
 	}
 
 	handleChangeStatus({ meta, xhr, remove }, status) {
 		if (status === 'done') {
 			console.log(`${meta.name} uploaded!`);
 			const response = JSON.parse(xhr.response);
-			this.props.value({
+			this.props.value.onAdd({
 				id: response.resource_id,
 				name: meta.name,
 				duration: response.length,
@@ -120,14 +144,13 @@ class Uploader extends Component {
 	render () {
 		return (
 			<Dropzone
-				getUploadParams={Uploader.getUploadParams}
+				getUploadParams={this.getUploadParams}
 				onChangeStatus={this.handleChangeStatus}
 				accept="image/*,audio/*,video/*"
 				inputContent={(files, extra) => (extra.reject ? 'Nahrávat lze pouze video, audio a obrázkové soubory.' : 'Nahrát soubory')}
 				inputWithFilesContent={'Nahrát soubory'}
 				styles={{
 					dropzoneReject: { borderColor: '#7a281b', backgroundColor: '#DAA' },
-					inputLabel: (files, extra) => (extra.reject ? { color: 'red' } : {}),
 				}}
 			/>
 		)
