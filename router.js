@@ -4,6 +4,7 @@ const router = server.Router();
 // Require controller modules.
 const mainController = require('./controllers/mainController');
 const apiController = require('./controllers/apiController');
+const errorController = require('./controllers/errorController');
 
 // Log access
 router.use((req, res, next) => {
@@ -33,5 +34,8 @@ router.post('/api/project/:projectID/filter', apiController.projectFilterPOST);
 router.delete('/api/project/:projectID/filter', apiController.projectFilterDELETE);
 
 router.post('/api/project/:projectID/transition', apiController.projectTransitionPOST);
+
+// Error handling
+router.use(errorController.default);
 
 module.exports = router;
