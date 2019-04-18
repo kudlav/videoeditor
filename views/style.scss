@@ -57,7 +57,7 @@ h3 {
 	width: 490px;
 	text-align: center;
 
-	> video {
+	video {
 		width: 480px;
 		height: 240px;
 		background: #000;
@@ -73,7 +73,7 @@ h3 {
 
 .modal {
 	position: absolute;
-	top: 50%;
+	top: 35%;
 	left: 50%;
 	right: auto;
 	bottom: auto;
@@ -82,6 +82,7 @@ h3 {
 	background-color: #373737;
 	border: 2px solid #555;
 	border-radius: 4px;
+	min-width: 40%;
 
 	> h2 {
 		padding: 15px 20px;
@@ -91,6 +92,7 @@ h3 {
 
 	> div {
 		padding: 20px;
+		text-align: center;
 	}
 }
 
@@ -123,6 +125,22 @@ h3 {
 	margin: 0 10px;
 	border-left: 1px solid #888;
 	height: 1em;
+}
+
+.loader {
+	border: 16px solid transparent;
+	border-radius: 50%;
+	border-top: 16px solid #888;
+	border-bottom: 16px solid #888;
+	width: 120px;
+	height: 120px;
+	animation: spin 3s linear infinite;
+	display: inline-block;
+}
+
+@keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
 }
 
 /*

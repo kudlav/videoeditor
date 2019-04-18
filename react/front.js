@@ -2,11 +2,16 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import Sources from './Sources'
 import NewProjectDialog from './NewProjectDialog'
+import LoadingDialog from "./LoadingDialog";
 
-try {
+if (document.getElementById('newProjectDialog') !== null) {
+	// Landing page
 	ReactDOM.render(<NewProjectDialog />, document.getElementById('newProjectDialog'));
 }
-catch (e) {}
+else {
+	// Project page
 
-const project = window.location.href.match(/project\/([^\/]*)/)[1];
-ReactDOM.render(<Sources project={project} />, document.getElementById('sources'));
+	//ReactDOM.render(<LoadingDialog />, document.getElementById('loadingDialog'));
+	const project = window.location.href.match(/project\/([^\/]*)/)[1];
+	ReactDOM.render(<Sources project={project} />, document.getElementById('sources'));
+}

@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Modal from 'react-modal';
 import config from '../config'
 
-// Make sure to bind modal to your appElement (http://reactcommunity.org/react-modal/accessibility/)
 Modal.setAppElement(document.body);
 
 export default class NewProjectDialog extends Component {
