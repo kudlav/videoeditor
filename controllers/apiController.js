@@ -64,6 +64,8 @@ exports.projectGET = (req, res, next) => {
 				let resource = {
 					id: producer.id,
 					duration: null,
+					mime: null,
+					name: null,
 				};
 				const properties = producer.getElementsByTagName('property');
 				for (let property of properties) {
@@ -84,7 +86,7 @@ exports.projectGET = (req, res, next) => {
 			res.json({
 				project: req.params.projectID,
 				resources: resources,
-				timeline: [],
+				timeline: {},
 			});
 		},
 		err => next(err)
