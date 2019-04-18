@@ -1,8 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import Sources from './Sources'
-import NewProjectDialog from './NewProjectDialog'
-import LoadingDialog from "./LoadingDialog";
+import NewProjectDialog from './newProject/NewProjectDialog'
+import App from "./editor/Editor"
 
 if (document.getElementById('newProjectDialog') !== null) {
 	// Landing page
@@ -10,8 +9,5 @@ if (document.getElementById('newProjectDialog') !== null) {
 }
 else {
 	// Project page
-
-	//ReactDOM.render(<LoadingDialog />, document.getElementById('loadingDialog'));
-	const project = window.location.href.match(/project\/([^\/]*)/)[1];
-	ReactDOM.render(<Sources project={project} />, document.getElementById('sources'));
+	ReactDOM.render(<App />, document.getElementById('app'));
 }

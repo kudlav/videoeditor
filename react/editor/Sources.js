@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import Dropzone from 'react-dropzone-uploader'
-import config from '../config'
+import Dropzone from 'react-dropzone-uploader/dist/Dropzone'
+import config from '../../config'
 
 export default class Sources extends Component {
 	constructor(props) {
@@ -19,6 +19,7 @@ export default class Sources extends Component {
 			.then(data => {
 				if (typeof data.err === 'undefined') {
 					this.setState({items: data.resources});
+					this.props.onLoadFinished();
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -59,31 +60,31 @@ export default class Sources extends Component {
 
 	render() {
 		return (
-			<>
-            <h3><i className="material-icons" aria-hidden="true">video_library</i>Seznam záběrů</h3>
-			<table>
-				<tbody>
-					{Object.keys(this.state.items).map(key =>
-						<SourcesTableRow
-							key={this.state.items[key].id}
-							value={{
-								item: this.state.items[key],
-								onRemove: id => this.delResource(id),
-							}}
-						/>)
-					}
-					<tr>
-						<td colSpan="3">
-							<Uploader value={{
-									onAdd: resource => this.addResource(resource),
-									project: this.state.project,
+			<div id={'sources'}>
+				<h3><i className="material-icons" aria-hidden="true">video_library</i>Seznam záběrů</h3>
+				<table>
+					<tbody>
+						{Object.keys(this.state.items).map(key =>
+							<SourcesTableRow
+								key={this.state.items[key].id}
+								value={{
+									item: this.state.items[key],
+									onRemove: id => this.delResource(id),
 								}}
-							/>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-			</>
+							/>)
+						}
+						<tr>
+							<td colSpan="3">
+								<Uploader value={{
+										onAdd: resource => this.addResource(resource),
+										project: this.state.project,
+									}}
+								/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		);
 	}
 }

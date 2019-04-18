@@ -7,11 +7,7 @@ body {
   background: #1F1F1F;
   color: white;
   font-size: 14px;
-  margin: 0;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch; }
+  margin: 0; }
 
 header {
   padding: 0 10px;
@@ -39,6 +35,12 @@ h3 {
   margin: 5px;
   font-family: SourceSans;
   font-weight: inherit; }
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 100vh; }
 
 #sources, #preview {
   flex: 1; }

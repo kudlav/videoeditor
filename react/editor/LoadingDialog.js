@@ -9,14 +9,14 @@ export default class LoadingDialog extends Component {
 		return (
 			<div>
 				<Modal
-					isOpen={true}
+					isOpen={this.props.show}
 					contentLabel="Načítání"
 					className={'modal'}
 				>
 
 					<h2>Načítání videoeditoru</h2>
 					<div>
-						<div className="loader"></div>
+						<div className="loader"/>
 					</div>
 				</Modal>
 			</div>
