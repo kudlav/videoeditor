@@ -1,3 +1,8 @@
+/**
+ * @file Controller for REST API
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import config from '../config';
 import mltxmlManager from '../models/mltxmlManager';
 import fileManager from '../models/fileManager';
@@ -5,9 +10,8 @@ import fileManager from '../models/fileManager';
 const fs = require('fs');
 const path = require('path');
 const nanoid = require('nanoid');
-const jsdom = require("jsdom");
-
-const { JSDOM } = jsdom;
+const { exec } = require('child_process');
+const { JSDOM } = require("jsdom");
 
 exports.default = (req, res) => {
 
@@ -665,6 +669,71 @@ exports.projectTransitionPOST = (req, res, next) => {
 	);
 
 };
+
+
+exports.projectPUT = (req, res, next) => {
+
+	const projectPath = mltxmlManager.getWorkerDir(req.params.projectID);
+
+	fs.open(path.join(projectPath, 'processing'), 'wx', (err, file) => {
+		if (err) {
+			if (err.code === 'EEXIST') {
+				res.status(403);
+				res.json({
+					err: 'Zpracování probíhá.',
+					msg: 'Projekt je již zpracováván, počkejte na dokončení.',
+				});
+				return;
+			}
+			else return next(err);
+		}
+		fs.close(file, (err) => {
+			if (err) console.error(err.stack);
+		});
+
+		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264`, (err, stdout, stderr) => {
+			if (err) console.error(`exec error: ${err}`);
+
+			fs.writeFile(path.join(projectPath, 'stdout.log'), stdout, (err) => {
+				if (err) console.error(err.stack);
+			});
+			fs.writeFile(path.join(projectPath, 'stderr.log'), stderr, (err) => {
+				if (err) console.error(err.stack);
+			});
+
+			fs.unlink(path.join(projectPath, 'processing'), (err) => {
+				if (err) console.error(err.stack);
+			});
+		});
+		res.json({
+			msg: 'Zpracování zahájeno'
+		});
+	});
+
+};
+
+
+/**
+ *
+ *
+ * @param err
+ * @param res
+ */
+function fileErr(err, res) {
+	if (err.code === 'ENOENT') {
+		res.status(404).json({
+			err: 'Projekt neexistuje',
+			msg: `Zadaný projekt neexistuje.`,
+		});
+	}
+	else {
+		console.error(err.stack);
+		res.status(500).json({
+			err: 'Projekt nelze otevřít',
+			msg: 'Během načítání projektu došlo k chybě.',
+		});
+	}
+}
 
 
 /**

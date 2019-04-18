@@ -91,6 +91,17 @@ export default {
 
 
 	/**
+	 * Get relative path of project directory
+	 *
+	 * @param {String} projectID
+	 * @return {string}
+	 */
+	getWorkerDir(projectID) {
+		return path.join(config.projectPath, projectID);
+	},
+
+
+	/**
 	 * Get index of track in multitrack
 	 *
 	 * @param {Element} track
