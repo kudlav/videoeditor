@@ -51,7 +51,7 @@ exports.projectPOST = (req, res, next) => {
 };
 
 
-exports.projectGET = (req, res, next) => {
+exports.projectGET = (req, res) => {
 	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
@@ -89,7 +89,7 @@ exports.projectGET = (req, res, next) => {
 				timeline: {},
 			});
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 };
 
@@ -157,7 +157,7 @@ exports.projectFilePOST = (req, res, next) => {
 								err => next(err)
 							);
 						},
-						err => next(err)
+						err => fileErr(err, res)
 					);
 				}
 			);
@@ -223,7 +223,7 @@ exports.projectFileDELETE = (req, res, next) => {
 				err => next(err)
 			);
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 
 };
@@ -296,7 +296,7 @@ exports.projectFilePUT = (req, res, next) => {
 				err => next(err)
 			);
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 
 };
@@ -383,7 +383,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				err => next(err)
 			);
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 
 };
@@ -470,7 +470,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 				err => next(err)
 			);
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 
 };
@@ -667,7 +667,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				err => next(err)
 			);
 		},
-		err => next(err)
+		err => fileErr(err, res)
 	);
 
 };
@@ -679,15 +679,20 @@ exports.projectPUT = (req, res, next) => {
 
 	fs.open(path.join(projectPath, 'processing'), 'wx', (err, file) => {
 		if (err) {
-			if (err.code === 'EEXIST') {
-				res.status(403);
-				res.json({
-					err: 'Zpracování probíhá.',
-					msg: 'Projekt je již zpracováván, počkejte na dokončení.',
-				});
-				return;
+			switch (err.code) {
+				case 'EEXIST':
+					res.status(403);
+					res.json({
+						err: 'Zpracování probíhá.',
+						msg: 'Projekt je již zpracováván, počkejte na dokončení.',
+					});
+					return;
+				case 'ENOENT':
+					fileErr(err, res);
+					return;
+				default:
+					return next(err);
 			}
-			else return next(err);
 		}
 		fs.close(file, (err) => {
 			if (err) console.error(err.stack);
@@ -716,7 +721,7 @@ exports.projectPUT = (req, res, next) => {
 
 
 /**
- *
+ * Handle error while opening project directory.
  *
  * @param err
  * @param res
