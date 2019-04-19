@@ -1,38 +1,13 @@
 import React, { Component } from 'react';
-import Dropzone from 'react-dropzone-uploader/dist/Dropzone'
+import Dropzone from 'react-dropzone-uploader'
 import config from '../../config'
 
 export default class Sources extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			items: {},
 			project: this.props.project,
 		};
-
-		const url = `${config.apiUrl}/project/${this.props.project}`;
-		const params = {
-			method: 'GET',
-		};
-		fetch(url, params)
-			.then(response => response.json())
-			.then(data => {
-				if (typeof data.err === 'undefined') {
-					this.setState({items: data.resources});
-					this.props.onLoadFinished();
-				}
-				else {
-					alert(`${data.err}\n\n${data.msg}`);
-				}
-			})
-			.catch(error => console.error(error))
-		;
-	}
-
-	addResource(resource) {
-		const items = Object.assign({}, this.state.items);
-		items[resource.id] = resource;
-		this.setState({items: items});
 	}
 
 	delResource(id) {
@@ -45,10 +20,7 @@ export default class Sources extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					const items = Object.assign({}, this.state.items);
-					delete items[id];
-					this.setState({items: items});
-					alert(data.msg);
+					this.props.onDelResource(id);
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -64,11 +36,11 @@ export default class Sources extends Component {
 				<h3><i className="material-icons" aria-hidden="true">video_library</i>Seznam záběrů</h3>
 				<table>
 					<tbody>
-						{Object.keys(this.state.items).map(key =>
+						{Object.keys(this.props.items).map(key =>
 							<SourcesTableRow
-								key={this.state.items[key].id}
+								key={this.props.items[key].id}
 								value={{
-									item: this.state.items[key],
+									item: this.props.items[key],
 									onRemove: id => this.delResource(id),
 								}}
 							/>)
@@ -76,7 +48,7 @@ export default class Sources extends Component {
 						<tr>
 							<td colSpan="3">
 								<Uploader value={{
-										onAdd: resource => this.addResource(resource),
+										onAdd: resource => this.props.onAddResource(resource),
 										project: this.state.project,
 									}}
 								/>

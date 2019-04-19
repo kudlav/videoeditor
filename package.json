@@ -32,7 +32,8 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-dropzone-uploader": "^2.8.1",
-    "react-modal": "^3.8.1"
+    "react-modal": "^3.8.1",
+    "vis": "^4.21.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.3",

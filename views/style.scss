@@ -324,3 +324,22 @@ tr:nth-child(even) {
 	opacity: 0.9;
 	margin: 0 0 2px 10px;
 }
+
+.vis-timeline {
+	border: none!important;
+}
+
+.vis-item.video {
+	background-color: #27438b!important;
+	border-color: #27438b;
+	border-radius: 5px;
+	color: #FFF;
+}
+
+.vis-time-axis .vis-text{
+	color: inherit!important;
+}
+
+.vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-grid.vis-major, .vis-panel.vis-center, .vis-panel.vis-left, .vis-panel.vis-right, .vis-panel.vis-top, .vis-panel.vis-bottom {
+	border-color: #555!important;
+}

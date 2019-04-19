@@ -12,6 +12,10 @@ router.use((req, res, next) => {
 	next(); // go to the next routes
 });
 
+// Vis timeline resources
+router.get('/vis.css', (req, res) => res.sendFile(__dirname + '/node_modules/vis/dist/vis.css'));
+router.get('/vis.js', (req, res) => res.sendFile(__dirname + '/node_modules/vis/dist/vis.js'));
+
 // Homepage route
 router.get('/', mainController.main);
 router.get('/project/:projectID', mainController.project);
