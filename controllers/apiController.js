@@ -6,6 +6,7 @@
 import config from '../config';
 import mltxmlManager from '../models/mltxmlManager';
 import fileManager from '../models/fileManager';
+import timeManager from '../models/timeManager';
 
 const fs = require('fs');
 const path = require('path');
@@ -58,6 +59,7 @@ exports.projectGET = (req, res) => {
 		dom => {
 			const document = dom.window.document;
 
+			// Resources
 			let resources = {};
 			const producerNodes = document.getElementsByTagName('producer');
 			for (let producer of producerNodes) {
@@ -84,10 +86,47 @@ exports.projectGET = (req, res) => {
 				resources[id] = resource;
 			}
 
+			// Timeline
+			const timeline = {
+				audio: [],
+				video: [],
+			};
+
+			const videotracks = document.querySelectorAll('mlt>playlist[id^="videotrack"]');
+			for (let track of videotracks) {
+				const trackEntry = {
+					id: track.id,
+					items: [],
+				};
+
+				const entries = track.childNodes;
+				for (let entry of entries) {
+					if (entry.tagName === 'blank') {
+						trackEntry.items.push({
+							resource: 'blank',
+							length: entry.getAttribute('length'),
+						});
+					}
+					else {
+						const duration = mltxmlManager.getDuration(entry, document);
+						trackEntry.items.push({
+							resource: entry.getAttribute('producer').replace(/^producer/, ''),
+							in: duration.in,
+							out: duration.out,
+							filters: [],
+							transitionTo: null,
+							transitionFrom: null,
+						});
+					}
+				}
+
+				timeline.video.push(trackEntry);
+			}
+
 			res.json({
 				project: req.params.projectID,
 				resources: resources,
-				timeline: {},
+				timeline: timeline,
 			});
 		},
 		err => fileErr(err, res)
@@ -272,7 +311,7 @@ exports.projectFilePUT = (req, res, next) => {
 					return;
 				}
 
-				newEntry.setAttribute('in', '0');
+				newEntry.setAttribute('in', '00:00:00,000');
 				newEntry.setAttribute('out', req.body.duration);
 			}
 			else if (new RegExp(/^video\//).test(producerMime) === false) {
@@ -538,7 +577,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 
 			const durationA = mltxmlManager.getDuration(itemA, document);
 			const durationB = mltxmlManager.getDuration(itemB, document);
-			const waitBeforeTransition = mltxmlManager.subDuration(durationA.out, req. body.duration);
+			const waitBeforeTransition = timeManager.subDuration(durationA.out, req. body.duration);
 			if (req.body.duration > durationA.time || req.body.duration > durationB.time) {
 				res.status(400);
 				res.json({
@@ -599,7 +638,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 						for (let transitionElement of transitions) {
 							if (transitionElement.getAttribute('b_track') === oldTrackIndex.toString()) {
 								transition = transitionElement.getAttribute('mlt_service');
-								duration = mltxmlManager.subDuration(transitionElement.getAttribute('out'), transitionElement.getAttribute('in'));
+								duration = timeManager.subDuration(transitionElement.getAttribute('out'), transitionElement.getAttribute('in'));
 							}
 						}
 					}
@@ -627,15 +666,15 @@ exports.projectTransitionPOST = (req, res, next) => {
 			}
 			// Simple + Complex
 			else {
-				const durationA = mltxmlManager.subDuration(mltxmlManager.getDuration(itemA, document).time, req.body.duration);
+				const durationA = timeManager.subDuration(mltxmlManager.getDuration(itemA, document).time, req.body.duration);
 				const multitrackB = itemB.parentElement;
 				// Re-index transition, adjust IN/OUT timing
 				const transitions = multitrackB.parentElement.getElementsByTagName('transition');
 				for (let transition of transitions) {
 					transition.setAttribute('a_track', Number(transition.getAttribute('a_track')) + 1);
 					transition.setAttribute('b_track', Number(transition.getAttribute('b_track')) + 1);
-					transition.setAttribute('in', mltxmlManager.addDuration(transition.getAttribute('in'), durationA));
-					transition.setAttribute('out', mltxmlManager.addDuration(transition.getAttribute('out'), durationA));
+					transition.setAttribute('in', timeManager.addDuration(transition.getAttribute('in'), durationA));
+					transition.setAttribute('out', timeManager.addDuration(transition.getAttribute('out'), durationA));
 				}
 				// Re-index filters
 				const filters = multitrackB.parentElement.getElementsByTagName('filter');
@@ -650,7 +689,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 					if (blank === null)
 						playlist.innerHTML = `<blank length="${durationA}" />` + playlist.innerHTML;
 					else
-						blank.setAttribute('length', mltxmlManager.addDuration(blank.getAttribute('length'), durationA));
+						blank.setAttribute('length', timeManager.addDuration(blank.getAttribute('length'), durationA));
 				}
 				// Prepend multitrack with item
 				const newPlaylist = mltxmlManager.entryToPlaylist(itemA, document);

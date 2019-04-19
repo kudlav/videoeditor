@@ -332,8 +332,9 @@ tr:nth-child(even) {
 .vis-item.video {
 	background-color: #27438b!important;
 	border-color: #27438b;
-	border-radius: 5px;
+	border-radius: 10px!important;
 	color: #FFF;
+	padding: 2px;
 }
 
 .vis-time-axis .vis-text{

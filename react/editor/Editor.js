@@ -14,6 +14,7 @@ export default class App extends Component {
 		this.state = {
 			project: window.location.href.match(/project\/([^\/]*)/)[1],
 			resources: {},
+			timeline: {},
 			loading: true,
 		};
 
@@ -25,7 +26,10 @@ export default class App extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					this.setState({resources: data.resources});
+					this.setState({
+						resources: data.resources,
+						timeline: data.timeline,
+					});
 					this.loadFinished();
 				}
 				else {
@@ -72,7 +76,7 @@ export default class App extends Component {
 				<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
 				<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 				<div id="time">00:00:00 / 00:00:00</div>
-				<Timeline/>
+				<Timeline resources={this.state.resources} items={this.state.timeline}/>
 			</footer>
 			</>
 		);

@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import vis from 'vis';
+import timeManager from '../../models/timeManager';
 
 export default class Timeline extends Component {
 	constructor(props) {
 		super(props);
 
-		this.updateGraph = this.updateGraph.bind(this);
 		this.timeline = null;
 	}
 
@@ -27,12 +27,12 @@ export default class Timeline extends Component {
 					millisecond:'SSS [ms]',
 					second:     's [s]',
 					minute:     'HH:mm:ss',
-					hour:       '',
-					weekday:    '',
-					day:        '',
-					week:       '',
-					month:      '',
-					year:       ''
+					hour:       'HH:mm:ss',
+					weekday:    'HH:mm:ss',
+					day:        'HH:mm:ss',
+					week:       'HH:mm:ss',
+					month:      'HH:mm:ss',
+					year:       'HH:mm:ss'
 				},
 				majorLabels: {
 					millisecond:'HH:mm:ss',
@@ -47,54 +47,50 @@ export default class Timeline extends Component {
 				}
 			}
 		};
-		this.timeline = new vis.Timeline(container, null, null, options);
-		this.updateGraph();
+		this.timeline = new vis.Timeline(container, [], [], options);
 	}
 
 	componentDidUpdate() {
-		this.updateGraph();
-	}
 
-	updateGraph() {
-		const items = new vis.DataSet([{
-			id: 1,
-			content: 'First event',
-			start: new Date(1970, 0, 1, 0, 1, 0, 0),
-			end: new Date(1970, 0, 1, 0, 10, 0, 300),
-			group: 'videotrack0',
-			className: 'video',
-		}/*, {
-			id: 2,
-			content: 'Pi and Mash',
-			start: 20,
-			group: 'videotrack0',
-		}, {
-			id: 3,
-			content: 'Wikimania',
-			start: '2014-08-08',
-			end: 55,
-			group: 'videotrack0',
-		}, {
-			id: 4,
-			content: 'Something else',
-			start: 83,
-			group: 'videotrack0',
-		}, {
-			id: 5,
-			content: 'Summer bank holiday',
-			start: 84,
-			group: 'videotrack0',
-		}*/]);
+		const groups = [];
+		const items = [];
 
-		const groups = [{
-			id: 'videotrack0',
-			content: '',
-		}];
+		for (let track of this.props.items.video) {
+			groups.push({
+				id: track.id,
+				content: '',
+			});
+
+			let actualTime = '00:00:00,000';
+
+			for (let item of track.items) {
+				if (item.resource === 'blank') {
+					actualTime = timeManager.addDuration(item.getAttribute('length'), actualTime);
+				}
+				else {
+					const timeIn = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					actualTime = timeManager.addDuration(actualTime, item.out);
+					actualTime = timeManager.subDuration(actualTime, item.in);
+					const timeOut = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					// todo Subtract transition duration
+					items.push({
+						id: item.resource,
+						content: this.props.resources[item.resource].name,
+						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
+						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),
+						group: track.id,
+						className: 'video',
+					});
+				}
+			}
+		}
 
 		this.timeline.setData({
 			items: items,
 			groups: groups,
 		});
+
+		this.timeline.fit();
 	}
 
 	render() {

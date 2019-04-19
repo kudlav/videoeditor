@@ -3,7 +3,9 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import config from "../config";
+import config from '../config';
+import timeManager from 'timeManager';
+
 const fs = require('fs');
 const path = require('path');
 
@@ -142,108 +144,6 @@ export default {
 
 
 	/**
-	 * Compute (durationA - durationB)
-	 *
-	 * @param {String} durationA
-	 * @param {String} durationB
-	 * @return {String}
-	 */
-	subDuration(durationA, durationB) {
-		let durA = durationA.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-		let durB = durationB.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-		let time = [];
-		let formattedTime;
-
-		// milliseconds
-		durA[4] = durA[4].replace(/^0+/, '');
-		durB[4] = durB[4].replace(/^0+/, '');
-		if (durA[4] < durB[4]) {
-			durA[4] += 1000;
-			durB[3]++;
-		}
-		time[4] = durA[4] - durB[4];
-
-		// seconds
-		if (durA[3] < durB[3]) {
-			durA[3] += 60;
-			durB[2]++;
-		}
-		time[3] = durA[3] - durB[3];
-
-		// minutes
-		if (durA[2] < durB[2]) {
-			durA[2] += 60;
-			durB[1]++;
-		}
-		time[2] = durA[2] - durB[2];
-
-		// hours
-		time[1] = durA[1] - durB[1];
-
-		// string format
-		formattedTime = `${time[1]}:`;
-		if (formattedTime.length < 3) formattedTime = '0' + formattedTime;
-
-		formattedTime += `00${time[2]}:`.slice(-3);
-		formattedTime += `00${time[3]},`.slice(-3);
-		formattedTime += `${time[4]}000`.slice(0,3);
-
-		return formattedTime;
-	},
-
-
-	/**
-	 * Compute (durationA + durationB)
-	 *
-	 * @param {String} durationA
-	 * @param {String} durationB
-	 * @return {string}
-	 */
-	addDuration(durationA, durationB) {
-		let durA = durationA.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-		let durB = durationB.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-		let time = [];
-		let formattedTime;
-
-		// milliseconds
-		durA[4] = durA[4].replace(/^0+/, '');
-		durB[4] = durB[4].replace(/^0+/, '');
-		time[4] = Number(durA[4]) + Number(durB[4]);
-		if (time[4] >= 1000) {
-			time[4] -= 1000;
-			durB[3]++;
-		}
-
-		// seconds
-		time[3] = Number(durA[3]) + Number(durB[3]);
-		if (time[3] >= 60) {
-			time[3] -= 60;
-			durB[2]++;
-		}
-
-		// minutes
-		time[2] = Number(durA[2]) + Number(durB[2]);
-		if (time[2] >= 60) {
-			time[2] -= 60;
-			durB[1]++;
-		}
-
-		// hours
-		time[1] = Number(durA[1]) + Number(durB[1]);
-
-		// string format
-		formattedTime = `${time[1]}:`;
-		if (formattedTime.length < 3) formattedTime = '0' + formattedTime;
-
-		formattedTime += `00${time[2]}:`.slice(-3);
-		formattedTime += `00${time[3]},`.slice(-3);
-		formattedTime += `${time[4]}000`.slice(0,3);
-
-		return formattedTime;
-	},
-
-
-	/**
 	 * Get in, out and duration of timeline item
 	 *
 	 * @param {Element} element
@@ -263,7 +163,7 @@ export default {
 			if (duration.time === null)
 				duration.time = this.getDuration(playlist.childNodes.item(playlist.childElementCount - 1), document).time;
 			else
-				duration.time = this.addDuration(duration.time, this.getDuration(playlist.childNodes.item(playlist.childElementCount - 1), document).time);
+				duration.time = timeManager.addDuration(duration.time, this.getDuration(playlist.childNodes.item(playlist.childElementCount - 1), document).time);
 		}
 		else {
 			if (element.tagName === 'track') {
@@ -288,7 +188,7 @@ export default {
 
 			if (duration.in > duration.out) throw(`Attribute in is greater than out: ${element.outerHTML}`);
 
-			duration.time = this.subDuration(duration.out, duration.in);
+			duration.time = timeManager.subDuration(duration.out, duration.in);
 		}
 			return duration;
 	},
@@ -323,7 +223,7 @@ export default {
 	 * @param {Document} document
 	 */
 	appendPlaylistToMultitrack(multitrack, playlist, overlapping, transition, document) {
-		const duration = this.subDuration(this.getDuration(multitrack, document).time, overlapping);
+		const duration = timeManager.subDuration(this.getDuration(multitrack, document).time, overlapping);
 		if (playlist.getElementsByTagName('blank').length > 0)
 			playlist.childNodes.item(0).remove();
 		playlist.innerHTML = `<blank length="${duration}" />` + playlist.innerHTML;
@@ -332,7 +232,7 @@ export default {
 		const transitionElement = document.createElement('transition');
 		transitionElement.setAttribute('mlt_service', transition);
 		transitionElement.setAttribute('in', duration);
-		transitionElement.setAttribute('out', this.addDuration(duration, overlapping));
+		transitionElement.setAttribute('out', timeManager.addDuration(duration, overlapping));
 		transitionElement.setAttribute('a_track', multitrack.childElementCount - 2);
 		transitionElement.setAttribute('b_track', multitrack.childElementCount - 1);
 		multitrack.parentElement.append(transitionElement);
