@@ -4,7 +4,7 @@
  */
 
 import config from '../config';
-import timeManager from 'timeManager';
+import timeManager from './timeManager';
 
 const fs = require('fs');
 const path = require('path');
