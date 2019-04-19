@@ -61,8 +61,9 @@ exports.projectGET = (req, res) => {
 			let resources = {};
 			const producerNodes = document.getElementsByTagName('producer');
 			for (let producer of producerNodes) {
+				let id = producer.id.replace(/^producer/, '');
 				let resource = {
-					id: producer.id,
+					id: id,
 					duration: null,
 					mime: null,
 					name: null,
@@ -80,7 +81,7 @@ exports.projectGET = (req, res) => {
 							resource.name = property.innerHTML;
 					}
 				}
-				resources[producer.id] = resource;
+				resources[id] = resource;
 			}
 
 			res.json({
