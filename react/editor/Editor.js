@@ -10,6 +10,7 @@ export default class App extends Component {
 		super(props);
 		this.addResource = this.addResource.bind(this);
 		this.delResource = this.delResource.bind(this);
+		this.putResource = this.putResource.bind(this);
 
 		this.state = {
 			project: window.location.href.match(/project\/([^\/]*)/)[1],
@@ -54,7 +55,13 @@ export default class App extends Component {
 			</header>
 			<main>
 				<div>
-					<Sources project={this.state.project} items={this.state.resources} onAddResource={this.addResource} onDelResource={this.delResource}/>
+					<Sources
+						project={this.state.project}
+						items={this.state.resources}
+						onAddResource={this.addResource}
+						onDelResource={this.delResource}
+						onPutResource={this.putResource}
+					/>
 					<div id='preview'>
 						<h3><i className="material-icons" aria-hidden={true}> movie </i>Náhled</h3>
 						<video><source type="video/mp4" src="https://www.w3schools.com/html/mov_bbb.mp4"/></video>
@@ -96,5 +103,35 @@ export default class App extends Component {
 		const resources = Object.assign({}, this.state.resources);
 		delete resources[id];
 		this.setState({resources: resources});
+	}
+
+	putResource(id, duration, trackId) {
+		const timeline = Object.assign({}, this.state.timeline);
+		// Find the track
+		let track = null;
+		for (let videotrack of timeline.video) {
+			if (videotrack.id === trackId) {
+				track = videotrack;
+				break;
+			}
+		}
+		if (track === null) {
+			for (let audiotrack of timeline.audio) {
+				if (audiotrack.id === trackId) {
+					track = audiotrack;
+					break;
+				}
+			}
+		}
+		// Push item to the track
+		track.items.push({
+			resource: id,
+			in: '00:00:00,000',
+			out: (duration !== null) ? duration : this.state.resources[id].duration,
+			filters: [],
+			transitionTo: null,
+			transitionFrom: null,
+		});
+		this.setState({timeline: timeline});
 	}
 }

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import config from '../../config'
+import timeManager from "../../models/timeManager";
 import Uploader from './Uploader';
 import SourcesTableRow from './SourcesTableRow';
 
@@ -9,6 +10,9 @@ export default class Sources extends Component {
 		this.state = {
 			project: this.props.project,
 		};
+
+		this.delResource = this.delResource.bind(this);
+		this.putResource = this.putResource.bind(this);
 	}
 
 	delResource(id) {
@@ -31,6 +35,46 @@ export default class Sources extends Component {
 		;
 	}
 
+	putResource(id) {
+		// Get duration for image files
+		let duration = null;
+		if (new RegExp(/^image\//).test(this.props.items[id].mime)) {
+			duration = prompt('Zadejte délku trvání', '00:00:00,000');
+			if (duration === null) return;
+
+			if (!timeManager.isValidDuration(duration)) {
+				alert('Zadejte nenulovou délku ve formátu HH:MM:SS,sss');
+				this.putResource(id);
+				return;
+			}
+		}
+
+		// Send request to API
+		const url = `${config.apiUrl}/project/${this.state.project}/file/${id}`;
+		const params = {
+			method: 'PUT',
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				duration: duration,
+			}),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err === 'undefined') {
+					this.props.onPutResource(id, duration, 'videotrack0');
+				}
+				else {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+			})
+			.catch(error => console.error(error))
+		;
+	}
+
 	render() {
 		return (
 			<div id={'sources'}>
@@ -40,10 +84,9 @@ export default class Sources extends Component {
 						{Object.keys(this.props.items).map(key =>
 							<SourcesTableRow
 								key={this.props.items[key].id}
-								value={{
-									item: this.props.items[key],
-									onRemove: id => this.delResource(id),
-								}}
+								item={this.props.items[key]}
+								onRemove={this.delResource}
+								onInsert={this.putResource}
 							/>)
 						}
 						<tr>

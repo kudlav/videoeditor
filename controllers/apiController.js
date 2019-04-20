@@ -180,7 +180,7 @@ exports.projectFilePOST = (req, res, next) => {
 							node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
 							node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
 							node.innerHTML += `<property name="musecut:name">${filename}</property>`;
-							if (isValidDuration(length))
+							if (timeManager.isValidDuration(length))
 								node.innerHTML += `<property name="length">${length}</property>`;
 
 							const root = document.getElementsByTagName('mlt').item(0);
@@ -302,7 +302,7 @@ exports.projectFilePUT = (req, res, next) => {
 			}
 			else if (new RegExp(/^image\//).test(producerMime)) {
 				// Images needs duration parameter
-				if (!isValidDuration(req.body.duration)) {
+				if (!timeManager.isValidDuration(req.body.duration)) {
 					res.status(400);
 					res.json({
 						err: 'Chybí délka trvání.',
@@ -528,7 +528,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 		return;
 	}
 
-	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !isValidDuration(req.body.duration)) {
+	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !timeManager.isValidDuration(req.body.duration)) {
 		res.status(400);
 		res.json({
 			err: 'Chybné parametry.',
@@ -794,19 +794,6 @@ function isNaturalNumber(...numbers) {
 		if (typeof number !== 'number' || !Number.isInteger(number) || number < 0) return false;
 	}
 	return true;
-}
-
-
-/**
- * Check if the string is valid duration with non-zero value.
- *
- * @param {string} text In format 00:00:00,000
- * @return {boolean}
- */
-function isValidDuration(text) {
-	const regexpFormat = new RegExp(/^\d{2,}:\d{2}:\d{2},\d{3}$/);
-	const regexpZero = new RegExp(/^0{2,}:00:00,000$/);
-	return (regexpFormat.test(text) && !regexpZero.test(text));
 }
 
 

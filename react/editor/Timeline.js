@@ -62,6 +62,7 @@ export default class Timeline extends Component {
 			});
 
 			let actualTime = '00:00:00,000';
+			let index = 0;
 
 			for (let item of track.items) {
 				if (item.resource === 'blank') {
@@ -74,7 +75,7 @@ export default class Timeline extends Component {
 					const timeOut = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					// todo Subtract transition duration
 					items.push({
-						id: item.resource,
+						id: index++,
 						content: this.props.resources[item.resource].name,
 						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
 						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),

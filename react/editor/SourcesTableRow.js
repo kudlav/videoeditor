@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 export default class SourcesTableRow extends Component {
 	constructor(props) {
 		super(props);
-		this.item = this.props.value.item;
+		this.item = this.props.item;
 	}
 
 	render() {
@@ -17,8 +17,8 @@ export default class SourcesTableRow extends Component {
 					{this.item.duration !== null && <small>Délka: {this.item.duration}</small>}
 				</td>
 				<td className="column-right">
-					<button><i className="material-icons" aria-hidden="true">control_point</i></button>
-					<button onClick={() => this.props.value.onRemove(this.item.id)}><i className="material-icons" aria-hidden="true">delete</i></button>
+					<button onClick={() => this.props.onInsert(this.item.id)}><i className="material-icons" aria-hidden="true">control_point</i></button>
+					<button onClick={() => this.props.onRemove(this.item.id)}><i className="material-icons" aria-hidden="true">delete</i></button>
 				</td>
 			</tr>
 		)

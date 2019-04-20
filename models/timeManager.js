@@ -104,4 +104,17 @@ export default {
 
 		return formattedTime;
 	},
+
+
+	/**
+	 * Check if the string is valid duration with non-zero value.
+	 *
+	 * @param {string} text In format 00:00:00,000
+	 * @return {boolean}
+	 */
+	isValidDuration(text) {
+	const regexpFormat = new RegExp(/^\d{2,}:\d{2}:\d{2},\d{3}$/);
+	const regexpZero = new RegExp(/^0{2,}:00:00,000$/);
+	return (regexpFormat.test(text) && !regexpZero.test(text));
+	}
 }
