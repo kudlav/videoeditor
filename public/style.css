@@ -191,7 +191,7 @@ tr:nth-child(even) {
   text-align: center;
   font-size: 3.5em; }
 
-#sources i {
+#sources table i {
   font-size: 2em; }
 
 #sources button {

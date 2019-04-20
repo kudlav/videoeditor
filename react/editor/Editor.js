@@ -63,7 +63,7 @@ export default class App extends Component {
 						onPutResource={this.putResource}
 					/>
 					<div id='preview'>
-						<h3><i className="material-icons" aria-hidden={true}> movie </i>Náhled</h3>
+						<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
 						<video><source type="video/mp4" src="https://www.w3schools.com/html/mov_bbb.mp4"/></video>
 						<br/>
 						<div className="prev-toolbar">

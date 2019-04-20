@@ -12,7 +12,6 @@ export default class Timeline extends Component {
 	componentDidMount() {
 		const container = document.getElementById('vis-timeline');
 		const options = {
-			height: 200,
 			orientation: 'top',
 			min: new Date(1970, 0, 1),
 			max: new Date(1970, 0, 1, 23, 59, 59, 999),
