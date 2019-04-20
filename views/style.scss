@@ -329,12 +329,36 @@ tr:nth-child(even) {
 	border: none!important;
 }
 
-.vis-item.video {
-	background-color: #27438b!important;
-	border-color: #1d346e;
-	border-radius: 10px!important;
-	color: #FFF;
-	padding: 2px;
+.vis-item {
+	height: 4em;
+
+	&.video {
+		background-color: #27438b !important;
+		border-color: #1d346e;
+		border-radius: 10px !important;
+		color: #FFF;
+		padding: 2px;
+
+		div.filter {
+			position: relative;
+			top: -5px;
+			left: -5px;
+			width: 0;
+			height: 0;
+			border-top: 40px solid #30acffcc;
+			border-right: 40px solid transparent;
+			z-index: 1;
+			display: inline-block;
+			vertical-align: top;
+		}
+
+		i.filter {
+			position: absolute;
+			top: 5px;
+			left: 4px;
+			z-index: 2;
+		}
+	}
 }
 
 .vis-time-axis .vis-text{

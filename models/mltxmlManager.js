@@ -58,8 +58,12 @@ export default {
 		let i = 0;
 		const entries = track.childNodes;
 		for (let entry of entries) {
+			// Skip blank
+			if (entry.tagName === 'blank') {
+				// continue;
+			}
 			// Simple entry
-			if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
+			else if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
 				if (i === index) {
 					return entry;
 				}

@@ -66,17 +66,19 @@ export default class Timeline extends Component {
 
 			for (let item of track.items) {
 				if (item.resource === 'blank') {
-					actualTime = timeManager.addDuration(item.getAttribute('length'), actualTime);
+					actualTime = timeManager.addDuration(item.length, actualTime);
 				}
 				else {
 					const timeIn = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					actualTime = timeManager.addDuration(actualTime, item.out);
 					actualTime = timeManager.subDuration(actualTime, item.in);
 					const timeOut = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					let content = this.props.resources[item.resource].name;
+					if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">photo_filter</i>' + content;
 					// todo Subtract transition duration
 					items.push({
 						id: index++,
-						content: this.props.resources[item.resource].name,
+						content: content,
 						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
 						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),
 						group: track.id,

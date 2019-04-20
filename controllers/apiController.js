@@ -107,7 +107,8 @@ exports.projectGET = (req, res) => {
 							length: entry.getAttribute('length'),
 						});
 					}
-					else {
+					// Simple entry
+					else if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
 						const duration = mltxmlManager.getDuration(entry, document);
 						trackEntry.items.push({
 							resource: entry.getAttribute('producer').replace(/^producer/, ''),
@@ -117,6 +118,35 @@ exports.projectGET = (req, res) => {
 							transitionTo: null,
 							transitionFrom: null,
 						});
+					}
+					// Tractor with playlist
+					else {
+						const tractor = document.getElementById(entry.getAttribute('producer'));
+						const tracks = tractor.getElementsByTagName('multitrack').item(0).childNodes;
+						const trackFilters = tractor.getElementsByTagName('filter');
+						let index = 0;
+						for (let track of tracks) {
+							const playlist = document.getElementById(track.getAttribute('producer'));
+							const playlistEntry = playlist.getElementsByTagName('entry').item(0);
+							const duration = mltxmlManager.getDuration(playlistEntry, document);
+							let filters = [];
+							for (let trackFilter of trackFilters) {
+								if (trackFilter.getAttribute('track') === index.toString()) {
+									filters.push({
+										service: trackFilter.getAttribute('mlt_service'),
+									});
+								}
+							}
+							trackEntry.items.push({
+								resource: playlistEntry.getAttribute('producer').replace(/^producer/, ''),
+								in: duration.in,
+								out: duration.out,
+								filters: filters,
+								transitionTo: null,
+								transitionFrom: null,
+							});
+							index++;
+						}
 					}
 				}
 
