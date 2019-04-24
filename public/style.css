@@ -136,7 +136,7 @@ h3 {
 /*
  * BUTTONS
  */
-button {
+button, input[type="submit"] {
   font-size: 14px;
   color: inherit;
   border: 1px solid #555;
@@ -146,23 +146,27 @@ button {
   cursor: pointer;
   font-family: SourceSans;
   border-radius: 5px;
-  background: #25282d; }
-  button:hover {
+  background: #25282d;
+  min-height: 1.85em; }
+  button:hover, input[type="submit"]:hover {
     background-color: #161c21; }
-  button.success {
+  button.success, input[type="submit"].success {
     border-color: #336620; }
-  button.error {
+  button.error, input[type="submit"].error {
     border-color: #7a281b; }
-  button.success:hover {
+  button.success:hover, input[type="submit"].success:hover {
     background-color: #123027; }
-  button.error:hover {
+  button.error:hover, input[type="submit"].error:hover {
     background-color: #301212; }
-  .prev-toolbar button {
+  .prev-toolbar button, .prev-toolbar input[type="submit"] {
     padding: 4px;
     border: none;
     border-left: 1px solid #555;
     border-radius: 0;
     margin: 0; }
+
+input[type="submit"] {
+  height: 1.85em; }
 
 /*
  * TABLES

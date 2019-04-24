@@ -19,6 +19,7 @@ router.get('/vis.js', (req, res) => res.sendFile(__dirname + '/node_modules/vis/
 // Homepage route
 router.get('/', mainController.main);
 router.get('/project/:projectID', mainController.project);
+router.get('/project/:projectID/finished', mainController.finished);
 
 // API route
 router.all('/api', apiController.default);

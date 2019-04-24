@@ -28,6 +28,7 @@
     "jsdom": "^14.0.0",
     "json-loader": "0.5.7",
     "nanoid": "^2.0.1",
+    "nodemailer": "^6.1.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",

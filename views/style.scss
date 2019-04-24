@@ -149,7 +149,7 @@ h3 {
 /*
  * BUTTONS
  */
-button {
+button, input[type="submit"] {
 	font-size: 14px;
 	color: inherit;
 	border: 1px solid #555;
@@ -160,6 +160,7 @@ button {
 	font-family: SourceSans;
 	border-radius: 5px;
 	background: #25282d;
+	min-height: 1.85em;
 
 	&:hover {
 		background-color: #161c21;
@@ -184,6 +185,10 @@ button {
 		border-radius: 0;
 		margin: 0;
 	}
+}
+
+input[type="submit"] {
+	height: 1.85em;
 }
 
 /*

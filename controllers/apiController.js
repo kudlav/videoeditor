@@ -7,6 +7,7 @@ import config from '../config';
 import mltxmlManager from '../models/mltxmlManager';
 import fileManager from '../models/fileManager';
 import timeManager from '../models/timeManager';
+import emailManager from '../models/emailManager';
 
 const fs = require('fs');
 const path = require('path');
@@ -781,6 +782,10 @@ exports.projectPUT = (req, res, next) => {
 			fs.unlink(path.join(projectPath, 'processing'), (err) => {
 				if (err) console.error(err.stack);
 			});
+
+			if (isset(req.body.email)) {
+				emailManager.sendProjectFinished(req.body.email, req.params.projectID);
+			}
 		});
 		res.json({
 			msg: 'Zpracování zahájeno'

@@ -1,22 +1,26 @@
 import React, { Component } from 'react';
 import LoadingDialog from "./LoadingDialog";
+import SubmitDialog from './SubmitDialog';
 import Sources from "./Sources";
 import Timeline from "./Timeline";
 import config from "../../config";
 
-export default class App extends Component {
+export default class Editor extends Component {
 
 	constructor(props) {
 		super(props);
 		this.addResource = this.addResource.bind(this);
 		this.delResource = this.delResource.bind(this);
 		this.putResource = this.putResource.bind(this);
+		this.openSubmitDialog = this.openSubmitDialog.bind(this);
+		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 
 		this.state = {
 			project: window.location.href.match(/project\/([^\/]*)/)[1],
 			resources: {},
 			timeline: {},
 			loading: true,
+			showSubmitDialog: false,
 		};
 
 		const url = `${config.apiUrl}/project/${this.state.project}`;
@@ -48,10 +52,11 @@ export default class App extends Component {
 				<LoadingDialog show={this.state.loading}/>
 				<button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy
 				</button>
+				<SubmitDialog show={this.state.showSubmitDialog} project={this.state.project} onClose={this.closeSubmitDialog}/>
 				<div className="divider"/>
 				<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>
 				<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>
-				<button className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
+				<button onClick={this.openSubmitDialog} className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
 			</header>
 			<main>
 				<div>
