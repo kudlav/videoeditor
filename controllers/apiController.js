@@ -434,7 +434,7 @@ exports.projectFilterPOST = (req, res, next) => {
 						res.status(403);
 						res.json({
 							err: 'Filtr je již aplikován.',
-							msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter} aplikován".`,
+							msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter}" aplikován.`,
 						});
 						return;
 					}
