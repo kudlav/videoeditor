@@ -13,15 +13,15 @@ externalDocs:
   description: Github repository
   url: https://github.com/kudlav/videoeditor/
 servers:
-- url: https://editor.prednasky.com/api
+  - url: https://editor.prednasky.com/api
 tags:
-- name: project
-  description: Everything about project
+  - name: project
+    description: Everything about project
 paths:
   /project:
     post:
       tags:
-      - project
+        - project
       summary: Start new project
       operationId: projectPOST
       responses:
@@ -38,56 +38,98 @@ paths:
   /project/{projectID}:
     get:
       tags:
-      - project
+        - project
       summary: Get state of project
       operationId: projectGET
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
-        required: true
-        schema:
-          type: string
-      deprecated: true
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Project loaded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project:
+                    type: string
+                    description: id of project
+                  resources:
+                    type: object
+                    description: 'associtaive array of resource objects {id: string, duration: string|null, mime: string|null, name: string|null}'
+                  timeline:
+                    type: object
+                    description: 'empty array'
+        404:
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
-      - project
+        - project
       summary: Remove project and all files
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
       deprecated: true
-  /project/{projectID}/submit:
     put:
       tags:
-      - project
+        - project
       summary: Finish project, get video
+      operationId: projectPUT
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
-        required: true
-        schema:
-          type: string
-      deprecated: true
-    
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                email:
+                  type: string
+                  description: email for finish notification
+      responses:
+        200:
+          description: Rendering has started.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        404:
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /project/{projectID}/file:
     post:
       tags:
-      - file
+        - file
       summary: Upload new file
       operationId: projectFilePOST
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
       requestBody:
         content:
           multipart/form-data:
@@ -118,25 +160,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /project/{projectID}/file/{fileID}:
     delete:
       tags:
-      - file
+        - file
       summary: Remove file from project
       operationId: projectFileDELETE
       parameters:
-      - name: projectID
-        in: path
-        description: project ID
-        required: true
-        schema:
-          type: string
-      - name: fileID
-        in: path
-        description: file ID
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: project ID
+          required: true
+          schema:
+            type: string
+        - name: fileID
+          in: path
+          description: file ID
+          required: true
+          schema:
+            type: string
       responses:
         200:
           description: File removed.
@@ -151,29 +199,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         404:
-          description: Resource not found.
+          description: Resource or project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
-      - file
+        - file
       summary: Add file to the end of default timeline
       operationId: projectFilePUT
       parameters:
-      - name: projectID
-        in: path
-        description: project ID
-        required: true
-        schema:
-          type: string
-      - name: fileID
-        in: path
-        description: file ID
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: project ID
+          required: true
+          schema:
+            type: string
+        - name: fileID
+          in: path
+          description: file ID
+          required: true
+          schema:
+            type: string
+        - name: duration
+          in: header
+          description: 'required for image files, format: "00:00:00,00"'
+          schema:
+            type: string
       responses:
         200:
           description: File added to a timeline.
@@ -201,7 +254,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         404:
-          description: Resource not found.
+          description: Resource or project not found.
           content:
             application/json:
               schema:
@@ -209,16 +262,34 @@ paths:
   /project/{projectID}/filter:
     post:
       tags:
-      - filter
+        - filter
       summary: Apply filter to a timeline item
       operationId: projectFilterPOST
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                item:
+                  type: string
+                  description: index of track item
+                filter:
+                  type: string
+                  description: type of filter
+                params:
+                  type: object
+                  description: filter properties
         required: true
-        schema:
-          type: string
       responses:
         200:
           description: Filter applied.
@@ -239,23 +310,38 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         404:
-          description: Track or item not found.
+          description: Track, item or project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
-      - filter
+        - filter
       summary: Remove filter from a timeline item
       operationId: projectFilterDELETE
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                item:
+                  type: string
+                  description: index of track item
+                filter:
+                  type: string
+                  description: type of filter
         required: true
-        schema:
-          type: string
       responses:
         200:
           description: Filter removed.
@@ -270,7 +356,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         404:
-          description: Track, item or filter not found.
+          description: Track, item, filter or project not found.
           content:
             application/json:
               schema:
@@ -278,65 +364,111 @@ paths:
   /project/{projectID}/transition:
     post:
       tags:
-      - transition
+        - transition
       summary: Apply transition between two timeline items
+      operationId: projectTransitionPOST
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                itemA:
+                  type: string
+                  description: first item of transition
+                itemB:
+                  type: string
+                  description: second item of transition
+                transition:
+                  type: string
+                  description: type of transition
+                duration:
+                  type: string
+                  description: duration of transition
         required: true
-        schema:
-          type: string
-      deprecated: true
+      responses:
+        200:
+          description: Transition applied.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing or invalid parameters in request body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Transition already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Item, track or project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     delete:
       tags:
-      - transition
+        - transition
       summary: Remove transition between two timeline items
       parameters:
-      - name: projectID
-        in: path
-        description: ID of project.
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: ID of project.
+          required: true
+          schema:
+            type: string
       deprecated: true
   /project/{projectID}/item:
     delete:
       tags:
-      - item
+        - item
       summary: Remove item from timeline
       deprecated: true
       parameters:
-      - name: projectID
-        in: path
-        description: project ID
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: project ID
+          required: true
+          schema:
+            type: string
     put:
       tags:
-      - item
+        - item
       summary: Move item in timeline
       deprecated: true
       parameters:
-      - name: projectID
-        in: path
-        description: project ID
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: project ID
+          required: true
+          schema:
+            type: string
     patch:
       tags:
-      - item
+        - item
       summary: Split item in timeline into two parts
       deprecated: true
       parameters:
-      - name: projectID
-        in: path
-        description: project ID
-        required: true
-        schema:
-          type: string
+        - name: projectID
+          in: path
+          description: project ID
+          required: true
+          schema:
+            type: string
 
 components:
   schemas:
