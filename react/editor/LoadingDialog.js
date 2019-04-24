@@ -12,6 +12,7 @@ export default class LoadingDialog extends Component {
 					isOpen={this.props.show}
 					contentLabel="Načítání"
 					className={'modal'}
+					overlayClassName={'overlay'}
 				>
 
 					<h2>Načítání videoeditoru</h2>

@@ -36,7 +36,7 @@ export default class NewProjectDialog extends Component {
 					overlayClassName={'null'}
 				>
 
-					<h2>Nový projekt</h2>
+					<h2 className={'logo'}><img src={'/icons/favicon.svg'} alt={'logo'}/>Videoeditor</h2>
 					<div>
 						<button onClick={() => this.createProject()}>Vytvořit nový projekt</button>
 					</div>

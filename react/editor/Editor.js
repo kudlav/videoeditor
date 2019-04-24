@@ -51,9 +51,8 @@ export default class Editor extends Component {
 			<>
 			<header>
 				<LoadingDialog show={this.state.loading}/>
-				<button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy
-				</button>
 				<SubmitDialog show={this.state.showSubmitDialog} project={this.state.project} onClose={this.closeSubmitDialog}/>
+				<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
 				<div className="divider"/>
 				<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>
 				<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>

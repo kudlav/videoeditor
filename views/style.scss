@@ -45,6 +45,16 @@ h3 {
 	font-weight: inherit;
 }
 
+h2.logo {
+	font-size: 4em;
+
+	img {
+		width: 120px;
+		height: 120px;
+		vertical-align: middle;
+		padding-right: 1em;
+	}
+}
 
 select, input {
 	height: 28px;
@@ -59,6 +69,11 @@ select option {
 	background: #25282d;
 	color: #fff;
 }
+
+a {
+	color: inherit;
+}
+
 #app {
 	display: flex;
 	flex-direction: column;
@@ -111,6 +126,13 @@ select option {
 		padding: 20px;
 		text-align: center;
 	}
+}
+
+.overlay{
+	position: fixed;
+	inset: 0;
+	background-color: rgba(0, 0, 0, 0.79);
+	z-index: 100;
 }
 
 .material-icons {
