@@ -36,6 +36,18 @@ h3 {
   font-family: SourceSans;
   font-weight: inherit; }
 
+
+select, input {
+  height: 28px;
+  background: #25282d;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 5px; }
+
+select option {
+  margin: 40px;
+  background: #25282d;
+  color: #fff; }
 #app {
   display: flex;
   flex-direction: column;

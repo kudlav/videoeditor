@@ -1,12 +1,23 @@
 import React, { Component } from 'react';
 import vis from 'vis';
 import timeManager from '../../models/timeManager';
+import AddFilterDialog from './AddFilterDialog';
 
 export default class Timeline extends Component {
 	constructor(props) {
 		super(props);
 
+		this.selectedItems = [];
 		this.timeline = null;
+
+		this.state = {
+			showAddFilterDialog: false,
+		};
+
+		this.onSelect = this.onSelect.bind(this);
+		this.buttonFilter = this.buttonFilter.bind(this);
+		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
+		this.addFilter = this.addFilter.bind(this);
 	}
 
 	componentDidMount() {
@@ -47,9 +58,12 @@ export default class Timeline extends Component {
 			}
 		};
 		this.timeline = new vis.Timeline(container, [], [], options);
+		this.timeline.on('select', this.onSelect);
 	}
 
-	componentDidUpdate() {
+	componentDidUpdate(prevProps, prevState) {
+
+		if (prevProps.items === this.props.items) return;
 
 		const groups = [];
 		const items = [];
@@ -76,13 +90,14 @@ export default class Timeline extends Component {
 					if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">photo_filter</i>' + content;
 					// todo Subtract transition duration
 					items.push({
-						id: index++,
+						id: track.id + ':' + index,
 						content: content,
 						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
 						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),
 						group: track.id,
 						className: 'video',
 					});
+					index++;
 				}
 			}
 		}
@@ -96,6 +111,41 @@ export default class Timeline extends Component {
 	}
 
 	render() {
-		return (<div id="vis-timeline"> </div>);
+		return (
+			<>
+			<button onClick={this.buttonFilter}><i className="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
+			<button><i className="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>
+			<button><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
+			<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
+			<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
+			<div id="time">00:00:00 / 00:00:00</div>
+			<div id="vis-timeline"/>
+			<AddFilterDialog show={this.state.showAddFilterDialog} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
+			</>
+		);
+	}
+
+	onSelect(properties) {
+		this.selectedItems = properties.items;
+	}
+
+	buttonFilter() {
+		if (this.selectedItems.length === 0) return;
+
+		this.setState({showAddFilterDialog: true});
+	}
+
+	closeAddFilterDialog() {
+		this.setState({showAddFilterDialog: false});
+	}
+
+	addFilter(filter) {
+		for (let item of this.selectedItems) {
+			const itemPath = item.split(':');
+			filter.track = itemPath[0];
+			filter.item = Number(itemPath[1]);
+
+			this.props.onAddFilter(filter);
+		}
 	}
 }

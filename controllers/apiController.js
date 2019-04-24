@@ -445,6 +445,14 @@ exports.projectFilterPOST = (req, res, next) => {
 				newFilter.setAttribute('mlt_service', req.body.filter);
 				newFilter.setAttribute('track', trackIndex.toString());
 				item.parentElement.parentElement.appendChild(newFilter);
+
+				if (isset(req.body.params)) {
+					for (let param in req.body.params) {
+						const newPropery = document.createElement('property');
+						newPropery.innerHTML(params[param]);
+						newFilter.appendChild(newPropery);
+					}
+				}
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(

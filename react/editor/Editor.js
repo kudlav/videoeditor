@@ -12,6 +12,7 @@ export default class Editor extends Component {
 		this.addResource = this.addResource.bind(this);
 		this.delResource = this.delResource.bind(this);
 		this.putResource = this.putResource.bind(this);
+		this.addFilter = this.addFilter.bind(this);
 		this.openSubmitDialog = this.openSubmitDialog.bind(this);
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 
@@ -82,13 +83,11 @@ export default class Editor extends Component {
 				</div>
 			</main>
 			<footer>
-				<button><i className="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
-				<button><i className="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>
-				<button><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
-				<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
-				<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
-				<div id="time">00:00:00 / 00:00:00</div>
-				<Timeline resources={this.state.resources} items={this.state.timeline}/>
+				<Timeline
+					resources={this.state.resources}
+					items={this.state.timeline}
+					onAddFilter={this.addFilter}
+				/>
 			</footer>
 			</>
 		);
@@ -112,7 +111,67 @@ export default class Editor extends Component {
 
 	putResource(id, duration, trackId) {
 		const timeline = Object.assign({}, this.state.timeline);
-		// Find the track
+		const track = Editor.findTrack(timeline, trackId);
+
+		track.items.push({
+			resource: id,
+			in: '00:00:00,000',
+			out: (duration !== null) ? duration : this.state.resources[id].duration,
+			filters: [],
+			transitionTo: null,
+			transitionFrom: null,
+		});
+		this.setState({timeline: timeline});
+	}
+
+	addFilter(parameters) {
+		const url = `${config.apiUrl}/project/${this.state.project}/filter`;
+		const params = {
+			method: 'POST',
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(parameters),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err === 'undefined') {
+					const timeline = Object.assign({}, this.state.timeline);
+
+					const track = Editor.findTrack(timeline, parameters.track);
+					const item = Editor.findItem(track.items, parameters.item);
+
+					item.filters.push({
+						service: parameters.filter,
+					});
+					this.setState({timeline: timeline});
+				}
+				else {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+			})
+			.catch(error => console.error(error))
+		;
+	}
+
+	openSubmitDialog() {
+		this.setState({showSubmitDialog: true});
+	}
+
+	closeSubmitDialog() {
+		this.setState({showSubmitDialog: false});
+	}
+
+	/**
+	 * Get track with specified trackId
+	 *
+	 * @param {Object} timeline
+	 * @param {String} trackId
+	 * @return {null|Object}
+	 */
+	static findTrack(timeline, trackId) {
 		let track = null;
 		for (let videotrack of timeline.video) {
 			if (videotrack.id === trackId) {
@@ -128,15 +187,24 @@ export default class Editor extends Component {
 				}
 			}
 		}
-		// Push item to the track
-		track.items.push({
-			resource: id,
-			in: '00:00:00,000',
-			out: (duration !== null) ? duration : this.state.resources[id].duration,
-			filters: [],
-			transitionTo: null,
-			transitionFrom: null,
-		});
-		this.setState({timeline: timeline});
+
+		return track;
+	}
+
+	/**
+	 * Get nth item of track. Blanks are ignored, first element is zero element.
+	 *
+	 * @param {Array} items
+	 * @param {Number} position
+	 * @return {null|Object}
+	 */
+	static findItem(items, position) {
+		let index = 0;
+		for (let item of items) {
+			if (item.resource === 'blank') continue;
+			if (index === position) return item;
+			index++;
+		}
+		return null;
 	}
 }
