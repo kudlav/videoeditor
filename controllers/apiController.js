@@ -792,7 +792,7 @@ exports.projectPUT = (req, res, next) => {
 			});
 
 			if (isset(req.body.email)) {
-				emailManager.sendProjectFinished(req.body.email, req.params.projectID);
+				emailManager.sendProjectFinished(req.body.email, req.params.projectID, !(err));
 			}
 		});
 		res.json({

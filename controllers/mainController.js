@@ -12,7 +12,11 @@ exports.project = (req, res) => res.render('project', {});
 exports.finished = (req, res) => {
 
 	fs.access(path.join(config.projectPath, req.params.projectID, 'processing'), fs.constants.R_OK, (err) => {
-		if (err) res.sendFile(path.resolve(path.join(config.projectPath, req.params.projectID, 'output.mp4')));
+		if (err) {
+			res.sendFile(path.resolve(path.join(config.projectPath, req.params.projectID, 'output.mp4')), {}, (err) => {
+				if (err) res.sendStatus(404);
+			});
+		}
 		else res.render('finished', {});
 	});
 };

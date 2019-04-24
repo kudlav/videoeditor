@@ -7,7 +7,7 @@ const nodemailer = require("nodemailer");
 
 export default {
 
-	async sendProjectFinished(recipient, project) {
+	sendProjectFinished(recipient, project, success) {
 		const transporter = nodemailer.createTransport({
 			host: "smtp.stud.fit.vutbr.cz",
 			port: 465,
@@ -28,9 +28,17 @@ export default {
 			from: '"Vladan Kudláč" <xkudla15@stud.fit.vutbr.cz>',
 			to: recipient,
 			subject: "Videoeditor - Projekt dokončen", // Subject line
-			html: `Právě bylo dokončeno zpracování výsledného videa vašeho <a href="${projectLink}">projektu</a>.
-				<br>Stáhnout si jej můžete na následujícím odkazu: <a href="${videoLink}">${videoLink}</a>`
 		};
+
+		if (success) {
+			email.html = `Právě bylo dokončeno zpracování výsledného videa vašeho <a href="${projectLink}">projektu</a>.
+				<br>Stáhnout si jej můžete na následujícím odkazu: <a href="${videoLink}">${videoLink}</a>`;
+		}
+		else {
+			email.to += `, ${config.adminEmail}`;
+			email.html = `Váš <a href="${projectLink}">projekt</a> nemohl být zpracován.
+				<br>Omlouváme se za způsobené komplikace, problémem se budeme co nejdříve zabývat.`;
+		}
 
 		transporter.sendMail(email, (err) => {
 			if (err) console.error(`Email to ${recipient} (project ${project}) failed!`, err);

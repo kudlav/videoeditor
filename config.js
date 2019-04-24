@@ -3,6 +3,7 @@ export default {
 	host: 'localhost',
 	emailUser: 'xkudla15',
 	emailPasswd: '*****',
+	adminEmail: 'xkudla15@stud.fit.vutbr.cz',
 
 	get serverUrl() {
 		return `http://${this.host}:${this.port}`;
