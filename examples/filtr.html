@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Guide to HTML5 video: chapter 5: example 10</title>
+  </head>
+  <body>
+    <h1>Guide to HTML5 video: chapter 5: example 10</h1>
+    <video class="target" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <video class="target1" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <video class="target2" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <video class="target3" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <video class="target4" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <video class="target5" height="270" width="480" controls >
+      <source src="video1.mp4"  type="video/mp4">
+    </video>
+    <svg height="0">
+      <defs>
+        <filter id="f1">  
+          <feColorMatrix values="0.3 0.3 0.3 0 0 
+                                 0.3 0.3 0.3 0 0
+                                 0.3 0.3 0.3 0 0
+                                 0   0   0   1 0"/>
+       </filter>
+        <filter id="f2"> 
+          <feComponentTransfer> 
+              <feFuncR type="table" tableValues="1 0"/> 
+              <feFuncG type="table" tableValues="1 0"/> 
+              <feFuncB type="table" tableValues="1 0"/> 
+          </feComponentTransfer> 
+        </filter>
+        <filter id="f3"> 
+          <feConvolveMatrix order="3" kernelMatrix="1    -1  1
+                                                   -1 -0.01 -1
+                                                    1    -1  1" edgeMode="duplicate"/> 
+        </filter>
+        <filter id="f4" x="0%" y="0%" height="100%" width="100%">
+           <feDisplacementMap scale="100" in2="SourceGraphic" xChannelSelector="R"/>
+        </filter>
+        <filter id="f5">
+          <feColorMatrix values="1 0 0 0 0
+                                 0 1 0 0 0
+                                 0 0 1 0 0
+                                 0 1 0 0 0" style="color-interpolation-filters:sRGB"/>
+        </filter>
+     </defs>
+    </svg>
+    <style>
+      .target1 {
+        filter: url("#f1");
+      }
+      .target2 {
+        filter: url("#f2");
+      }
+      .target3 {
+        filter: url("#f3");
+      }
+      .target4 {
+        filter: url("#f4");
+      }
+      .target5 {
+        filter: url("#f5");
+      }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+	<meta charset="UTF-8">
+	<title>Online Videoeditor</title>
+</head>
+<body>
+	<h1>Ovládání videa</h1>
+	<div style="display: block; position: relative; background-color: #000; width: 480px; height: 240px;">
+		<video style="position: absolute; top: 0; left: 0; z-index: 2; width: 480px; height: 240px; background: #000;" id="video"><source type="video/mp4" src="video1.mp4"></video>
+	</div>
+	<br>
+		<div class="prev-toolbar">
+			<button id="prev-reset" class="no-border" title="Zastavit přehrávání">reset</button>
+			<button id="prev-play" title="Pokračovat v přehrávání">přehrát</button>
+			<button id="prev-pause" title="Pozastavit přehrávání">pozastavit</button>
+			<button id='prev-prev' title="Předchozí událost">|&lt;</button>
+			<button id='prev-next' title="Následující událost">&gt;|</button>
+			<h2>čas: <span id="time">?</span> / <span id="duration">?</span> s</h2>
+		</div>
+	<script>
+
+		const video = document.getElementById('video');
+		const time = document.getElementById('time');
+		const duration = document.getElementById('duration');
+
+		const reset = document.getElementById('prev-reset');
+		const play = document.getElementById('prev-play');
+		const pause = document.getElementById('prev-pause');
+		const prev = document.getElementById('prev-prev');
+		const next = document.getElementById('prev-next');
+
+		video.addEventListener('loadedmetadata', onLoadMetadata, false);
+		video.addEventListener('timeupdate', onTimeUpdate, false)
+		reset.addEventListener('click', toggleReset, false);
+		play.addEventListener('click', togglePlay, false);
+		pause.addEventListener('click', togglePause, false);
+		prev.addEventListener('click', togglePrev, false);
+		next.addEventListener('click', toggleNext, false);
+
+		function onLoadMetadata() {
+			duration.innerText = video.duration;
+			time.innerText = video.currentTime;
+		}
+
+		function onTimeUpdate() {
+			time.innerText = video.currentTime;
+		}
+
+		function toggleReset() {
+			video.pause();
+			video.currentTime = 0;
+		}
+
+		function togglePlay() {
+			video.play();
+		}
+
+		function togglePause() {
+			video.pause();
+		}
+
+		function togglePrev() {
+			video.currentTime = 0;
+		}
+
+		function toggleNext() {
+			video.currentTime = video.duration;
+		}
+
+	</script>
+</body>
+</html>

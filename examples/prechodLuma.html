@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+	<meta charset="UTF-8">
+	<title>Online Videoeditor</title>
+</head>
+<body>
+	<h1>Přechod mezi videi - prolnutí</h1>
+	<div style="display: block; position: relative; background-color: #000; width: 480px; height: 240px;">
+		<video style="position: absolute; top: 0; left: 0; z-index: 2; width: 480px; height: 240px; background: #000;" id="video1"><source type="video/mp4" src="video1.mp4"></video>
+		<video style="position: absolute; top: 0; left: 0; z-index: 1; width: 480px; height: 240px; background: #000;" id="video2"><source type="video/mp4" src="video2.mp4"></video>
+	</div>
+	<br>
+		<div class="prev-toolbar">
+			<button id="prev-reset" class="no-border" title="Zastavit přehrávání">reset</button>
+			<button id="prev-play" title="Pokračovat v přehrávání">přehrát</button>
+			<button id="prev-pause" title="Pozastavit přehrávání">pozastavit</button>
+		</div>
+	<script>
+
+		const video1 = document.getElementById('video1');
+		const video2 = document.getElementById('video2');
+		const reset = document.getElementById('prev-reset');
+		const play = document.getElementById('prev-play');
+		const pause = document.getElementById('prev-pause');
+		
+		let end = false;
+		let transition = false;
+
+		let videoMain = video1;
+		let videoBack = video2;
+
+		let transitionDuration = 2;
+		videoMain.addEventListener('timeupdate', transitionLuma, false);
+		function transitionLuma() {
+			const timeToEnd = videoMain.duration - videoMain.currentTime;
+			if (timeToEnd <= transitionDuration) {
+				videoMain.style.opacity = (timeToEnd / transitionDuration);
+				if (!transition) {
+					videoBack.play();
+					transition = true;
+				}
+			}
+		}
+
+		videoMain.addEventListener('ended', videoSwap, false);
+		function videoSwap() {
+			videoMain.style.opacity = 1;
+			videoMain.style.zIndex = 1;
+			videoBack.style.zIndex = 2;
+			transition = false;
+
+			const videoSwap = videoMain;
+			videoMain = videoBack;
+			videoBack = videoSwap;
+			togglePlay();
+		}
+
+		videoBack.addEventListener('ended', timelineEnd, false);
+		function timelineEnd() {
+			end = true;
+		}
+
+		reset.addEventListener('click', toggleReset, false);
+		play.addEventListener('click', togglePlay, false);
+		pause.addEventListener('click', togglePause, false);
+
+		function toggleReset() {
+			videoMain.pause();
+			videoBack.pause();
+			videoMain.style.opacity = 1;
+			videoMain.currentTime = 0;
+			videoBack.currentTime = 0;
+
+			videoMain = video1;
+			videoBack = video2;
+
+			videoMain.style.zIndex = 2;
+			videoBack.style.zIndex = 1;
+
+			end = false;
+			transition = false;
+		}
+
+		function togglePlay() {
+			if (end) toggleReset();
+			videoMain.play();
+			if (transition) videoBack.play();
+		}
+
+		function togglePause() {
+			videoMain.pause();
+			if (transition) videoBack.pause();
+		}
+
+	</script>
+</body>
+</html>
