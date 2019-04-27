@@ -2,15 +2,16 @@ import React, { Component } from 'react';
 import vis from 'vis';
 import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
+import Editor from './Editor';
 
 export default class Timeline extends Component {
 	constructor(props) {
 		super(props);
 
-		this.selectedItems = [];
 		this.timeline = null;
 
 		this.state = {
+			selectedItems: [],
 			showAddFilterDialog: false,
 		};
 
@@ -18,6 +19,7 @@ export default class Timeline extends Component {
 		this.buttonFilter = this.buttonFilter.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
 		this.addFilter = this.addFilter.bind(this);
+		this.getItem = this.getItem.bind(this);
 	}
 
 	componentDidMount() {
@@ -87,7 +89,7 @@ export default class Timeline extends Component {
 					actualTime = timeManager.subDuration(actualTime, item.in);
 					const timeOut = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					let content = this.props.resources[item.resource].name;
-					if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">photo_filter</i>' + content;
+					if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">flare</i>' + content;
 					// todo Subtract transition duration
 					items.push({
 						id: track.id + ':' + index,
@@ -120,17 +122,17 @@ export default class Timeline extends Component {
 			<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 			<div id="time">00:00:00 / 00:00:00</div>
 			<div id="vis-timeline"/>
-			<AddFilterDialog show={this.state.showAddFilterDialog} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
+			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.state.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
 			</>
 		);
 	}
 
 	onSelect(properties) {
-		this.selectedItems = properties.items;
+		this.setState({selectedItems: properties.items});
 	}
 
 	buttonFilter() {
-		if (this.selectedItems.length === 0) return;
+		if (this.state.selectedItems.length === 0) return;
 
 		this.setState({showAddFilterDialog: true});
 	}
@@ -140,12 +142,12 @@ export default class Timeline extends Component {
 	}
 
 	addFilter(filter) {
-		for (let item of this.selectedItems) {
-			const itemPath = item.split(':');
-			filter.track = itemPath[0];
-			filter.item = Number(itemPath[1]);
+		this.props.onAddFilter(filter);
+	}
 
-			this.props.onAddFilter(filter);
-		}
+	getItem(trackIndex) {
+		const itemPath = trackIndex.split(':');
+		const trackItems = Editor.findTrack(this.props.items, itemPath[0]).items;
+		return Editor.findItem(trackItems, Number(itemPath[1]));
 	}
 }

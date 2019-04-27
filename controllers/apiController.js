@@ -411,13 +411,19 @@ exports.projectFilterPOST = (req, res, next) => {
 				});
 				return;
 			}
+
+			let trackIndex;
+			let newTractor;
+
 			if (mltxmlManager.isSimpleNode(item)) {
 				// Create playlist after last producer
 				const newPlaylist = mltxmlManager.entryToPlaylist(item, document);
 
 				// Create tractor before videotrack0
-				const newTractor = mltxmlManager.createTractor(document);
-				newTractor.innerHTML = `<multitrack><track producer="${newPlaylist.id}"/></multitrack><filter mlt_service="${req.body.filter}" track="0"/>`;
+				newTractor = mltxmlManager.createTractor(document);
+				newTractor.innerHTML = `<multitrack><track producer="${newPlaylist.id}"/></multitrack>`;
+
+				trackIndex = 0;
 
 				// Update track playlist
 				item.removeAttribute('in');
@@ -425,12 +431,15 @@ exports.projectFilterPOST = (req, res, next) => {
 				item.setAttribute('producer', newTractor.id);
 			}
 			else {
-				const trackIndex = mltxmlManager.getTrackIndex(item);
+				trackIndex = mltxmlManager.getTrackIndex(item);
 
 				// Check if filter is already applied
 				const filters = item.parentElement.parentElement.getElementsByTagName('filter');
 				for (let filter of filters) {
-					if (filter.getAttribute('mlt_service') === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
+					let filterName;
+					if (filter.getAttribute('musecut:filter') !== null) filterName = filter.getAttribute('musecut:filter');
+					else filterName = filter.getAttribute('mlt_service');
+					if (filterName === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
 						res.status(403);
 						res.json({
 							err: 'Filtr je již aplikován.',
@@ -440,18 +449,29 @@ exports.projectFilterPOST = (req, res, next) => {
 					}
 				}
 
-				// Add new filter
-				const newFilter = document.createElement('filter');
-				newFilter.setAttribute('mlt_service', req.body.filter);
-				newFilter.setAttribute('track', trackIndex.toString());
-				item.parentElement.parentElement.appendChild(newFilter);
+				newTractor = item.parentElement.parentElement;
+			}
 
-				if (isset(req.body.params)) {
-					for (let param in req.body.params) {
-						const newPropery = document.createElement('property');
-						newPropery.innerHTML(params[param]);
-						newFilter.appendChild(newPropery);
-					}
+			// Add new filter
+			const newFilter = document.createElement('filter');
+			let filterName = req.body.filter;
+			if (isset(config.mapFilterNames[req.body.filter])) {
+				filterName = config.mapFilterNames[req.body.filter];
+				const newPropery = document.createElement('property');
+				newPropery.setAttribute('name', 'musecut:filter');
+				newPropery.innerHTML = req.body.filter;
+				newFilter.appendChild(newPropery);
+			}
+			newFilter.setAttribute('mlt_service', filterName);
+			newFilter.setAttribute('track', trackIndex.toString());
+			newTractor.appendChild(newFilter);
+
+			if (isset(req.body.params)) {
+				for (let param in req.body.params) {
+					const newPropery = document.createElement('property');
+					newPropery.setAttribute('name', param);
+					newPropery.innerHTML = req.body.params[param];
+					newFilter.appendChild(newPropery);
 				}
 			}
 
@@ -507,14 +527,29 @@ exports.projectFilterDELETE = (req, res, next) => {
 				return;
 			}
 
+			let filterName = req.body.filter;
+			if (isset(config.mapFilterNames[req.body.filter])) {
+				filterName = config.mapFilterNames[req.body.filter];
+			}
+
 			const tractor = item.parentElement.parentElement;
 			const trackIndex = mltxmlManager.getTrackIndex(item);
 			const filters = tractor.getElementsByTagName('filter');
 			let filter;
 			for (let entry of filters) {
-				if (entry.getAttribute('mlt_service') === req.body.filter && entry.getAttribute('track') === trackIndex.toString()) {
-					filter = entry;
-					break;
+				if (entry.getAttribute('mlt_service') === filterName && entry.getAttribute('track') === trackIndex.toString()) {
+					if (filterName === req.body.filter) {
+						filter = entry;
+						break;
+					}
+					// filterName is alias
+					const properties = entry.getElementsByTagName('property');
+					for (let property of properties) {
+						if (property.getAttribute('name') === 'musecut:filter') {
+							if (property.innerHTML === req.body.filter) filter = entry;
+							break;
+						}
+					}
 				}
 			}
 
