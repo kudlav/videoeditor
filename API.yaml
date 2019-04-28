@@ -265,6 +265,10 @@ paths:
         - filter
       summary: Apply filter to a timeline item
       operationId: projectFilterPOST
+      description: 'You can use filters from MLT documentation. Each filter can be applied only once. There are some special names to distinguish multiple brightness and volume filters: fadeInBrightnerss => brightness, fadeOutBrightnerss => brightness, fadeInVolume => volume, fadeOutVolume => volume'
+      externalDocs:
+        url: 'https://www.mltframework.org/plugins/PluginsFilters/'
+        description: Available filters and usage
       parameters:
         - name: projectID
           in: path
