@@ -83,6 +83,19 @@ paths:
           schema:
             type: string
       deprecated: true
+      responses:
+        200:
+          description: Project removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        404:
+          description: Project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       tags:
         - project
@@ -436,6 +449,42 @@ paths:
           schema:
             type: string
       deprecated: true
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                itemA:
+                  type: string
+                  description: first item of transition
+                itemB:
+                  type: string
+                  description: second item of transition
+                transition:
+                  type: string
+                  description: type of transition
+      responses:
+        200:
+          description: Transition removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track, item or transition parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track, item, transition or project not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /project/{projectID}/item:
     delete:
       tags:
@@ -449,6 +498,38 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                item:
+                  type: string
+                  description: index of track item
+        required: true
+      responses:
+        200:
+          description: Item removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track or item parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track or item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /project/{projectID}/item/move:
     put:
       tags:
         - item
@@ -461,7 +542,45 @@ paths:
           required: true
           schema:
             type: string
-    patch:
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                item:
+                  type: string
+                  description: index of track item
+                direction:
+                  type: string
+                  description: movement direction, 'l' for move to left, 'r' for move to right
+                offset:
+                  type: string
+                  description: time to move, in format '00:00:00,000'
+        required: true
+      responses:
+        200:
+          description: Item moved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track or item parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track or item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /project/{projectID}/item/split:
+    put:
       tags:
         - item
       summary: Split item in timeline into two parts
@@ -473,6 +592,40 @@ paths:
           required: true
           schema:
             type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              properties:
+                track:
+                  type: string
+                  description: track containing items
+                item:
+                  type: string
+                  description: index of track item
+                position:
+                  type: string
+                  description: position of cut in format '00:00:00,000'
+        required: true
+      responses:
+        200:
+          description: Item splitted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        400:
+          description: Bad request, missing track or item parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        404:
+          description: Track or item not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
 components:
   schemas:
