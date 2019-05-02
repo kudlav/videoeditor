@@ -80,3 +80,5 @@ public/front.js
 # IntelliJ IDEA IDE
 .idea/
 videoeditor.iml
+public/main.js
+public/style.css
