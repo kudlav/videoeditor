@@ -2,7 +2,15 @@
 
 ## Installation
 
-Project requires [Node.js](https://nodejs.org/) v8+ to run.
+Project requires:
+- [Node.js](https://nodejs.org/) v8+ to run server.
+- MLT framework to export video.
+- FFmpeg to handle multimedia files.
+
+```sh
+$ sudo apt install melt
+$ sudo apt install ladspa-sdk ffmpeg
+```
 
 ### Development
 
