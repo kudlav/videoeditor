@@ -367,6 +367,7 @@ tr:nth-child(even) {
 	cursor: pointer;
 	opacity: 0.9;
 	margin: 0 0 2px 10px;
+	filter: invert(1);
 }
 
 .vis-timeline {
