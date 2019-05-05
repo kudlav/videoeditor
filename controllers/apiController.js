@@ -812,15 +812,8 @@ exports.projectPUT = (req, res, next) => {
 			if (err) console.error(err.stack);
 		});
 
-		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264`, (err, stdout, stderr) => {
+		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264 > stdout.log 2> stderr.log`, (err) => {
 			if (err) console.error(`exec error: ${err}`);
-
-			fs.writeFile(path.join(projectPath, 'stdout.log'), stdout, (err) => {
-				if (err) console.error(err.stack);
-			});
-			fs.writeFile(path.join(projectPath, 'stderr.log'), stderr, (err) => {
-				if (err) console.error(err.stack);
-			});
 
 			fs.unlink(path.join(projectPath, 'processing'), (err) => {
 				if (err) console.error(err.stack);
