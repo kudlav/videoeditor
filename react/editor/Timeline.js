@@ -9,13 +9,17 @@ export default class Timeline extends Component {
 		super(props);
 
 		this.timeline = null;
+		this.selectedItems = '00:00:00,000';
 
 		this.state = {
 			selectedItems: [],
 			showAddFilterDialog: false,
+			duration: '00:00:00,000',
+			timePointer: '00:00:00,000',
 		};
 
 		this.onSelect = this.onSelect.bind(this);
+		this.onTimeChange = this.onTimeChange.bind(this);
 		this.buttonFilter = this.buttonFilter.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
 		this.addFilter = this.addFilter.bind(this);
@@ -60,7 +64,9 @@ export default class Timeline extends Component {
 			}
 		};
 		this.timeline = new vis.Timeline(container, [], [], options);
+		this.timeline.addCustomTime(new Date(1970, 0, 1));
 		this.timeline.on('select', this.onSelect);
+		this.timeline.on('timechange', this.onTimeChange);
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -102,6 +108,10 @@ export default class Timeline extends Component {
 					index++;
 				}
 			}
+
+			if (actualTime > this.state.duration) {
+				this.setState({duration: actualTime});
+			}
 		}
 
 		this.timeline.setData({
@@ -120,9 +130,9 @@ export default class Timeline extends Component {
 			<button><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
 			<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
 			<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
-			<div id="time">00:00:00 / 00:00:00</div>
+			<div id="time">{this.state.timePointer} / {this.state.duration}</div>
 			<div id="vis-timeline"/>
-			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.state.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
+			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
 			</>
 		);
 	}
@@ -149,5 +159,27 @@ export default class Timeline extends Component {
 		const itemPath = trackIndex.split(':');
 		const trackItems = Editor.findTrack(this.props.items, itemPath[0]).items;
 		return Editor.findItem(trackItems, Number(itemPath[1]));
+	}
+
+	onTimeChange(event) {
+		let timePointer = `${event.time.getHours()}:`;
+		if (timePointer.length < 3) timePointer = '0' + timePointer;
+
+		timePointer += `00${event.time.getMinutes()}:`.slice(-3);
+		timePointer += `00${event.time.getSeconds()},`.slice(-3);
+		timePointer += `${event.time.getMilliseconds()}000`.slice(0,3);
+
+		if (event.time.getFullYear() < 1970) {
+			this.timeline.setCustomTime(new Date(1970, 0, 1));
+			this.setState({timePointer: '00:00:00,000'});
+		}
+		else if (timePointer > this.state.duration) {
+			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+			this.timeline.setCustomTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));
+			this.setState({timePointer: this.state.duration});
+		}
+		else {
+			this.setState({timePointer: timePointer});
+		}
 	}
 }
