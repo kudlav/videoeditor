@@ -20,6 +20,8 @@ export default class Timeline extends Component {
 
 		this.onSelect = this.onSelect.bind(this);
 		this.onTimeChange = this.onTimeChange.bind(this);
+		this.onMoving = this.onMoving.bind(this);
+		this.onMove = this.onMove.bind(this);
 		this.buttonFilter = this.buttonFilter.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
 		this.addFilter = this.addFilter.bind(this);
@@ -38,6 +40,11 @@ export default class Timeline extends Component {
 			stack: false,
 			zoomMin: 100,
 			zoomMax: 21600000,
+			editable: {
+				updateTime: true,
+			},
+			onMove: this.onMove,
+			onMoving: this.onMoving,
 			format: {
 				minorLabels: {
 					millisecond:'SSS [ms]',
@@ -67,6 +74,8 @@ export default class Timeline extends Component {
 		this.timeline.addCustomTime(new Date(1970, 0, 1));
 		this.timeline.on('select', this.onSelect);
 		this.timeline.on('timechange', this.onTimeChange);
+		this.timeline.on('moving', this.onMoving);
+		this.timeline.on('move', this.onMove);
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -161,13 +170,34 @@ export default class Timeline extends Component {
 		return Editor.findItem(trackItems, Number(itemPath[1]));
 	}
 
-	onTimeChange(event) {
-		let timePointer = `${event.time.getHours()}:`;
-		if (timePointer.length < 3) timePointer = '0' + timePointer;
+	getItemInRange(timelineID, itemID, start, end) {
+		const track = Editor.findTrack(this.props.items, timelineID);
+		const items = [];
+		let time = '00:00:00,000';
+		let index = 0;
+		for (let item of track.items) {
+			if (item.resource === 'blank') {
+				time = timeManager.addDuration(item.length, time);
+			}
+			else {
+				if (end <= time) break;
+				const timeStart = time;
+				time = timeManager.addDuration(time, item.out);
+				time = timeManager.subDuration(time, item.in);
+				// todo Subtract transition duration
+				if (index++ === itemID) continue; // Same item
+				if (start >= time) continue;
+				items.push({
+					start: timeStart,
+					end: time,
+				});
+			}
+		}
+		return items;
+	}
 
-		timePointer += `00${event.time.getMinutes()}:`.slice(-3);
-		timePointer += `00${event.time.getSeconds()},`.slice(-3);
-		timePointer += `${event.time.getMilliseconds()}000`.slice(0,3);
+	onTimeChange(event) {
+		const timePointer = Timeline.dateToString(event.time);
 
 		if (event.time.getFullYear() < 1970) {
 			this.timeline.setCustomTime(new Date(1970, 0, 1));
@@ -181,5 +211,80 @@ export default class Timeline extends Component {
 		else {
 			this.setState({timePointer: timePointer});
 		}
+	}
+
+	onMoving(item, callback) {
+		callback(this.itemMove(item));
+
+	}
+
+	onMove(item, callback) {
+		callback(this.itemMove(item));
+	}
+
+	itemMove(item) {
+		if (item.start.getFullYear() < 1970) return null; // Deny move before zero time
+		else {
+			const itemPath = item.id.split(':');
+			const start = Timeline.dateToString(item.start);
+			const end = Timeline.dateToString(item.end);
+			const collision = this.getItemInRange(item.group, Number(itemPath[1]), start, end);
+			if (collision.length === 0) {
+				// Free
+				return item;
+			}
+			else if (collision.length > 1) {
+				// Not enough space
+				return null;
+			}
+			else {
+				// Space maybe available before/after item
+				let itemStart = '';
+				let itemEnd = '';
+				const duration = timeManager.subDuration(end, start);
+				if (this.middleOfDuration(start, end) < this.middleOfDuration(collision[0].start, collision[0].end)) {
+					// Put before
+					itemEnd = collision[0].start;
+					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
+
+					itemStart = timeManager.subDuration(collision[0].start, duration);
+					const itemStartParsed = itemStart.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					if (itemStartParsed === null) return null; // Not enough space at begining of timeline
+					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);
+				}
+				else {
+					// Put after
+					itemStart = collision[0].end;
+					const itemStartParsed = collision[0].end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);
+
+					itemEnd = timeManager.addDuration(collision[0].end, duration);
+					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
+				}
+				// Check if there is enough space
+				if (this.getItemInRange(item.group, Number(itemPath[1]), itemStart, itemEnd).length === 0) {
+					return item
+				}
+				return null;
+			}
+		}
+	}
+
+	/**
+	 * Get duration format from Date object
+	 *
+	 * @param {Date} date
+	 * @return {string} Duration in format '00:00:00,000'
+	 */
+	static dateToString(date) {
+		let string = `${date.getHours()}:`;
+		if (string.length < 3) string = '0' + string;
+
+		string += `00${date.getMinutes()}:`.slice(-3);
+		string += `00${date.getSeconds()},`.slice(-3);
+		string += `${date.getMilliseconds()}000`.slice(0,3);
+		return string;
 	}
 }

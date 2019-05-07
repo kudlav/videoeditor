@@ -116,5 +116,62 @@ export default {
 	const regexpFormat = new RegExp(/^\d{2,}:\d{2}:\d{2},\d{3}$/);
 	const regexpZero = new RegExp(/^0{2,}:00:00,000$/);
 	return (regexpFormat.test(text) && !regexpZero.test(text));
+	},
+
+
+	/**
+	 * Get middle of duration interval
+	 *
+	 * @param {string} start Start time of interval
+	 * @param {string} end End time of interval
+	 * @return {string}
+	 */
+	middleOfDuration(start, end) {
+		const duration = this.subDuration(end, start);
+		const parsedDuration = duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+		let hour = Number(parsedDuration[1]);
+		let minute = Number(parsedDuration[2]);
+		let second = Number(parsedDuration[3]);
+		let millisecond = Number(parsedDuration[4]);
+
+		if ((hour % 2) === 0) {
+			hour /= 2;
+		}
+		else {
+			hour = (hour - 1) / 2;
+			minute += 30;
+		}
+
+		if ((minute % 2) === 0) {
+			minute /= 2;
+		}
+		else {
+			minute = (minute - 1) / 2;
+			second += 30;
+		}
+
+		if ((second % 2) === 0) {
+			second /= 2;
+		}
+		else {
+			second = (second - 1) / 2;
+			millisecond += 500;
+		}
+
+		if ((millisecond % 2) === 0) {
+			millisecond /= 2;
+		}
+		else {
+			millisecond = (millisecond - 1) / 2;
+		}
+
+		let midDuration = `${hour}:`;
+		if (midDuration.length < 3) midDuration = '0' + midDuration;
+
+		midDuration += `00${minute}:`.slice(-3);
+		midDuration += `00${second},`.slice(-3);
+		midDuration += `${millisecond}000`.slice(0,3);
+
+		return this.addDuration(start, midDuration);
 	}
 }
