@@ -17,9 +17,12 @@ export default {
 		let time = [];
 		let formattedTime;
 
+		for (let i = 1; i <= 4; i++) {
+			durA[i] = Number(durA[i]);
+			durB[i] = Number(durB[i]);
+		}
+
 		// milliseconds
-		durA[4] = durA[4].replace(/^0+/, '');
-		durB[4] = durB[4].replace(/^0+/, '');
 		if (durA[4] < durB[4]) {
 			durA[4] += 1000;
 			durB[3]++;
