@@ -130,10 +130,10 @@ a {
 
 .overlay{
 	position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
 	background-color: rgba(0, 0, 0, 0.79);
 	z-index: 100;
 }
@@ -371,16 +371,16 @@ tr:nth-child(even) {
 }
 
 .vis-timeline {
-	border: none!important;
+	border: none;
 }
 
 .vis-item {
 	height: 4em;
 
 	&.video {
-		background-color: #27438b !important;
+		background-color: #27438b;
 		border-color: #1d346e;
-		border-radius: 10px !important;
+		border-radius: 10px;
 		color: #FFF;
 		padding: 2px;
 
@@ -404,16 +404,28 @@ tr:nth-child(even) {
 			z-index: 2;
 		}
 	}
+
+	&.vis-selected {
+	  border-color: #FFC200;
+	}
+
+	&.stick-right {
+		border-right: 5px solid #4caf50;
+	}
+
+	&.stick-left {
+		border-left: 5px solid #4caf50;
+	}
 }
 
 .vis-time-axis .vis-text{
-	color: inherit!important;
+	color: inherit;
 }
 
 .vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-grid.vis-major, .vis-panel.vis-center, .vis-panel.vis-left, .vis-panel.vis-right, .vis-panel.vis-top, .vis-panel.vis-bottom {
-	border-color: #555!important;
+	border-color: #555;
 }
 
 .vis-custom-time {
-	background-color: #FF7676!important;
+	background-color: #FF7676;
 }

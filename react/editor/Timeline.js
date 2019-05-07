@@ -219,12 +219,14 @@ export default class Timeline extends Component {
 	}
 
 	onMove(item, callback) {
+		item.className = 'video';
 		callback(this.itemMove(item));
 	}
 
 	itemMove(item) {
 		if (item.start.getFullYear() < 1970) return null; // Deny move before zero time
 		else {
+			item.className = 'video';
 			const itemPath = item.id.split(':');
 			const start = Timeline.dateToString(item.start);
 			const end = Timeline.dateToString(item.end);
@@ -242,8 +244,9 @@ export default class Timeline extends Component {
 				let itemStart = '';
 				let itemEnd = '';
 				const duration = timeManager.subDuration(end, start);
-				if (this.middleOfDuration(start, end) < this.middleOfDuration(collision[0].start, collision[0].end)) {
+				if (timeManager.middleOfDuration(start, end) < timeManager.middleOfDuration(collision[0].start, collision[0].end)) {
 					// Put before
+					item.className = 'video stick-right';
 					itemEnd = collision[0].start;
 					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
@@ -255,6 +258,7 @@ export default class Timeline extends Component {
 				}
 				else {
 					// Put after
+					item.className = 'video stick-left';
 					itemStart = collision[0].end;
 					const itemStartParsed = collision[0].end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);
