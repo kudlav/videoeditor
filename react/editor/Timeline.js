@@ -9,7 +9,6 @@ export default class Timeline extends Component {
 		super(props);
 
 		this.timeline = null;
-		this.selectedItems = '00:00:00,000';
 
 		this.state = {
 			selectedItems: [],
@@ -141,7 +140,7 @@ export default class Timeline extends Component {
 			<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 			<div id="time">{this.state.timePointer} / {this.state.duration}</div>
 			<div id="vis-timeline"/>
-			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
+			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.state.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
 			</>
 		);
 	}
