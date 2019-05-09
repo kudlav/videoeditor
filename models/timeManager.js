@@ -52,7 +52,10 @@ export default {
 
 		formattedTime += `00${time[2]}:`.slice(-3);
 		formattedTime += `00${time[3]},`.slice(-3);
-		formattedTime += `${time[4]}000`.slice(0,3);
+
+		time[4] = time[4].toString().slice(0,3);
+		while (time[4].length < 3) time[4] = '0' + time[4];
+		formattedTime += time[4];
 
 		return formattedTime;
 	},
@@ -103,7 +106,10 @@ export default {
 
 		formattedTime += `00${time[2]}:`.slice(-3);
 		formattedTime += `00${time[3]},`.slice(-3);
-		formattedTime += `${time[4]}000`.slice(0,3);
+
+		time[4] = time[4].toString().slice(0,3);
+		while (time[4].length < 3) time[4] = '0' + time[4];
+		formattedTime += time[4];
 
 		return formattedTime;
 	},
@@ -173,8 +179,11 @@ export default {
 
 		midDuration += `00${minute}:`.slice(-3);
 		midDuration += `00${second},`.slice(-3);
-		midDuration += `${millisecond}000`.slice(0,3);
+
+		millisecond = millisecond.toString().slice(0,3);
+		while (millisecond.length < 3) millisecond = '0' + millisecond;
+		midDuration += millisecond;
 
 		return this.addDuration(start, midDuration);
 	}
-}
+};
