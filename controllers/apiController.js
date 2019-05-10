@@ -833,12 +833,12 @@ exports.projectPUT = (req, res, next) => {
 
 exports.projectItemPUTmove = (req, res, next) => {
 
-	// Required parameters: track, item, time
-	if (!isset(req.body.track, req.body.item, req.body.time)) {
+	// Required parameters: track, trackTarget, item, time
+	if (!isset(req.body.track, req.body.trackTarget, req.body.item, req.body.time)) {
 		res.status(400);
 		res.json({
 			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track, item, time.',
+			msg: 'Chybí povinné parametry: track, trackTarget, item, time.',
 		});
 		return;
 	}
@@ -860,11 +860,12 @@ exports.projectItemPUTmove = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
+			const trackTarget = document.getElementById(req.body.trackTarget);
+			if (track === null || trackTarget === null) {
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+					msg: `Zadaná stopa  "${req.body.track}" nebo "${trackTarget}" se v projektu nenachází.`,
 				});
 				return;
 			}
@@ -873,7 +874,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 			if (item === null) {
 				res.status(404);
 				res.json({
-					err: 'Polozka nenalezena.',
+					err: 'Položka nenalezena.',
 					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
 				});
 				return;
@@ -911,7 +912,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 			item.remove();
 
 			// Check free space
-			if (mltxmlManager.getItemInRange(track, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0) {
+			if (mltxmlManager.getItemInRange(trackTarget, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0) {
 				res.status(403);
 				res.json({
 					err: 'Cíl již obsahuje položku.',
@@ -920,16 +921,16 @@ exports.projectItemPUTmove = (req, res, next) => {
 				return;
 			}
 
-			let targetElement = mltxmlManager.getItemAtTime(document, track, req.body.time);
+			let targetElement = mltxmlManager.getItemAtTime(document, trackTarget, req.body.time);
 
 			// Prepare target place
 			if (targetElement.entries.length === 0) { // End of timeline
 				if (targetElement.endTime < req.body.time) {
 					const newBlank = document.createElement('blank');
 					newBlank.setAttribute('length', timeManager.subDuration(req.body.time, targetElement.endTime));
-					track.appendChild(newBlank);
+					trackTarget.appendChild(newBlank);
 				}
-				track.appendChild(item);
+				trackTarget.appendChild(item);
 			}
 			else if (targetElement.entries.length === 1) { // Inside blank
 				const afterLength = timeManager.subDuration(targetElement.endTime, timeManager.addDuration(req.body.time, itemDuration));
@@ -940,15 +941,15 @@ exports.projectItemPUTmove = (req, res, next) => {
 				const beforeBlank = document.createElement('blank');
 				beforeBlank.setAttribute('length', beforeLength);
 
-				track.insertBefore(beforeBlank, targetElement.entries[0]);
-				track.insertBefore(item, targetElement.entries[0]);
-				if (targetElement.entries[0].nextElementSibling !== null) track.insertBefore(afterBlank, targetElement.entries[0]);
+				trackTarget.insertBefore(beforeBlank, targetElement.entries[0]);
+				trackTarget.insertBefore(item, targetElement.entries[0]);
+				if (targetElement.entries[0].nextElementSibling !== null) trackTarget.insertBefore(afterBlank, targetElement.entries[0]);
 				targetElement.entries[0].remove();
 			}
 			else { // Between two elements
 				const blank =  (targetElement.entries[0].tagName === 'blank') ? targetElement.entries[0] : targetElement.entries[1];
-				blank.setAttribute('length', timeManager.subDuration(blank.getAttribute('length'), itemDuration));
-				track.insertBefore(item, targetElement.entries[1]);
+				if (blank !== null) blank.setAttribute('length', timeManager.subDuration(blank.getAttribute('length'), itemDuration));
+				trackTarget.insertBefore(item, targetElement.entries[1]);
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(

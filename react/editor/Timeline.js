@@ -253,9 +253,40 @@ export default class Timeline extends Component {
 		callback(this.itemMove(item));
 	}
 
-	onMove(item, callback) {
+	onMove(item) {
 		item.className = 'video';
-		callback(this.itemMove(item));
+
+		item = this.itemMove(item);
+
+		if (item !== null) {
+			const itemPath = item.id.split(':');
+			const url = `${config.apiUrl}/project/${this.props.project}/item/move`;
+			const params = {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					track: item.group,
+					trackTarget: item.group,
+					item: Number(itemPath[1]),
+					time: Timeline.dateToString(item.start),
+				}),
+			};
+
+			fetch(url, params)
+				.then(response => response.json())
+				.then(data => {
+					if (typeof data.err !== 'undefined') {
+						alert(`${data.err}\n\n${data.msg}`);
+					}
+
+					this.props.loadData();
+				})
+				.catch(error => console.error(error))
+			;
+
+		}
 	}
 
 	itemMove(item) {
