@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import LoadingDialog from "./LoadingDialog";
+import LoadingDialog from './LoadingDialog';
 import SubmitDialog from './SubmitDialog';
-import Sources from "./Sources";
-import Timeline from "./Timeline";
-import config from "../../config";
+import Sources from './Sources';
+import Timeline from './Timeline';
+import config from '../../config';
 
 export default class Editor extends Component {
 
@@ -17,7 +17,7 @@ export default class Editor extends Component {
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 
 		this.state = {
-			project: window.location.href.match(/project\/([^\/]*)/)[1],
+			project: window.location.href.match(/project\/([^/]*)/)[1],
 			resources: {},
 			timeline: {},
 			loading: true,
@@ -128,7 +128,7 @@ export default class Editor extends Component {
 		const params = {
 			method: 'POST',
 			headers: {
-				"Content-Type": "application/json",
+				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify(parameters),
 		};

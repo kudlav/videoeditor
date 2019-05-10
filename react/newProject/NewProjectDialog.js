@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
-import config from '../../config'
+import config from '../../config';
 
 Modal.setAppElement(document.body);
 

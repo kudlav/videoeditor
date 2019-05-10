@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Dropzone from 'react-dropzone-uploader'
+import Dropzone from 'react-dropzone-uploader';
 
 export default class Uploader extends Component {
 
@@ -41,6 +41,6 @@ export default class Uploader extends Component {
 					dropzoneReject: { borderColor: '#7a281b', backgroundColor: '#DAA' },
 				}}
 			/>
-		)
+		);
 	}
 }

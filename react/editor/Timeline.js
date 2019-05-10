@@ -77,7 +77,7 @@ export default class Timeline extends Component {
 		this.timeline.on('move', this.onMove);
 	}
 
-	componentDidUpdate(prevProps, prevState) {
+	componentDidUpdate(prevProps) {
 
 		if (prevProps.items === this.props.items) return;
 
@@ -268,7 +268,7 @@ export default class Timeline extends Component {
 				}
 				// Check if there is enough space
 				if (this.getItemInRange(item.group, Number(itemPath[1]), itemStart, itemEnd).length === 0) {
-					return item
+					return item;
 				}
 				return null;
 			}

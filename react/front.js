@@ -1,7 +1,7 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import NewProjectDialog from './newProject/NewProjectDialog'
-import App from "./editor/Editor"
+import React from 'react';
+import ReactDOM from 'react-dom';
+import NewProjectDialog from './newProject/NewProjectDialog';
+import Editor from './editor/Editor';
 
 if (document.getElementById('newProjectDialog') !== null) {
 	// Landing page
@@ -9,5 +9,5 @@ if (document.getElementById('newProjectDialog') !== null) {
 }
 else {
 	// Project page
-	ReactDOM.render(<App />, document.getElementById('app'));
+	ReactDOM.render(<Editor />, document.getElementById('app'));
 }

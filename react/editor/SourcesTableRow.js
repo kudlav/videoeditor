@@ -21,6 +21,6 @@ export default class SourcesTableRow extends Component {
 					<button onClick={() => this.props.onRemove(this.item.id)}><i className="material-icons" aria-hidden="true">delete</i></button>
 				</td>
 			</tr>
-		)
+		);
 	}
 }

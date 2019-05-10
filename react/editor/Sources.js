@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import config from '../../config'
-import timeManager from "../../models/timeManager";
+import config from '../../config';
+import timeManager from '../../models/timeManager';
 import Uploader from './Uploader';
 import SourcesTableRow from './SourcesTableRow';
 
@@ -54,7 +54,7 @@ export default class Sources extends Component {
 		const params = {
 			method: 'PUT',
 			headers: {
-				"Content-Type": "application/json",
+				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
 				duration: duration,
@@ -92,9 +92,9 @@ export default class Sources extends Component {
 						<tr>
 							<td colSpan="3">
 								<Uploader value={{
-										onAdd: resource => this.props.onAddResource(resource),
-										project: this.state.project,
-									}}
+									onAdd: resource => this.props.onAddResource(resource),
+									project: this.state.project,
+								}}
 								/>
 							</td>
 						</tr>

@@ -13,12 +13,12 @@ const fs = require('fs');
 const path = require('path');
 const nanoid = require('nanoid');
 const { exec } = require('child_process');
-const { JSDOM } = require("jsdom");
+const { JSDOM } = require('jsdom');
 
 exports.default = (req, res) => {
 
 	res.json({
-			msg: 'For API documentation see https://github.com/kudlav/videoeditor',
+		msg: 'For API documentation see https://github.com/kudlav/videoeditor',
 	});
 
 };
@@ -975,7 +975,7 @@ function fileErr(err, res) {
 	if (err.code === 'ENOENT') {
 		res.status(404).json({
 			err: 'Projekt neexistuje',
-			msg: `Zadaný projekt neexistuje.`,
+			msg: 'Zadaný projekt neexistuje.',
 		});
 	}
 	else {

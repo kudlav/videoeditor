@@ -17,7 +17,7 @@ export default {
 	getDuration(filepath, mimeType) {
 		return new Promise((resolve) => {
 			if (new RegExp(/^video\//).test(mimeType) || new RegExp(/^audio\//).test(mimeType)) {
-				exec(`ffmpeg -i ${filepath} 2>&1 | grep Duration | cut -d \' \' -f 4 | sed s/,// | sed s/\\\\./,/`, (err, stdout) => {
+				exec(`ffmpeg -i ${filepath} 2>&1 | grep Duration | cut -d ' ' -f 4 | sed s/,// | sed s/\\\\./,/`, (err, stdout) => {
 					if (err) console.error(err);
 					else resolve(stdout.trim());
 				});
@@ -28,4 +28,4 @@ export default {
 		});
 	}
 
-}
+};

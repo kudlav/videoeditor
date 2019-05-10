@@ -61,7 +61,7 @@ export default class SubmitDialog extends Component {
 		const params = {
 			method: 'PUT',
 			headers: {
-				"Content-Type": "application/json",
+				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
 				email: this.state.email,

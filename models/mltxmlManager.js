@@ -19,7 +19,7 @@ export default {
 	 * @return {Promise<any>}
 	 */
 	saveMLT(project, data) {
-	const filepath = path.join(config.projectPath, project, 'project.mlt');
+		const filepath = path.join(config.projectPath, project, 'project.mlt');
 
 		return new Promise((resolve, reject) => {
 			fs.writeFile(filepath, (config.declareXML + data), (err) => {
@@ -52,7 +52,7 @@ export default {
 	 * @param {Document} document
 	 * @param {Element} track
 	 * @param {Number} index
-	 * @return {Element}
+	 * @return {Element|null}
 	 */
 	getItem(document, track, index) {
 		let i = 0;
@@ -154,7 +154,9 @@ export default {
 	 */
 	getTrackIndex(track) {
 		let index = 0;
-		while (track = track.previousElementSibling) {
+		track = track.previousElementSibling;
+		while (track !== null) {
+			track = track.previousElementSibling;
 			index++;
 		}
 		return index;
@@ -233,7 +235,7 @@ export default {
 
 			duration.time = timeManager.subDuration(duration.out, duration.in);
 		}
-			return duration;
+		return duration;
 	},
 
 

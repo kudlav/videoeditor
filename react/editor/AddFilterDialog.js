@@ -65,7 +65,7 @@ export default class AddFilterDialog extends Component {
 	}
 
 	handleFilterChange(event) {
-		this.setState({filter: event.target.value})
+		this.setState({filter: event.target.value});
 	}
 
 	handleLevelChange(event) {

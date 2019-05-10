@@ -3,7 +3,7 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 import config from '../config';
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer');
 
 export default {
 
@@ -27,7 +27,7 @@ export default {
 		const email = {
 			from: '"Vladan Kudláč" <xkudla15@stud.fit.vutbr.cz>',
 			to: recipient,
-			subject: "Videoeditor - Projekt dokončen", // Subject line
+			subject: 'Videoeditor - Projekt dokončen', // Subject line
 		};
 
 		if (success) {
@@ -50,4 +50,4 @@ export default {
 			}
 		});
 	}
-}
+};
