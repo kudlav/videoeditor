@@ -42,6 +42,8 @@ router.delete('/api/project/:projectID/filter', apiController.projectFilterDELET
 
 router.post('/api/project/:projectID/transition', apiController.projectTransitionPOST);
 
+router.put('/api/project/:projectID/item/move', apiController.projectItemPUTmove);
+
 // Error handling
 router.use(errorController.default);
 

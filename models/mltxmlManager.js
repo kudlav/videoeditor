@@ -85,6 +85,45 @@ export default {
 	},
 
 
+	getItemAtTime(document, track, time) {
+		let currentTime = '00:00:00,000';
+		const entries = track.childNodes;
+		for (let entry of entries) {
+			// Blank
+			if (entry.tagName === 'blank') {
+				currentTime = timeManager.addDuration(currentTime, entry.getAttribute('length'));
+			}
+			// Simple entry
+			else if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
+				currentTime = timeManager.addDuration(currentTime, this.getDuration(entry, document).time);
+			}
+			// Container of entries
+			else {
+				const tractor = document.getElementById(entry.getAttribute('producer'));
+				const multitrack = tractor.getElementsByTagName('multitrack').item(0);
+				currentTime = timeManager.addDuration(currentTime, this.getDuration(multitrack, document).time);
+			}
+
+			if (time < currentTime) { // Time is somewhere inside element
+				return {
+					endTime: currentTime,
+					entries: [entry],
+				};
+			}
+			else if (time === currentTime) { // Between two elements
+				return {
+					endTime: currentTime,
+					entries: [entry, entry.nextSibling],
+				};
+			}
+		}
+		return {
+			endTime: currentTime,
+			entries: [],
+		};
+	},
+
+
 	/**
 	 * Get relative path of MLT file for specified project
 	 *
@@ -256,5 +295,44 @@ export default {
 		newTractor.id = 'tractor' + tractors.length;
 		videotrack0.parentElement.insertBefore(newTractor, videotrack0);
 		return newTractor;
+	},
+
+
+	getItemInRange(track, timeStart, timeEnd, document) {
+		const collision = [];
+		let time = '00:00:00,000';
+		const entries = track.childNodes;
+		let start = false;
+		for (let entry of entries) {
+			// Blank
+			if (entry.tagName === 'blank') {
+				time = timeManager.addDuration(time, entry.getAttribute('length'));
+			}
+			// Simple entry
+			else if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
+				time = timeManager.addDuration(time, this.getDuration(entry, document).time);
+			}
+			// Container of entries
+			else {
+				const tractor = document.getElementById(entry.getAttribute('producer'));
+				const multitrack = tractor.getElementsByTagName('multitrack').item(0);
+				time = timeManager.addDuration(time, this.getDuration(multitrack, document).time);
+			}
+
+			if (!start) { // Before interval
+				if (timeStart < time) { // Reached interval
+					start = true;
+					if (entry.tagName !== 'blank') collision.push(entry);
+				}
+			}
+			else { // Inside interval
+				if (entry.tagName !== 'blank') collision.push(entry);
+			}
+			if (timeEnd <= time) { // Reached end of interval
+				break;
+			}
+		}
+
+		return collision;
 	}
-}
+};
