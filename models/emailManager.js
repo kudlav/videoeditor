@@ -9,9 +9,9 @@ export default {
 
 	sendProjectFinished(recipient, project, success) {
 		const transporter = nodemailer.createTransport({
-			host: "smtp.stud.fit.vutbr.cz",
-			port: 465,
-			secure: true, // true for 465, false for other ports
+			host: config.emailServer,
+			port: config.emailPort,
+			secure: (config.emailPort === 465), // true for 465, false for other ports
 			auth: {
 				user: config.emailUser,
 				pass: config.emailPasswd,

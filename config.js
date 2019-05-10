@@ -6,6 +6,9 @@
 export default {
 	port: 8080,
 	host: 'localhost',
+
+	emailServer: 'smtp.stud.fit.vutbr.cz',
+	emailPort: 465,
 	emailUser: 'xkudla15',
 	emailPasswd: '*****',
 	adminEmail: 'xkudla15@stud.fit.vutbr.cz',
