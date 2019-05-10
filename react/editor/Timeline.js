@@ -73,6 +73,7 @@ export default class Timeline extends Component {
 		};
 		this.timeline = new vis.Timeline(container, [], [], options);
 		this.timeline.addCustomTime(new Date(1970, 0, 1));
+		this.timeline.setCustomTimeTitle('00:00:00,000');
 		this.timeline.on('select', this.onSelect);
 		this.timeline.on('timechange', this.onTimeChange);
 		this.timeline.on('moving', this.onMoving);
@@ -237,15 +238,18 @@ export default class Timeline extends Component {
 
 		if (event.time.getFullYear() < 1970) {
 			this.timeline.setCustomTime(new Date(1970, 0, 1));
+			this.timeline.setCustomTimeTitle('00:00:00,000');
 			this.setState({timePointer: '00:00:00,000'});
 		}
 		else if (timePointer > this.state.duration) {
 			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 			this.timeline.setCustomTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));
+			this.timeline.setCustomTimeTitle(this.state.duration);
 			this.setState({timePointer: this.state.duration});
 		}
 		else {
 			this.setState({timePointer: timePointer});
+			this.timeline.setCustomTimeTitle(timePointer);
 		}
 	}
 
