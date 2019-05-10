@@ -534,7 +534,7 @@ paths:
       tags:
         - item
       summary: Move item in timeline
-      deprecated: true
+      operationId: projectItemPUTmove
       parameters:
         - name: projectID
           in: path
@@ -553,12 +553,9 @@ paths:
                 item:
                   type: string
                   description: index of track item
-                direction:
+                time:
                   type: string
-                  description: movement direction, 'l' for move to left, 'r' for move to right
-                offset:
-                  type: string
-                  description: time to move, in format '00:00:00,000'
+                  description: new start time of item, in format '00:00:00,000'
         required: true
       responses:
         200:
@@ -569,6 +566,12 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
         400:
           description: Bad request, missing track or item parameter.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        403:
+          description: Not enought free space at target place.
           content:
             application/json:
               schema:
