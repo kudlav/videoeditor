@@ -96,7 +96,7 @@ export default class AddFilterDialog extends Component {
 		const input = {};
 
 		for (let itemPath of this.props.item) {
-			const item = this.props.getItem(itemPath);
+			const item = this.props.getItem(itemPath).item;
 			const itemParts = itemPath.split(':');
 			newFilter.track = itemParts[0];
 			newFilter.item = Number(itemParts[1]);

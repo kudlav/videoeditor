@@ -964,6 +964,98 @@ exports.projectItemPUTmove = (req, res, next) => {
 };
 
 
+exports.projectItemPUTsplit = (req, res, next) => {
+	// Required parameters: track, item, time
+	if (!isset(req.body.track, req.body.item, req.body.time)) {
+		res.status(400);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: track, item, time.',
+		});
+		return;
+	}
+
+	if (!timeManager.isValidDuration(req.body.time)) {
+		res.status(400);
+		res.json({
+			err: 'Chybný parametr.',
+			msg: 'Parametr time musí být nenulový, ve formátu 00:00:00,000.',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			let item = mltxmlManager.getItem(document, track, req.body.item);
+			if (item === null) {
+				res.status(404);
+				res.json({
+					err: 'Položka nenalezena.',
+					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+
+			if (mltxmlManager.isSimpleNode(item)) { // It's simple element
+				const itemCopy = item.cloneNode();
+				track.insertBefore(itemCopy, item);
+				itemCopy.setAttribute('out', req.body.time);
+				item.setAttribute('in', req.body.time);
+			}
+			else {
+				const tractor = item.parentElement.parentElement;
+				if (tractor.getElementsByTagName('transition').length === 0) { // It's element with filter(s)
+					const trackItem = document.querySelector(`mlt>playlist[id="${item.getAttribute('producer')}"]`).getElementsByTagName('entry')[0];
+					const trackItemCopy = trackItem.cloneNode();
+					trackItemCopy.setAttribute('out', req.body.time);
+					trackItem.setAttribute('in', req.body.time);
+
+					const playlistCopy = mltxmlManager.entryToPlaylist(trackItemCopy, document);
+
+					const tractorCopy = mltxmlManager.createTractor(document);
+					tractorCopy.innerHTML = `<multitrack><track producer="${playlistCopy.id}"/></multitrack>`;
+					const filters = tractor.getElementsByTagName('filter');
+					for (let filter of filters) {
+						tractorCopy.innerHTML += filter.outerHTML;
+					}
+
+					const videotrackRefCopy = document.createElement('entry');
+					videotrackRefCopy.setAttribute('producer', tractorCopy.id);
+					const videotrackRef = document.querySelector(`mlt>playlist>entry[producer="${tractor.id}"]`);
+					track.insertBefore(videotrackRefCopy, videotrackRef);
+				}
+				else {
+					return;
+				}
+			}
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({msg: 'Položka přesunuta'});
+				},
+				err => next(err)
+			);
+		},
+		err => fileErr(err, res)
+	);
+};
+
+
 
 /**
  * Handle error while opening project directory.

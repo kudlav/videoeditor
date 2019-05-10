@@ -44,6 +44,8 @@ router.post('/api/project/:projectID/transition', apiController.projectTransitio
 
 router.put('/api/project/:projectID/item/move', apiController.projectItemPUTmove);
 
+router.put('/api/project/:projectID/item/split', apiController.projectItemPUTsplit);
+
 // Error handling
 router.use(errorController.default);
 

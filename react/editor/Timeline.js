@@ -3,6 +3,7 @@ import vis from 'vis';
 import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
 import Editor from './Editor';
+import config from '../../config';
 
 export default class Timeline extends Component {
 	constructor(props) {
@@ -22,6 +23,7 @@ export default class Timeline extends Component {
 		this.onMoving = this.onMoving.bind(this);
 		this.onMove = this.onMove.bind(this);
 		this.buttonFilter = this.buttonFilter.bind(this);
+		this.buttonSplit = this.buttonSplit.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
 		this.addFilter = this.addFilter.bind(this);
 		this.getItem = this.getItem.bind(this);
@@ -134,8 +136,8 @@ export default class Timeline extends Component {
 		return (
 			<>
 			<button onClick={this.buttonFilter}><i className="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
-			<button><i className="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>
-			<button><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
+			{/*<button><i className="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>*/}
+			<button onClick={this.buttonSplit}><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
 			<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
 			<button><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 			<div id="time">{this.state.timePointer} / {this.state.duration}</div>
@@ -161,6 +163,41 @@ export default class Timeline extends Component {
 
 	addFilter(filter) {
 		this.props.onAddFilter(filter);
+	}
+
+	buttonSplit() {
+		if (this.state.selectedItems.length !== 1) return;
+
+		const item = this.getItem(this.state.selectedItems[0]);
+		const splitTime = Timeline.dateToString(this.timeline.getCustomTime());
+		const splitItemTime = timeManager.subDuration(splitTime, item.start);
+		if (splitItemTime === item.start || splitItemTime === item.end) return;
+
+		const itemPath = this.state.selectedItems[0].split(':');
+		const url = `${config.apiUrl}/project/${this.props.project}/item/split`;
+		const params = {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				track: itemPath[0],
+				item: Number(itemPath[1]),
+				time: splitItemTime,
+			}),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err !== 'undefined') {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+
+				this.props.loadData();
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	getItem(trackIndex) {
@@ -214,7 +251,6 @@ export default class Timeline extends Component {
 
 	onMoving(item, callback) {
 		callback(this.itemMove(item));
-
 	}
 
 	onMove(item, callback) {

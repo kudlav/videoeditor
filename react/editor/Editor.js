@@ -4,11 +4,13 @@ import SubmitDialog from './SubmitDialog';
 import Sources from './Sources';
 import Timeline from './Timeline';
 import config from '../../config';
+import timeManager from '../../models/timeManager';
 
 export default class Editor extends Component {
 
 	constructor(props) {
 		super(props);
+		this.loadData = this.loadData.bind(this);
 		this.addResource = this.addResource.bind(this);
 		this.delResource = this.delResource.bind(this);
 		this.putResource = this.putResource.bind(this);
@@ -24,26 +26,7 @@ export default class Editor extends Component {
 			showSubmitDialog: false,
 		};
 
-		const url = `${config.apiUrl}/project/${this.state.project}`;
-		const params = {
-			method: 'GET',
-		};
-		fetch(url, params)
-			.then(response => response.json())
-			.then(data => {
-				if (typeof data.err === 'undefined') {
-					this.setState({
-						resources: data.resources,
-						timeline: data.timeline,
-					});
-					this.loadFinished();
-				}
-				else {
-					alert(`${data.err}\n\n${data.msg}`);
-				}
-			})
-			.catch(error => console.error(error))
-		;
+		this.loadData();
 	}
 
 	render() {
@@ -85,15 +68,36 @@ export default class Editor extends Component {
 				<Timeline
 					resources={this.state.resources}
 					items={this.state.timeline}
+					project={this.state.project}
 					onAddFilter={this.addFilter}
+					loadData={this.loadData}
 				/>
 			</footer>
 			</>
 		);
 	}
 
-	loadFinished() {
-		this.setState({loading: false});
+	loadData() {
+		const url = `${config.apiUrl}/project/${this.state.project}`;
+		const params = {
+			method: 'GET',
+		};
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err === 'undefined') {
+					this.setState({
+						resources: data.resources,
+						timeline: data.timeline,
+					});
+					this.setState({loading: false});
+				}
+				else {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	addResource(resource) {
@@ -140,7 +144,7 @@ export default class Editor extends Component {
 					const timeline = Object.assign({}, this.state.timeline);
 
 					const track = Editor.findTrack(timeline, parameters.track);
-					const item = Editor.findItem(track.items, parameters.item);
+					const item = Editor.findItem(track.items, parameters.item).item;
 
 					item.filters.push({
 						service: parameters.filter,
@@ -198,11 +202,26 @@ export default class Editor extends Component {
 	 * @return {null|Object}
 	 */
 	static findItem(items, position) {
+		let time = '00:00:00,000';
 		let index = 0;
 		for (let item of items) {
-			if (item.resource === 'blank') continue;
-			if (index === position) return item;
-			index++;
+			if (item.resource === 'blank') {
+				time = timeManager.addDuration(item.length, time);
+			}
+			else {
+				let startTime = time;
+				time = timeManager.addDuration(time, item.out);
+				time = timeManager.subDuration(time, item.in);
+				// todo Subtract transition duration
+				if (index === position) {
+					return {
+						item: item,
+						start: startTime,
+						end: time,
+					};
+				}
+				index++;
+			}
 		}
 		return null;
 	}
