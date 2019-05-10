@@ -549,7 +549,10 @@ paths:
               properties:
                 track:
                   type: string
-                  description: track containing items
+                  description: track containing item
+                targetTrack:
+                  type: string
+                  description: destination track
                 item:
                   type: string
                   description: index of track item
@@ -587,7 +590,7 @@ paths:
       tags:
         - item
       summary: Split item in timeline into two parts
-      deprecated: true
+      operationId: projectItemPUTsplit
       parameters:
         - name: projectID
           in: path
@@ -606,9 +609,9 @@ paths:
                 item:
                   type: string
                   description: index of track item
-                position:
+                time:
                   type: string
-                  description: position of cut in format '00:00:00,000'
+                  description: relative position of cut in format '00:00:00,000'
         required: true
       responses:
         200:
