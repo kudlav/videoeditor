@@ -1047,7 +1047,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
-					res.json({msg: 'Položka přesunuta'});
+					res.json({msg: 'Položka rozdělena'});
 				},
 				err => next(err)
 			);
