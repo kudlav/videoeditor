@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
-import config from '../../config';
+import {server} from '../../config';
 
 Modal.setAppElement(document.body);
 
@@ -57,7 +57,7 @@ export default class SubmitDialog extends Component {
 	handleSumbitDialog(event) {
 		event.preventDefault();
 
-		const url = `${config.apiUrl}/project/${this.props.project}`;
+		const url = `${server.apiUrl}/project/${this.props.project}`;
 		const params = {
 			method: 'PUT',
 			headers: {
@@ -72,7 +72,7 @@ export default class SubmitDialog extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					window.location = `${config.serverUrl}/project/${this.props.project}/finished`;
+					window.location = `${server.serverUrl}/project/${this.props.project}/finished`;
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);

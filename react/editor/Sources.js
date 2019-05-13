@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import config from '../../config';
+import {server} from '../../config';
 import timeManager from '../../models/timeManager';
 import Uploader from './Uploader';
 import SourcesTableRow from './SourcesTableRow';
@@ -16,7 +16,7 @@ export default class Sources extends Component {
 	}
 
 	delResource(id) {
-		const url = `${config.apiUrl}/project/${this.state.project}/file/${id}`;
+		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;
 		const params = {
 			method: 'DELETE',
 		};
@@ -50,7 +50,7 @@ export default class Sources extends Component {
 		}
 
 		// Send request to API
-		const url = `${config.apiUrl}/project/${this.state.project}/file/${id}`;
+		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;
 		const params = {
 			method: 'PUT',
 			headers: {

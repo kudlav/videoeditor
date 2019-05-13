@@ -1,4 +1,4 @@
-import config from './config';
+import {server as config} from './config';
 import express from 'express';
 
 const server = express();

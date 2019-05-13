@@ -3,7 +3,7 @@ import LoadingDialog from './LoadingDialog';
 import SubmitDialog from './SubmitDialog';
 import Sources from './Sources';
 import Timeline from './Timeline';
-import config from '../../config';
+import {server} from '../../config';
 import timeManager from '../../models/timeManager';
 
 export default class Editor extends Component {
@@ -78,7 +78,7 @@ export default class Editor extends Component {
 	}
 
 	loadData() {
-		const url = `${config.apiUrl}/project/${this.state.project}`;
+		const url = `${server.apiUrl}/project/${this.state.project}`;
 		const params = {
 			method: 'GET',
 		};
@@ -128,7 +128,7 @@ export default class Editor extends Component {
 	}
 
 	addFilter(parameters) {
-		const url = `${config.apiUrl}/project/${this.state.project}/filter`;
+		const url = `${server.apiUrl}/project/${this.state.project}/filter`;
 		const params = {
 			method: 'POST',
 			headers: {

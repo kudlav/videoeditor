@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
-import config from '../../config';
+import {server} from '../../config';
 
 Modal.setAppElement(document.body);
 
 export default class NewProjectDialog extends Component {
 
 	createProject() {
-		const url = `${config.apiUrl}/project`;
+		const url = `${server.apiUrl}/project`;
 		const params = {
 			method: 'POST',
 		};
@@ -16,7 +16,7 @@ export default class NewProjectDialog extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					window.location = `${config.serverUrl}/project/${data.project}`;
+					window.location = `${server.serverUrl}/project/${data.project}`;
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);

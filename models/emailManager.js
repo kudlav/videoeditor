@@ -2,7 +2,7 @@
  * @file Manager for sending emails
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
-import config from '../config';
+import config, {server} from '../config';
 const nodemailer = require('nodemailer');
 
 export default {
@@ -21,8 +21,8 @@ export default {
 			}
 		});
 
-		const projectLink = `${config.serverUrl}/project/${project}`;
-		const videoLink = `${config.serverUrl}/project/${project}/finished`;
+		const projectLink = `${server.serverUrl}/project/${project}`;
+		const videoLink = `${server.serverUrl}/project/${project}/finished`;
 
 		const email = {
 			from: '"Vladan Kudláč" <xkudla15@stud.fit.vutbr.cz>',

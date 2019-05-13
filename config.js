@@ -3,15 +3,9 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-export default {
+export const server = {
 	port: 8080,
 	host: 'localhost',
-
-	emailServer: 'smtp.stud.fit.vutbr.cz',
-	emailPort: 465,
-	emailUser: 'xkudla15',
-	emailPasswd: '*****',
-	adminEmail: 'xkudla15@stud.fit.vutbr.cz',
 
 	get serverUrl() {
 		return `http://${this.host}:${this.port}`;
@@ -19,6 +13,14 @@ export default {
 	get apiUrl() {
 		return `http://${this.host}:${this.port}/api`;
 	},
+};
+
+export default {
+	emailServer: 'smtp.stud.fit.vutbr.cz',
+	emailPort: 465,
+	emailUser: 'xkudla15',
+	emailPasswd: '*****',
+	adminEmail: 'xkudla15@stud.fit.vutbr.cz',
 
 	projectPath: 'WORKER',
 

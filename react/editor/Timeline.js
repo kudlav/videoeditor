@@ -3,7 +3,7 @@ import vis from 'vis';
 import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
 import Editor from './Editor';
-import config from '../../config';
+import {server} from '../../config';
 
 export default class Timeline extends Component {
 	constructor(props) {
@@ -175,7 +175,7 @@ export default class Timeline extends Component {
 		if (splitItemTime === item.start || splitItemTime === item.end) return;
 
 		const itemPath = this.state.selectedItems[0].split(':');
-		const url = `${config.apiUrl}/project/${this.props.project}/item/split`;
+		const url = `${server.apiUrl}/project/${this.props.project}/item/split`;
 		const params = {
 			method: 'PUT',
 			headers: {
@@ -264,7 +264,7 @@ export default class Timeline extends Component {
 
 		if (item !== null) {
 			const itemPath = item.id.split(':');
-			const url = `${config.apiUrl}/project/${this.props.project}/item/move`;
+			const url = `${server.apiUrl}/project/${this.props.project}/item/move`;
 			const params = {
 				method: 'PUT',
 				headers: {
