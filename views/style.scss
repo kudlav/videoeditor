@@ -123,9 +123,20 @@ a {
 		border-bottom: 1px solid #555;
 	}
 
+	> h3 {
+		padding: 5px 20px;
+		margin: 0;
+	}
+
 	> div {
 		padding: 20px;
 		text-align: center;
+	}
+
+	table {
+		width: 100%;
+		margin: 0 auto;
+		table-layout: initial;
 	}
 }
 
@@ -240,6 +251,11 @@ table {
 	background: #292929;
 	word-break: break-all;
 	border-collapse: collapse;
+
+	button {
+		border: none;
+		margin: 0;
+	}
 }
 
 th, td {
@@ -266,10 +282,6 @@ tr:nth-child(even) {
 
 	table i {
 		font-size: 2em;
-	}
-
-	button {
-		border: none;
 	}
 }
 

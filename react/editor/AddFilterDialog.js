@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Modal from 'react-modal';
 import filters from '../filters';
 import timeManager from '../../models/timeManager';
+import {server} from '../../config';
 
 Modal.setAppElement(document.body);
 
@@ -19,20 +20,36 @@ export default class AddFilterDialog extends Component {
 		this.handleFilterChange = this.handleFilterChange.bind(this);
 		this.handleCloseDialog = this.handleCloseDialog.bind(this);
 		this.handleAddFilter = this.handleAddFilter.bind(this);
+		this.handleDelFilter = this.handleDelFilter.bind(this);
 	}
 
 	render() {
+		const item = this.props.getItem(this.props.item).item;
+
 		return (
 			<div>
 				<Modal
-					isOpen={this.props.show}
+					isOpen={true}
 					contentLabel="Přidat nový filtr"
 					className={'modal'}
 					overlayClassName={'overlay'}
 					onRequestClose={this.handleCloseDialog}
 				>
-
-					<h2>Přidat nový filtr</h2>
+					<h2>Filtry</h2>
+					<div>
+						<table>
+							<tbody>
+								{item.filters.length === 0 && <tr><td>žádné filtry</td></tr>}
+								{item.filters.map(filter =>
+									<tr key={filter.service}>
+										<td>{AddFilterDialog.getFilter(filter.service).title}</td>
+										<td><button onClick={() => this.handleDelFilter(filter.service)}><i className="material-icons" aria-hidden="true">delete</i></button></td>
+									</tr>
+								)}
+							</tbody>
+						</table>
+					</div>
+					<h3>Přidat nový filtr</h3>
 					<div>
 						<form onSubmit={this.handleAddFilter}>
 							<label htmlFor={'filter'}>Filtr: </label>
@@ -56,7 +73,7 @@ export default class AddFilterDialog extends Component {
 							}
 							<br/>
 							<input type={'submit'} value={'Přidat filtr'}/>
-							<button onClick={this.handleCloseDialog}>Storno</button>
+							<button onClick={this.handleCloseDialog}>Zavřít</button>
 						</form>
 					</div>
 				</Modal>
@@ -95,21 +112,47 @@ export default class AddFilterDialog extends Component {
 		};
 		const input = {};
 
-		for (let itemPath of this.props.item) {
-			const item = this.props.getItem(itemPath).item;
-			const itemParts = itemPath.split(':');
-			newFilter.track = itemParts[0];
-			newFilter.item = Number(itemParts[1]);
+		const item = this.props.getItem(this.props.item).item;
+		const itemPath = this.props.item.split(':');
+		newFilter.track = itemPath[0];
+		newFilter.item = Number(itemPath[1]);
 
-			for (let output of filter.out) {
-				input[filter.in[0].id] = this.state.level;
-				newFilter.params[output.id] = output.value(input, item);
-			}
-
-			this.props.onAdd(newFilter);
+		for (let output of filter.out) {
+			input[filter.in[0].id] = this.state.level;
+			newFilter.params[output.id] = output.value(input, item);
 		}
 
-		this.handleCloseDialog();
+		this.props.onAdd(newFilter);
+	}
+
+	handleDelFilter(filterId) {
+		const itemPath = this.props.item.split(':');
+		const url = `${server.apiUrl}/project/${this.props.project}/filter`;
+		const bodyParams = {
+			track: itemPath[0],
+			item: Number(itemPath[1]),
+			filter: filterId
+		};
+		const params = {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(bodyParams),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err === 'undefined') {
+					this.props.onDel(bodyParams);
+				}
+				else {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	/**

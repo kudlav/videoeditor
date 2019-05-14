@@ -26,7 +26,6 @@ export default class Timeline extends Component {
 		this.buttonSplit = this.buttonSplit.bind(this);
 		this.buttonDel = this.buttonDel.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
-		this.addFilter = this.addFilter.bind(this);
 		this.getItem = this.getItem.bind(this);
 	}
 
@@ -37,7 +36,7 @@ export default class Timeline extends Component {
 			min: new Date(1970, 0, 1),
 			max: new Date(1970, 0, 1, 23, 59, 59, 999),
 			showCurrentTime: false,
-			multiselect: true,
+			multiselect: false,
 			multiselectPerGroup: true,
 			stack: false,
 			zoomMin: 100,
@@ -128,7 +127,6 @@ export default class Timeline extends Component {
 		}
 
 		if (this.state.duration !== duration) this.setState({duration: duration});
-		if (this.state.selectedItems.length !== 0) this.setState({selectedItems: []});
 
 		this.timeline.setData({
 			items: items,
@@ -141,14 +139,21 @@ export default class Timeline extends Component {
 	render() {
 		return (
 			<>
-			<button onClick={this.buttonFilter}><i className="material-icons" aria-hidden="true">flare</i>Přidat filtr</button>
+			<button onClick={this.buttonFilter}><i className="material-icons" aria-hidden="true">flare</i>Filtry</button>
 			{/*<button><i className="material-icons" aria-hidden="true">photo_filter</i>Přidat přechod</button>*/}
 			<button onClick={this.buttonSplit}><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
-			<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>
+			{/*<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>*/}
 			<button onClick={this.buttonDel}><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 			<div id="time">{this.state.timePointer} / {this.state.duration}</div>
 			<div id="vis-timeline"/>
-			<AddFilterDialog show={this.state.showAddFilterDialog} item={this.state.selectedItems} getItem={this.getItem} onClose={this.closeAddFilterDialog} onAdd={this.addFilter}/>
+			{this.state.showAddFilterDialog && <AddFilterDialog
+				item={this.state.selectedItems[0]}
+				getItem={this.getItem}
+				project={this.props.project}
+				onClose={this.closeAddFilterDialog}
+				onAdd={(filter) => this.props.onAddFilter(filter)}
+				onDel={(filter) => this.props.onDelFilter(filter)}
+			/>}
 			</>
 		);
 	}
@@ -165,10 +170,6 @@ export default class Timeline extends Component {
 
 	closeAddFilterDialog() {
 		this.setState({showAddFilterDialog: false});
-	}
-
-	addFilter(filter) {
-		this.props.onAddFilter(filter);
 	}
 
 	buttonSplit() {
@@ -228,6 +229,7 @@ export default class Timeline extends Component {
 			.then(data => {
 				if (typeof data.err === 'undefined') {
 					this.props.loadData();
+					this.setState({selectedItems: []});
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);

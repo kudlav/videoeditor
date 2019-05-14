@@ -15,6 +15,7 @@ export default class Editor extends Component {
 		this.delResource = this.delResource.bind(this);
 		this.putResource = this.putResource.bind(this);
 		this.addFilter = this.addFilter.bind(this);
+		this.delFilter = this.delFilter.bind(this);
 		this.openSubmitDialog = this.openSubmitDialog.bind(this);
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 
@@ -70,6 +71,8 @@ export default class Editor extends Component {
 					items={this.state.timeline}
 					project={this.state.project}
 					onAddFilter={this.addFilter}
+					onDelFilter={this.delFilter}
+
 					loadData={this.loadData}
 				/>
 			</footer>
@@ -157,6 +160,16 @@ export default class Editor extends Component {
 			})
 			.catch(error => console.error(error))
 		;
+	}
+
+	delFilter(parameters) {
+		const timeline = Object.assign({}, this.state.timeline);
+		const track = Editor.findTrack(timeline, parameters.track);
+		const item = Editor.findItem(track.items, parameters.item).item;
+
+		item.filters = item.filters.filter(filter => filter.service !== parameters.filter);
+
+		this.setState({timeline: timeline});
 	}
 
 	openSubmitDialog() {
