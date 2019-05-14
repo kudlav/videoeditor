@@ -28,9 +28,11 @@ exports.projectPOST = (req, res, next) => {
 
 	const data = `<mlt>
   <playlist id="videotrack0"/>
+  <playlist id="audiotrack0"/>
     <tractor id="main">
       <multitrack>
         <track producer="videotrack0" />
+        <track producer="audiotrack0" />
       </multitrack>
   </tractor>
 </mlt>`;
@@ -93,8 +95,8 @@ exports.projectGET = (req, res) => {
 				video: [],
 			};
 
-			const videotracks = document.querySelectorAll('mlt>playlist[id^="videotrack"]');
-			for (let track of videotracks) {
+			const tracks = document.querySelectorAll('mlt>playlist[id*="track"]');
+			for (let track of tracks) {
 				const trackEntry = {
 					id: track.id,
 					items: [],
@@ -164,7 +166,12 @@ exports.projectGET = (req, res) => {
 					}
 				}
 
-				timeline.video.push(trackEntry);
+				if (new RegExp(/^videotrack\d+/).test(track.id)) {
+					timeline.video.push(trackEntry);
+				}
+				else {
+					timeline.audio.push(trackEntry);
+				}
 			}
 
 			res.json({
@@ -1175,6 +1182,107 @@ exports.projectItemPUTsplit = (req, res, next) => {
 	);
 };
 
+
+exports.projectTrackPOST = (req, res, next) => {
+	// Required parameters: type
+	if (!isset(req.body.type) || (req.body.type !== 'video' && req.body.type !== 'audio')) {
+		res.status(400);
+		res.json({
+			err: 'Chybný parametr.',
+			msg: 'Chybí parametr type, nebo má jinou hodnotu, než "video" nebo "audio".',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+			const mainTractor = document.querySelector('mlt>tractor[id="main"]');
+
+			const tracks = document.querySelectorAll(`mlt>playlist[id^="${req.body.type}track"]`);
+			const lastTrack = tracks.item(tracks.length - 1).id;
+			const lastID = lastTrack.match(/^(.+)track(\d+)/);
+
+			const newTractor = document.createElement('playlist');
+			newTractor.id = lastID[1] + 'track' + (Number(lastID[2]) + 1);
+			root.insertBefore(newTractor, mainTractor);
+
+			const newTrack = document.createElement('track');
+			newTrack.setAttribute('producer', newTractor.id);
+			mainTractor.getElementsByTagName('multitrack').item(0).appendChild(newTrack);
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({
+						msg: 'Stopa přidána',
+						track: newTractor.id,
+					});
+				},
+				err => next(err)
+			);
+		},
+		err => fileErr(err, res)
+	);
+};
+
+
+exports.projectTrackDELETE = (req, res, next) => {
+
+	// Required parameters: track, item, time
+	if (!isset(req.body.track)) {
+		res.status(400);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: track.',
+		});
+		return;
+	}
+
+	if (req.body.track === 'videotrack0' || req.body.track === 'audiotrack0') {
+		res.status(403);
+		res.json({
+			err: 'Stopu nelze smazat.',
+			msg: 'Výchozí stopy "videotrack0" a "audiotrack0" nelze smazat.',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			const trackRef = document.querySelector(`mlt>tractor>multitrack>track[producer="${req.body.track}"]`);
+			trackRef.remove();
+			track.remove();
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({
+						msg: 'Stopa smazána',
+					});
+				},
+				err => next(err)
+			);
+		},
+		err => fileErr(err, res)
+	);
+};
 
 
 /**
