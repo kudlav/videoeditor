@@ -133,9 +133,22 @@ exports.projectGET = (req, res) => {
 							let filters = [];
 							for (let trackFilter of trackFilters) {
 								if (trackFilter.getAttribute('track') === index.toString()) {
-									filters.push({
-										service: trackFilter.getAttribute('mlt_service'),
-									});
+									let serviceAlias = null;
+									for (let param of trackFilter.childNodes) {
+										if (param.getAttribute('name') === 'musecut:filter') {
+											serviceAlias = param.innerHTML;
+										}
+									}
+									if (serviceAlias !== null) {
+										filters.push({
+											service: serviceAlias,
+										});
+									}
+									else {
+										filters.push({
+											service: trackFilter.getAttribute('mlt_service'),
+										});
+									}
 								}
 							}
 							trackEntry.items.push({
