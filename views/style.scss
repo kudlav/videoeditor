@@ -383,6 +383,9 @@ tr:nth-child(even) {
 	filter: invert(1);
 }
 
+/*
+ * TIMELINE
+ */
 .vis-timeline {
 	border: none;
 }
@@ -390,12 +393,15 @@ tr:nth-child(even) {
 .vis-item {
 	height: 4em;
 
-	&.video {
-		background-color: #27438b;
-		border-color: #1d346e;
+	&.video, &.audio {
 		border-radius: 10px;
 		color: #FFF;
 		padding: 2px;
+	}
+
+	&.video {
+		background-color: #27438b;
+		border-color: #1d346e;
 
 		div.filter {
 			position: relative;
@@ -416,18 +422,31 @@ tr:nth-child(even) {
 			left: 4px;
 			z-index: 2;
 		}
+
+		&.stick-right {
+			border-right: 5px solid #4caf50;
+		}
+
+		&.stick-left {
+			border-left: 5px solid #4caf50;
+		}
+	}
+
+	&.audio {
+		background-color: #2d7741;
+		border-color: #1f512c;
+
+		&.stick-right {
+			border-right: 5px solid #30acff;
+		}
+
+		&.stick-left {
+			border-left: 5px solid #30acff;
+		}
 	}
 
 	&.vis-selected {
 	  border-color: #FFC200;
-	}
-
-	&.stick-right {
-		border-right: 5px solid #4caf50;
-	}
-
-	&.stick-left {
-		border-left: 5px solid #4caf50;
 	}
 }
 
@@ -441,4 +460,12 @@ tr:nth-child(even) {
 
 .vis-custom-time {
 	background-color: #FF7676;
+}
+
+.vis-labelset .vis-label .vis-inner {
+  padding: 0;
+}
+
+.vis-foreground .vis-group {
+  border-bottom: none;
 }

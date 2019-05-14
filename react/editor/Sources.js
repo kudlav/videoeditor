@@ -49,6 +49,8 @@ export default class Sources extends Component {
 			}
 		}
 
+		const track = (new RegExp(/^video\//).test(this.props.items[id].mime)) ? 'videotrack0' : 'audiotrack0';
+
 		// Send request to API
 		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;
 		const params = {
@@ -57,6 +59,7 @@ export default class Sources extends Component {
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({
+				track: track,
 				duration: duration,
 			}),
 		};
@@ -65,7 +68,7 @@ export default class Sources extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					this.props.onPutResource(id, duration, 'videotrack0');
+					this.props.onPutResource(id, duration, track);
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);

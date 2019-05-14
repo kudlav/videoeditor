@@ -88,10 +88,12 @@ export default class Timeline extends Component {
 		const items = [];
 
 		let duration = '00:00:00,000';
-		for (let track of this.props.items.video) {
+		const tracks = [...this.props.items.video, ...this.props.items.audio];
+		const videoMatch = new RegExp(/^videotrack\d+/);
+		for (let track of tracks) {
 			groups.push({
 				id: track.id,
-				content: '',
+				content: '<div style="width:0;height:61px;"></div>',
 			});
 
 			let actualTime = '00:00:00,000';
@@ -115,7 +117,7 @@ export default class Timeline extends Component {
 						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
 						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),
 						group: track.id,
-						className: 'video',
+						className: (videoMatch.test(track.id)) ? 'video' : 'audio',
 					});
 					index++;
 				}
@@ -334,7 +336,7 @@ export default class Timeline extends Component {
 	itemMove(item) {
 		if (item.start.getFullYear() < 1970) return null; // Deny move before zero time
 		else {
-			item.className = 'video';
+			item.className = (item.className.includes('video')) ? 'video' : 'audio';
 			const itemPath = item.id.split(':');
 			const start = Timeline.dateToString(item.start);
 			const end = Timeline.dateToString(item.end);
@@ -354,7 +356,7 @@ export default class Timeline extends Component {
 				const duration = timeManager.subDuration(end, start);
 				if (timeManager.middleOfDuration(start, end) < timeManager.middleOfDuration(collision[0].start, collision[0].end)) {
 					// Put before
-					item.className = 'video stick-right';
+					item.className = (item.className === 'video') ? 'video stick-right' : 'audio stick-right';
 					itemEnd = collision[0].start;
 					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
@@ -366,7 +368,7 @@ export default class Timeline extends Component {
 				}
 				else {
 					// Put after
-					item.className = 'video stick-left';
+					item.className = (item.className === 'video') ? 'video stick-left' : 'audio stick-left';
 					itemStart = collision[0].end;
 					const itemStartParsed = collision[0].end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);

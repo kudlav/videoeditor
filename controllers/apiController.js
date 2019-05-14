@@ -322,6 +322,16 @@ exports.projectFileDELETE = (req, res, next) => {
 
 exports.projectFilePUT = (req, res, next) => {
 
+	// Required parameters: track
+	if (!isset(req.body.track)) {
+		res.status(400);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinný parametr "track"',
+		});
+		return;
+	}
+
 	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
@@ -329,12 +339,22 @@ exports.projectFilePUT = (req, res, next) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
-			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
+			const producer = document.getElementById(`producer${req.params.fileID}`);
 			if (producer === null) {
 				res.status(404);
 				res.json({
 					err: 'Zdroj nenalezen.',
 					msg: 'Zdroj se v projektu nenachází.',
+				});
+				return;
+			}
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
 				});
 				return;
 			}
@@ -352,6 +372,15 @@ exports.projectFilePUT = (req, res, next) => {
 				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
 			}
 			else if (new RegExp(/^image\//).test(producerMime)) {
+				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
+					res.status(400);
+					res.json({
+						err: 'Nepodporovaný typ souboru.',
+						msg: `Obrázky lze vložit pouze na video stopu.`,
+					});
+					return;
+				}
+
 				// Images needs duration parameter
 				if (!timeManager.isValidDuration(req.body.duration)) {
 					res.status(400);
@@ -365,23 +394,43 @@ exports.projectFilePUT = (req, res, next) => {
 				newEntry.setAttribute('in', '00:00:00,000');
 				newEntry.setAttribute('out', req.body.duration);
 			}
-			else if (new RegExp(/^video\//).test(producerMime) === false) {
-				// Reject everything except images and videos
+			else if (new RegExp(/^video\//).test(producerMime)) {
+				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
+					res.status(400);
+					res.json({
+						err: 'Nepodporovaný typ souboru.',
+						msg: `Video lze vložit pouze na video stopu.`,
+					});
+					return;
+				}
+			}
+			else if (new RegExp(/^audio\//).test(producerMime)) {
+				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
+					res.status(400);
+					res.json({
+						err: 'Nepodporovaný typ souboru.',
+						msg: `Audio lze vložit pouze na audio stopu.`,
+					});
+					return;
+				}
+			}
+			else {
+				// Reject everything except images, videos and audio
 				res.status(403);
 				res.json({
 					err: 'Nepodporovaný typ souboru.',
-					msg: 'Na časovou osu lze vložit pouze video nebo obrázek.',
+					msg: 'Na časovou osu lze vložit pouze video, obrázek nebo audio.',
 				});
 				return;
 			}
 
-			document.querySelector('mlt>playlist[id="videotrack0"]').appendChild(newEntry);
+			track.appendChild(newEntry);
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
 				() => {
 					res.json({
 						msg: 'Položka přidána na časovou osu',
-						timeline: 'videotrack0',
+						timeline: req.body.track,
 					});
 				},
 				err => next(err)
