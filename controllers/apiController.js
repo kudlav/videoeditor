@@ -831,6 +831,98 @@ exports.projectPUT = (req, res, next) => {
 };
 
 
+exports.projectItemDELETE = (req, res, next) => {
+
+	// Required parameters: track, item
+	if (!isset(req.body.track, req.body.item)) {
+		res.status(400);
+		res.json({
+			err: 'Chybí parametry.',
+			msg: 'Chybí povinné parametry: track, item.',
+		});
+		return;
+	}
+
+	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
+
+	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
+		dom => {
+			const document = dom.window.document;
+			const root = document.getElementsByTagName('mlt').item(0);
+
+			const track = document.getElementById(req.body.track);
+			if (track === null) {
+				res.status(404);
+				res.json({
+					err: 'Stopa nenalezena.',
+					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
+				});
+				return;
+			}
+
+			let item = mltxmlManager.getItem(document, track, req.body.item);
+			if (item === null) {
+				res.status(404);
+				res.json({
+					err: 'Položka nenalezena.',
+					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
+				});
+				return;
+			}
+
+			let entry;
+			let duration = mltxmlManager.getDuration(item, document).time;
+
+			if (mltxmlManager.isSimpleNode(item)) { // It's simple element
+				entry = item;
+			}
+			else {
+				const tractor = item.parentElement.parentElement;
+				if (tractor.getElementsByTagName('transition').length === 0) { // It's element with filter(s)
+					const playlist = document.querySelector(`mlt>playlist[id="${item.getAttribute('producer')}"]`);
+					entry = document.querySelector(`mlt>playlist>entry[producer="${tractor.id}"]`);
+
+					tractor.remove();
+					playlist.remove();
+				}
+				else { // It's element with transition(s)
+					return;
+				}
+			}
+
+			const prevEntry = entry.previousElementSibling;
+			const nextEntry = entry.nextElementSibling;
+			if (nextEntry !== null) {
+				// Replace with blank
+				if (prevEntry !== null && prevEntry.tagName === 'blank') {
+					duration = timeManager.addDuration(duration, prevEntry.getAttribute('length'));
+					prevEntry.remove();
+				}
+				if (nextEntry.tagName === 'blank') {
+					duration = timeManager.addDuration(duration, nextEntry.getAttribute('length'));
+					nextEntry.remove();
+				}
+				entry.outerHTML = `<blank length="${duration}"/>`;
+			}
+			else {
+				// Last item, just delete
+				if (prevEntry !== null && prevEntry.tagName === 'blank') prevEntry.remove();
+				entry.remove();
+			}
+
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+				() => {
+					res.json({msg: 'Položka rozdělena'});
+				},
+				err => next(err)
+			);
+		},
+		err => fileErr(err, res)
+	);
+
+};
+
+
 exports.projectItemPUTmove = (req, res, next) => {
 
 	// Required parameters: track, trackTarget, item, time
@@ -1054,7 +1146,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 					const videotrackRef = document.querySelector(`mlt>playlist>entry[producer="${tractor.id}"]`);
 					track.insertBefore(videotrackRefCopy, videotrackRef);
 				}
-				else {
+				else { // It's element with transition(s)
 					return;
 				}
 			}

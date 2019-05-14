@@ -42,6 +42,8 @@ router.delete('/api/project/:projectID/filter', apiController.projectFilterDELET
 
 router.post('/api/project/:projectID/transition', apiController.projectTransitionPOST);
 
+router.delete('/api/project/:projectID/item', apiController.projectItemDELETE);
+
 router.put('/api/project/:projectID/item/move', apiController.projectItemPUTmove);
 
 router.put('/api/project/:projectID/item/split', apiController.projectItemPUTsplit);
