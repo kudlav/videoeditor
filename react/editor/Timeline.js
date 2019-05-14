@@ -191,11 +191,12 @@ export default class Timeline extends Component {
 		fetch(url, params)
 			.then(response => response.json())
 			.then(data => {
-				if (typeof data.err !== 'undefined') {
+				if (typeof data.err === 'undefined') {
+					this.props.loadData();
+				}
+				else {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
-
-				this.props.loadData();
 			})
 			.catch(error => console.error(error))
 		;

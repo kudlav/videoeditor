@@ -980,7 +980,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 		res.status(400);
 		res.json({
 			err: 'Chybný parametr.',
-			msg: 'Parametr time musí být nenulový, ve formátu 00:00:00,000.',
+			msg: 'Parametr time musí být kladný, ve formátu 00:00:00,000.',
 		});
 		return;
 	}
@@ -1012,11 +1012,25 @@ exports.projectItemPUTsplit = (req, res, next) => {
 				return;
 			}
 
+			const time = mltxmlManager.getDuration(item, document);
+
+			if (req.body.time >= time.time) {
+				res.status(400);
+				res.json({
+					err: 'Parametr mimo rozsah hodnot.',
+					msg: `Parametr time musí mít hodnotu mezi 00:00:00,000 a ${time.time}`,
+				});
+				return;
+			}
+
+			let splitTime = req.body.time;
+			if (time.in !== '00:00:00,000') splitTime = timeManager.addDuration(time.in, req.body.time);
+
 			if (mltxmlManager.isSimpleNode(item)) { // It's simple element
 				const itemCopy = item.cloneNode();
 				track.insertBefore(itemCopy, item);
-				itemCopy.setAttribute('out', req.body.time);
-				item.setAttribute('in', req.body.time);
+				itemCopy.setAttribute('out', splitTime);
+				item.setAttribute('in', splitTime);
 			}
 			else {
 				const tractor = item.parentElement.parentElement;
