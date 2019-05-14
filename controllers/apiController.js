@@ -955,11 +955,11 @@ exports.projectItemPUTmove = (req, res, next) => {
 		return;
 	}
 
-	if (!timeManager.isValidDuration(req.body.time)) {
+	if (req.body.time !== '00:00:00,000' && !timeManager.isValidDuration(req.body.time)) {
 		res.status(400);
 		res.json({
 			err: 'Chybný parametr.',
-			msg: 'Parametr time musí být nenulový, ve formátu 00:00:00,000.',
+			msg: 'Parametr time musí být ve formátu 00:00:00,000.',
 		});
 		return;
 	}
