@@ -27,6 +27,8 @@ export default class Timeline extends Component {
 		this.buttonDel = this.buttonDel.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
 		this.getItem = this.getItem.bind(this);
+		this.addTrack = this.addTrack.bind(this);
+		this.delTrack = this.delTrack.bind(this);
 	}
 
 	componentDidMount() {
@@ -43,6 +45,7 @@ export default class Timeline extends Component {
 			zoomMax: 21600000,
 			editable: {
 				updateTime: true,
+				updateGroup: true,
 			},
 			onMove: this.onMove,
 			onMoving: this.onMoving,
@@ -93,7 +96,7 @@ export default class Timeline extends Component {
 		for (let track of tracks) {
 			groups.push({
 				id: track.id,
-				content: '<div style="width:0;height:61px;"></div>',
+				content: '<div style="width:0;height:66px;"></div>',
 			});
 
 			let actualTime = '00:00:00,000';
@@ -230,7 +233,10 @@ export default class Timeline extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					this.props.loadData();
+					const track = Editor.findTrack(this.props.items, itemPath[0]);
+					if (Editor.findItem(track.items, 1) === null) this.delTrack(itemPath[0]);
+					else this.props.loadData();
+
 					this.setState({selectedItems: []});
 				}
 				else {
@@ -311,7 +317,7 @@ export default class Timeline extends Component {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					track: item.group,
+					track: itemPath[0],
 					trackTarget: item.group,
 					item: Number(itemPath[1]),
 					time: Timeline.dateToString(item.start),
@@ -324,8 +330,24 @@ export default class Timeline extends Component {
 					if (typeof data.err !== 'undefined') {
 						alert(`${data.err}\n\n${data.msg}`);
 					}
+					else {
+						if (itemPath[0] === item.group) { // Same track
+							this.props.loadData();
+						}
+						else { // Moving between tracks
+							const trackType = (item.group.includes('video')) ? 'video' : 'audio';
+							const prevTrack = Editor.findTrack(this.props.items, itemPath[0]);
+							const newTrack = Editor.findTrack(this.props.items, item.group);
 
-					this.props.loadData();
+							const addTrack = (newTrack.items.length === 0); //
+							const delTrack = (Editor.findItem(prevTrack.items, 1) === null);
+
+							if (addTrack && delTrack) this.addTrack(trackType, prevTrack.id);
+							else if (addTrack) this.addTrack(trackType, null);
+							else if (delTrack) this.delTrack(prevTrack.id);
+							else this.props.loadData();
+						}
+					}
 				})
 				.catch(error => console.error(error))
 			;
@@ -336,11 +358,19 @@ export default class Timeline extends Component {
 	itemMove(item) {
 		if (item.start.getFullYear() < 1970) return null; // Deny move before zero time
 		else {
-			item.className = (item.className.includes('video')) ? 'video' : 'audio';
 			const itemPath = item.id.split(':');
+
+			if (!(item.group.includes('videotrack') && itemPath[0].includes('videotrack'))) {
+				if (!(item.group.includes('audiotrack') && itemPath[0].includes('audiotrack'))) {
+					return null;
+				}
+			}
+
+			item.className = (item.className.includes('video')) ? 'video' : 'audio';
+			const itemIndex = (itemPath[0] === item.group) ? Number(itemPath[1]) : null;
 			const start = Timeline.dateToString(item.start);
 			const end = Timeline.dateToString(item.end);
-			const collision = this.getItemInRange(item.group, Number(itemPath[1]), start, end);
+			const collision = this.getItemInRange(item.group, itemIndex, start, end);
 			if (collision.length === 0) {
 				// Free
 				return item;
@@ -378,12 +408,62 @@ export default class Timeline extends Component {
 					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
 				}
 				// Check if there is enough space
-				if (this.getItemInRange(item.group, Number(itemPath[1]), itemStart, itemEnd).length === 0) {
+				if (this.getItemInRange(item.group, itemIndex, itemStart, itemEnd).length === 0) {
 					return item;
 				}
 				return null;
 			}
 		}
+	}
+
+	addTrack(type, delTrack) {
+		const url = `${server.apiUrl}/project/${this.props.project}/track`;
+		const params = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				type: type,
+			}),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err !== 'undefined') {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+
+				if (delTrack !== null) this.delTrack(delTrack);
+				else this.props.loadData();
+			})
+			.catch(error => console.error(error))
+		;
+	}
+
+	delTrack(trackId) {
+		const url = `${server.apiUrl}/project/${this.props.project}/track`;
+		const params = {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				track: trackId,
+			}),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err !== 'undefined') {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+				this.props.loadData();
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	/**

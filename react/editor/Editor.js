@@ -16,6 +16,7 @@ export default class Editor extends Component {
 		this.putResource = this.putResource.bind(this);
 		this.addFilter = this.addFilter.bind(this);
 		this.delFilter = this.delFilter.bind(this);
+		this.addTrack = this.addTrack.bind(this);
 		this.openSubmitDialog = this.openSubmitDialog.bind(this);
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 
@@ -53,7 +54,7 @@ export default class Editor extends Component {
 					/>
 					<div id='preview'>
 						<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
-						<video><source type="video/mp4" src="https://www.w3schools.com/html/mov_bbb.mp4"/></video>
+						<video/>
 						<br/>
 						<div className="prev-toolbar">
 							<button className="no-border" title="Zastavit přehrávání"><i className="material-icons" aria-hidden="true">stop</i></button>
@@ -118,6 +119,7 @@ export default class Editor extends Component {
 	putResource(id, duration, trackId) {
 		const timeline = Object.assign({}, this.state.timeline);
 		const track = Editor.findTrack(timeline, trackId);
+		const trackLength = track.items.length;
 
 		track.items.push({
 			resource: id,
@@ -128,6 +130,35 @@ export default class Editor extends Component {
 			transitionFrom: null,
 		});
 		this.setState({timeline: timeline});
+
+		if (trackLength === 0) {
+			this.addTrack((trackId.includes('video')) ? 'video' : 'audio');
+		}
+	}
+
+	addTrack(type) {
+		const url = `${server.apiUrl}/project/${this.state.project}/track`;
+		const params = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({
+				type: type,
+			}),
+		};
+
+		fetch(url, params)
+			.then(response => response.json())
+			.then(data => {
+				if (typeof data.err !== 'undefined') {
+					alert(`${data.err}\n\n${data.msg}`);
+				}
+
+				this.loadData();
+			})
+			.catch(error => console.error(error))
+		;
 	}
 
 	addFilter(parameters) {

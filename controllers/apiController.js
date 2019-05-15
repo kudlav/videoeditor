@@ -1013,6 +1013,17 @@ exports.projectItemPUTmove = (req, res, next) => {
 		return;
 	}
 
+	if (!(req.body.trackTarget.includes('videotrack') && req.body.track.includes('videotrack'))) {
+		if (!(req.body.trackTarget.includes('audiotrack') && req.body.track.includes('audiotrack'))) {
+			res.status(400);
+			res.json({
+				err: 'Nekompatibilní stopy.',
+				msg: 'Položky nelze přesouvat mezi video a audio stopami.',
+			});
+			return;
+		}
+	}
+
 	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
@@ -1102,14 +1113,17 @@ exports.projectItemPUTmove = (req, res, next) => {
 				const beforeBlank = document.createElement('blank');
 				beforeBlank.setAttribute('length', beforeLength);
 
-				trackTarget.insertBefore(beforeBlank, targetElement.entries[0]);
+				if (beforeLength !== '00:00:00,000') trackTarget.insertBefore(beforeBlank, targetElement.entries[0]);
 				trackTarget.insertBefore(item, targetElement.entries[0]);
-				if (targetElement.entries[0].nextElementSibling !== null) trackTarget.insertBefore(afterBlank, targetElement.entries[0]);
+				if (afterLength !== '00:00:00,000' && targetElement.entries[0].nextElementSibling !== null) trackTarget.insertBefore(afterBlank, targetElement.entries[0]);
 				targetElement.entries[0].remove();
 			}
 			else { // Between two elements
 				const blank =  (targetElement.entries[0].tagName === 'blank') ? targetElement.entries[0] : targetElement.entries[1];
-				if (blank !== null) blank.setAttribute('length', timeManager.subDuration(blank.getAttribute('length'), itemDuration));
+				if (blank !== null) {
+					blank.setAttribute('length', timeManager.subDuration(blank.getAttribute('length'), itemDuration));
+					if (blank.getAttribute('lenght') === '00:00:00,000') blank.remove();
+				}
 				trackTarget.insertBefore(item, targetElement.entries[1]);
 			}
 
@@ -1290,21 +1304,13 @@ exports.projectTrackDELETE = (req, res, next) => {
 		return;
 	}
 
-	if (req.body.track === 'videotrack0' || req.body.track === 'audiotrack0') {
-		res.status(403);
-		res.json({
-			err: 'Stopu nelze smazat.',
-			msg: 'Výchozí stopy "videotrack0" a "audiotrack0" nelze smazat.',
-		});
-		return;
-	}
-
 	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
 	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
 		dom => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
+			let trackID = req.body.track;
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
@@ -1316,7 +1322,33 @@ exports.projectTrackDELETE = (req, res, next) => {
 				return;
 			}
 
-			const trackRef = document.querySelector(`mlt>tractor>multitrack>track[producer="${req.body.track}"]`);
+			// Removing default track
+			if (req.body.track === 'videotrack0' || req.body.track === 'audiotrack0') {
+				const type  = (req.body.track.includes('video')) ? 'videotrack' : 'audiotrack';
+				let nextTrack = null;
+				let nextElement = track.nextElementSibling;
+				while (nextElement !== null) {
+					if (nextElement.id.includes(type)) {
+						nextTrack = nextElement;
+						break;
+					}
+					nextElement = nextElement.nextElementSibling;
+				}
+
+				if (nextTrack === null) {
+					res.status(403);
+					res.json({
+						err: 'Stopu nelze smazat.',
+						msg: 'Výchozí stopy "videotrack0" a "audiotrack0" nelze smazat.',
+					});
+					return;
+				}
+
+				trackID = nextElement.id;
+				nextElement.id = type + '0'; // Rename next element to videotrack0/audiotrack0
+			}
+
+			const trackRef = document.querySelector(`mlt>tractor>multitrack>track[producer="${trackID}"]`);
 			trackRef.remove();
 			track.remove();
 
