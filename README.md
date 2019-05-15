@@ -14,7 +14,7 @@ $ sudo apt install ladspa-sdk ffmpeg
 
 ### Development
 
-Install the dependencies and devDependencies and start the server and webpack for development.
+Install the dependencies and devDependencies and start the server and webpack for development. Don't forget to change config file.
 
 ```sh
 $ npm install -d
@@ -24,7 +24,7 @@ $ npm run dev-start
 
 ### Production
 
-Install the dependencies and start the server and webpack for production.
+Install the dependencies and start the server and webpack for production. Don't forget to change config file.
 
 ```sh
 $ npm install
