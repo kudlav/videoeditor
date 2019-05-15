@@ -1,3 +1,8 @@
+/**
+ * @file SourcesTableRow.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 
 export default class SourcesTableRow extends Component {

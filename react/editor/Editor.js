@@ -1,3 +1,8 @@
+/**
+ * @file Editor.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 import LoadingDialog from './LoadingDialog';
 import SubmitDialog from './SubmitDialog';

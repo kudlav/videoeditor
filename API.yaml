@@ -74,7 +74,7 @@ paths:
     delete:
       tags:
         - project
-      summary: Remove project and all files
+      summary: NOT IMPLEMENTED! Remove project and all files
       parameters:
         - name: projectID
           in: path
@@ -440,7 +440,7 @@ paths:
     delete:
       tags:
         - transition
-      summary: Remove transition between two timeline items
+      summary: NOT IMPLEMENTED! Remove transition between two timeline items
       parameters:
         - name: projectID
           in: path

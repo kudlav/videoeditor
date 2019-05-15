@@ -1,3 +1,8 @@
+/**
+ * @file Uploader.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone-uploader';
 

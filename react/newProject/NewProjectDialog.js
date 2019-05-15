@@ -1,3 +1,8 @@
+/**
+ * @file NewProjectDialog.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 import Modal from 'react-modal';
 import {server} from '../../config';

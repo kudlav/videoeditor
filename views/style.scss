@@ -1,3 +1,8 @@
+/**
+ * @file SASS file with all CSS rules
+ * @author Vladan Kudlac <vladankudlac@gmail.com>; Kyle Bebak (MIT License)
+ */
+
 @font-face {
 	font-family: SourceSans;
 	src: url('/fonts/sans/SourceSansPro-Regular.ttf');
@@ -287,6 +292,9 @@ tr:nth-child(even) {
 
 /*
  * DROPZONE
+ *
+ * The MIT License (MIT)
+ * Copyright (c) 2018 Kyle Bebak
  */
 .dzu-dropzone {
 	display: flex;

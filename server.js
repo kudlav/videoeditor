@@ -1,3 +1,8 @@
+/**
+ * @file Main file of the app
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import {server as config} from './config';
 import express from 'express';
 

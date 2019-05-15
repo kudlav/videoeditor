@@ -2,6 +2,7 @@
  * @file Manager for sending emails
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
+
 import config, {server} from '../config';
 const nodemailer = require('nodemailer');
 

@@ -1,3 +1,8 @@
+/**
+ * @file Available filters for React components
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import timeManager from '../models/timeManager';
 
 export default {

@@ -1,3 +1,8 @@
+/**
+ * @file Timeline.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 import vis from 'vis';
 import timeManager from '../../models/timeManager';

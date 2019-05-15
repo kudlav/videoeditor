@@ -1,3 +1,8 @@
+/**
+ * @file Sources.js
+ * @author Vladan Kudlac <vladankudlac@gmail.com>
+ */
+
 import React, { Component } from 'react';
 import {server} from '../../config';
 import timeManager from '../../models/timeManager';
