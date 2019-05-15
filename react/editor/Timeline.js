@@ -335,7 +335,7 @@ export default class Timeline extends Component {
 							this.props.loadData();
 						}
 						else { // Moving between tracks
-							const trackType = (item.group.includes('video')) ? 'video' : 'audio';
+							const trackType = (item.group.includes('audio')) ? 'audio' : 'video';
 							const prevTrack = Editor.findTrack(this.props.items, itemPath[0]);
 							const newTrack = Editor.findTrack(this.props.items, item.group);
 

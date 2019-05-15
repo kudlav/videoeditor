@@ -49,7 +49,7 @@ export default class Sources extends Component {
 			}
 		}
 
-		const track = (new RegExp(/^video\//).test(this.props.items[id].mime)) ? 'videotrack0' : 'audiotrack0';
+		const track = (this.props.items[id].mime.includes('audio/')) ? 'audiotrack0' : 'videotrack0';
 
 		// Send request to API
 		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;

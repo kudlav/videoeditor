@@ -39,8 +39,8 @@ export default class Editor extends Component {
 				<SubmitDialog show={this.state.showSubmitDialog} project={this.state.project} onClose={this.closeSubmitDialog}/>
 				<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
 				<div className="divider"/>
-				<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>
-				<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>
+				{/*<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>*/}
+				{/*<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>*/}
 				<button onClick={this.openSubmitDialog} className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
 			</header>
 			<main>
@@ -132,7 +132,7 @@ export default class Editor extends Component {
 		this.setState({timeline: timeline});
 
 		if (trackLength === 0) {
-			this.addTrack((trackId.includes('video')) ? 'video' : 'audio');
+			this.addTrack((trackId.includes('audio')) ? 'audio' : 'video');
 		}
 	}
 
