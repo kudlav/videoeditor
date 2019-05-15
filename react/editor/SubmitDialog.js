@@ -23,13 +23,13 @@ export default class SubmitDialog extends Component {
 			<div>
 				<Modal
 					isOpen={this.props.show}
-					contentLabel="Vyvedení projektu"
+					contentLabel="Dokončení projektu"
 					className={'modal'}
 					overlayClassName={'overlay'}
 					onRequestClose={this.handleCloseDialog}
 				>
 
-					<h2>Vyvedení projektu</h2>
+					<h2>Dokončení projektu</h2>
 					<div>
 						<form onSubmit={this.handleSumbitDialog}>
 							<label htmlFor={'email'}>Emailová adresa: </label>
