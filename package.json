@@ -25,11 +25,11 @@
     "body-parser": "^1.19.0",
     "connect-busboy": "0.0.2",
     "ejs": "^2.6.1",
-    "express": "^4.16.4",
+    "express": "^4.17.0",
     "fluent-ffmpeg": "^2.1.2",
-    "jsdom": "^15.0.0",
+    "jsdom": "^15.1.0",
     "json-loader": "0.5.7",
-    "nanoid": "^2.0.1",
+    "nanoid": "^2.0.2",
     "nodemailer": "^6.1.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
@@ -45,7 +45,7 @@
     "@babel/preset-react": "^7.0.0",
     "autoprefixer": "^9.5.1",
     "babel-eslint": "^10.0.1",
-    "babel-loader": "^8.0.5",
+    "babel-loader": "^8.0.6",
     "css-loader": "^2.1.1",
     "eslint": "^5.16.0",
     "eslint-plugin-react": "^7.13.0",
@@ -55,7 +55,7 @@
     "nodemon": "^1.19.0",
     "postcss-loader": "^3.0.0",
     "sass-loader": "^7.1.0",
-    "webpack": "^4.30.0",
+    "webpack": "^4.32.0",
     "webpack-cli": "^3.3.2"
   }
 }
