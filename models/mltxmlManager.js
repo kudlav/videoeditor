@@ -248,11 +248,15 @@ export default {
 	 */
 	entryToPlaylist(item, document) {
 		const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
+		const lastPlaylist = playlists.item(0);
+		const lastID = (lastPlaylist === null) ? -1 : lastPlaylist.id.match(/playlist(\d+)/)[1];
+
+		const newPlaylist = document.createElement('playlist');
+		newPlaylist.id = 'playlist' + (Number(lastID) + 1);
+		newPlaylist.innerHTML = item.outerHTML;
+
 		const producers = document.getElementsByTagName('producer');
 		const lastProducer = producers.item(producers.length - 1);
-		const newPlaylist = document.createElement('playlist');
-		newPlaylist.id = 'playlist' + playlists.length;
-		newPlaylist.innerHTML = item.outerHTML;
 		lastProducer.parentElement.insertBefore(newPlaylist, lastProducer.nextSibling);
 		return newPlaylist;
 	},
@@ -292,9 +296,12 @@ export default {
 	 */
 	createTractor(document) {
 		const tractors = document.querySelectorAll('mlt>tractor[id^="tractor"]');
-		const videotrack0 = document.getElementById('videotrack0');
+		const lastTractor = tractors.item(tractors.length - 1);
+		const lastID = (lastTractor === null) ? -1 : lastTractor.id.match(/tractor(\d+)/)[1];
+
 		const newTractor = document.createElement('tractor');
-		newTractor.id = 'tractor' + tractors.length;
+		newTractor.id = 'tractor' + (Number(lastID) + 1);
+		const videotrack0 = document.getElementById('videotrack0');
 		videotrack0.parentElement.insertBefore(newTractor, videotrack0);
 		return newTractor;
 	},
