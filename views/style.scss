@@ -411,26 +411,6 @@ tr:nth-child(even) {
 		background-color: #27438b;
 		border-color: #1d346e;
 
-		div.filter {
-			position: relative;
-			top: -5px;
-			left: -5px;
-			width: 0;
-			height: 0;
-			border-top: 40px solid #30acffcc;
-			border-right: 40px solid transparent;
-			z-index: 1;
-			display: inline-block;
-			vertical-align: top;
-		}
-
-		i.filter {
-			position: absolute;
-			top: 5px;
-			left: 4px;
-			z-index: 2;
-		}
-
 		&.stick-right {
 			border-right: 5px solid #4caf50;
 		}
@@ -454,7 +434,27 @@ tr:nth-child(even) {
 	}
 
 	&.vis-selected {
-	  border-color: #FFC200;
+		border-color: #FFC200;
+	}
+
+	div.filter {
+		position: relative;
+		top: -5px;
+		left: -5px;
+		width: 0;
+		height: 0;
+		border-top: 40px solid rgba(255, 255, 255, 0.2);
+		border-right: 40px solid transparent;
+		z-index: 1;
+		display: inline-block;
+		vertical-align: top;
+	}
+
+	i.filter {
+	  position: absolute;
+	  top: 5px;
+	  left: 4px;
+	  z-index: 2;
 	}
 }
 
