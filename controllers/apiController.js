@@ -539,7 +539,13 @@ exports.projectFilterPOST = (req, res, next) => {
 				for (let param in req.body.params) {
 					const newPropery = document.createElement('property');
 					newPropery.setAttribute('name', param);
-					newPropery.innerHTML = req.body.params[param];
+					if (typeof req.body.params[param]  === 'number') {
+						const value = req.body.params[param].toString();
+						newPropery.innerHTML = value.replace(/\./, ',');
+					}
+					else {
+						newPropery.innerHTML = req.body.params[param];
+					}
 					newFilter.appendChild(newPropery);
 				}
 			}
