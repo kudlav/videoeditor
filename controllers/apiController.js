@@ -1218,8 +1218,8 @@ exports.projectItemPUTsplit = (req, res, next) => {
 				if (tractor.getElementsByTagName('transition').length === 0) { // It's element with filter(s)
 					const trackItem = document.querySelector(`mlt>playlist[id="${item.getAttribute('producer')}"]`).getElementsByTagName('entry')[0];
 					const trackItemCopy = trackItem.cloneNode();
-					trackItemCopy.setAttribute('out', req.body.time);
-					trackItem.setAttribute('in', req.body.time);
+					trackItemCopy.setAttribute('out', splitTime);
+					trackItem.setAttribute('in', splitTime);
 
 					const playlistCopy = mltxmlManager.entryToPlaylist(trackItemCopy, document);
 
