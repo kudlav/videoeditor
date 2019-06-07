@@ -13,7 +13,6 @@ const fs = require('fs');
 const path = require('path');
 const nanoid = require('nanoid');
 const { exec } = require('child_process');
-const { JSDOM } = require('jsdom');
 
 exports.default = (req, res) => {
 
@@ -56,10 +55,9 @@ exports.projectPOST = (req, res, next) => {
 
 
 exports.projectGET = (req, res) => {
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
 
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'r').then(
+		([dom]) => {
 			const document = dom.window.document;
 
 			// Resources
@@ -217,13 +215,9 @@ exports.projectFilePOST = (req, res, next) => {
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
-					if (length !== null)
-						length += '0';
-
-					const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-					JSDOM.fromFile(mltPath, {contentType:'application/xml'}).then(
-						dom => {
+					if (length !== null) length += '0';
+					mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+						([dom, , release]) => {
 							const document = dom.window.document;
 
 							const node = document.createElement('producer');
@@ -236,7 +230,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 							const root = document.getElementsByTagName('mlt').item(0);
 							root.prepend(node);
-							mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+							mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 								() => {
 									res.json({
 										msg: `Upload of "${filename}" OK`,
@@ -262,15 +256,14 @@ exports.projectFilePOST = (req, res, next) => {
 
 exports.projectFileDELETE = (req, res, next) => {
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const entries = document.querySelectorAll(`mlt>playlist>entry[producer="producer${req.params.fileID}"]`);
 			if (entries.length > 0) {
+				release();
 				res.status(403);
 				res.json({
 					err: 'Zdroj je používán.',
@@ -281,6 +274,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
 			if (producer === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Zdroj nenalezen.',
@@ -295,8 +289,10 @@ exports.projectFileDELETE = (req, res, next) => {
 				if (property.getAttribute('name') === 'resource') filename = property.innerHTML;
 			}
 
-			if (filename === undefined)
+			if (filename === undefined) {
+				release();
 				return next(`Project "${req.params.projectID}", producer${req.params.fileID} misses resource tag`);
+			}
 
 			// Try to remove file, log failure
 			fs.unlink(filename, (err) => {
@@ -305,7 +301,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			producer.remove();
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({
 						msg: 'Zdroj byl úspěšně odebrán',
@@ -332,15 +328,14 @@ exports.projectFilePUT = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const producer = document.getElementById(`producer${req.params.fileID}`);
 			if (producer === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Zdroj nenalezen.',
@@ -351,6 +346,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -369,20 +365,23 @@ exports.projectFilePUT = (req, res, next) => {
 			}
 
 			if (producerMime === undefined) {
+				release();
 				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
 			}
 			else if (new RegExp(/^image\//).test(producerMime)) {
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
+					release();
 					res.status(400);
 					res.json({
 						err: 'Nepodporovaný typ souboru.',
-						msg: `Obrázky lze vložit pouze na video stopu.`,
+						msg: 'Obrázky lze vložit pouze na video stopu.',
 					});
 					return;
 				}
 
 				// Images needs duration parameter
 				if (!timeManager.isValidDuration(req.body.duration)) {
+					release();
 					res.status(400);
 					res.json({
 						err: 'Chybí délka trvání.',
@@ -396,26 +395,29 @@ exports.projectFilePUT = (req, res, next) => {
 			}
 			else if (new RegExp(/^video\//).test(producerMime)) {
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
+					release();
 					res.status(400);
 					res.json({
 						err: 'Nepodporovaný typ souboru.',
-						msg: `Video lze vložit pouze na video stopu.`,
+						msg: 'Video lze vložit pouze na video stopu.',
 					});
 					return;
 				}
 			}
 			else if (new RegExp(/^audio\//).test(producerMime)) {
 				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
+					release();
 					res.status(400);
 					res.json({
 						err: 'Nepodporovaný typ souboru.',
-						msg: `Audio lze vložit pouze na audio stopu.`,
+						msg: 'Audio lze vložit pouze na audio stopu.',
 					});
 					return;
 				}
 			}
 			else {
 				// Reject everything except images, videos and audio
+				release();
 				res.status(403);
 				res.json({
 					err: 'Nepodporovaný typ souboru.',
@@ -426,7 +428,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 			track.appendChild(newEntry);
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({
 						msg: 'Položka přidána na časovou osu',
@@ -454,15 +456,14 @@ exports.projectFilterPOST = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -473,6 +474,7 @@ exports.projectFilterPOST = (req, res, next) => {
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Položka nenalezena.',
@@ -509,6 +511,7 @@ exports.projectFilterPOST = (req, res, next) => {
 					if (filter.getAttribute('musecut:filter') !== null) filterName = filter.getAttribute('musecut:filter');
 					else filterName = filter.getAttribute('mlt_service');
 					if (filterName === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
+						release();
 						res.status(403);
 						res.json({
 							err: 'Filtr je již aplikován.',
@@ -550,7 +553,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				}
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Filtr přidán'});
 				},
@@ -575,15 +578,14 @@ exports.projectFilterDELETE = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -594,6 +596,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Položka nenalezena.',
@@ -630,6 +633,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 
 			// Check if filter exists
 			if (mltxmlManager.isSimpleNode(item) || filter === undefined) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Filtr nenalezen.',
@@ -652,7 +656,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 				playlist.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Filtr odebrán'});
 				},
@@ -695,15 +699,14 @@ exports.projectTransitionPOST = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -716,6 +719,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 			const itemB = mltxmlManager.getItem(document, track, req.body.itemB);
 
 			if (itemA === null || itemB === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Polozka nenalezena.',
@@ -728,6 +732,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 			const durationB = mltxmlManager.getDuration(itemB, document);
 			const waitBeforeTransition = timeManager.subDuration(durationA.out, req. body.duration);
 			if (req.body.duration > durationA.time || req.body.duration > durationB.time) {
+				release();
 				res.status(400);
 				res.json({
 					err: 'Příliš dlouhá doba přechodu.',
@@ -765,6 +770,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				const multitrackA = itemA.parentElement;
 				const multitrackB = itemB.parentElement;
 				if (multitrackA === multitrackB) {
+					release();
 					res.status(403);
 					res.json({
 						err: 'Přechod již aplikován.',
@@ -849,7 +855,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				itemA.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Přechod aplikován'});
 				},
@@ -918,15 +924,14 @@ exports.projectItemDELETE = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -937,6 +942,7 @@ exports.projectItemDELETE = (req, res, next) => {
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Položka nenalezena.',
@@ -961,6 +967,7 @@ exports.projectItemDELETE = (req, res, next) => {
 					playlist.remove();
 				}
 				else { // It's element with transition(s)
+					release();
 					return;
 				}
 			}
@@ -985,7 +992,7 @@ exports.projectItemDELETE = (req, res, next) => {
 				entry.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Položka rozdělena'});
 				},
@@ -1030,16 +1037,15 @@ exports.projectItemPUTmove = (req, res, next) => {
 		}
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			const trackTarget = document.getElementById(req.body.trackTarget);
 			if (track === null || trackTarget === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -1050,6 +1056,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Položka nenalezena.',
@@ -1091,6 +1098,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 
 			// Check free space
 			if (mltxmlManager.getItemInRange(trackTarget, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0) {
+				release();
 				res.status(403);
 				res.json({
 					err: 'Cíl již obsahuje položku.',
@@ -1133,7 +1141,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 				trackTarget.insertBefore(item, targetElement.entries[1]);
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Položka přesunuta'});
 				},
@@ -1166,15 +1174,14 @@ exports.projectItemPUTsplit = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -1185,6 +1192,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Položka nenalezena.',
@@ -1196,6 +1204,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 			const time = mltxmlManager.getDuration(item, document);
 
 			if (req.body.time >= time.time) {
+				release();
 				res.status(400);
 				res.json({
 					err: 'Parametr mimo rozsah hodnot.',
@@ -1236,11 +1245,12 @@ exports.projectItemPUTsplit = (req, res, next) => {
 					track.insertBefore(videotrackRefCopy, videotrackRef);
 				}
 				else { // It's element with transition(s)
-					return;
+					release();
+					return; // TODO
 				}
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({msg: 'Položka rozdělena'});
 				},
@@ -1263,10 +1273,8 @@ exports.projectTrackPOST = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 			const mainTractor = document.querySelector('mlt>tractor[id="main"]');
@@ -1283,7 +1291,7 @@ exports.projectTrackPOST = (req, res, next) => {
 			newTrack.setAttribute('producer', newTractor.id);
 			mainTractor.getElementsByTagName('multitrack').item(0).appendChild(newTrack);
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({
 						msg: 'Stopa přidána',
@@ -1310,16 +1318,15 @@ exports.projectTrackDELETE = (req, res, next) => {
 		return;
 	}
 
-	const mltPath = mltxmlManager.getMLTpath(req.params.projectID);
-
-	JSDOM.fromFile(mltPath, {contentType:'text/xml'}).then(
-		dom => {
+	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
 			let trackID = req.body.track;
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
+				release();
 				res.status(404);
 				res.json({
 					err: 'Stopa nenalezena.',
@@ -1342,6 +1349,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 				}
 
 				if (nextTrack === null) {
+					release();
 					res.status(403);
 					res.json({
 						err: 'Stopu nelze smazat.',
@@ -1358,7 +1366,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 			trackRef.remove();
 			track.remove();
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML).then(
+			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
 				() => {
 					res.json({
 						msg: 'Stopa smazána',

@@ -6,23 +6,30 @@
 import config from '../config';
 import timeManager from './timeManager';
 
+const { JSDOM } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
+const RWlock = require('rwlock');
+
+const lock = new RWlock();
 
 export default {
 
 	/**
-	 * Save string as MLT file for specified project (create new or overwrite existing)
+	 * Save string as MLT file for specified project and release lock (create new or overwrite existing)
 	 *
-	 * @param project
-	 * @param data String without XML declaration and without doctype
+	 * @param {string} project
+	 * @param {string} data String without XML declaration and without doctype
+	 * @param {function|undefined} release function (optional)
 	 * @return {Promise<any>}
 	 */
-	saveMLT(project, data) {
+	saveMLT(project, data, release = undefined) {
 		const filepath = path.join(config.projectPath, project, 'project.mlt');
 
 		return new Promise((resolve, reject) => {
 			fs.writeFile(filepath, (config.declareXML + data), (err) => {
+				if (typeof release !== 'undefined') release();
+
 				if (err) {
 					console.warn(new Date(), `Unable to update file ${filepath}`);
 					reject(err);
@@ -30,6 +37,32 @@ export default {
 
 				console.info(new Date(), `File ${filepath} updated.`);
 				resolve();
+			});
+		});
+	},
+
+
+	loadMLT(project, mode) {
+		const filepath = this.getMLTpath(project);
+		const lockFile = (mode === 'r') ? lock.readLock : lock.writeLock;
+		return new Promise((resolve, reject) => {
+			lockFile(filepath, (release) => {
+				fs.open(filepath, 'r+', (err, fd) => {
+					if (err) {
+						release();
+						return reject(err);
+					}
+					fs.readFile(fd, (err, data) => {
+						if (err) {
+							release();
+							return reject(err);
+						}
+						const xml = new JSDOM(data, {contentType: 'application/xml'});
+
+						if (mode === 'r') release();
+						return resolve([xml, fd, release]);
+					});
+				});
 			});
 		});
 	},
@@ -282,8 +315,8 @@ export default {
 		transitionElement.setAttribute('mlt_service', transition);
 		transitionElement.setAttribute('in', duration);
 		transitionElement.setAttribute('out', timeManager.addDuration(duration, overlapping));
-		transitionElement.setAttribute('a_track', multitrack.childElementCount - 2);
-		transitionElement.setAttribute('b_track', multitrack.childElementCount - 1);
+		transitionElement.setAttribute('a_track', (multitrack.childElementCount - 2).toString());
+		transitionElement.setAttribute('b_track', (multitrack.childElementCount - 1).toString());
 		multitrack.parentElement.append(transitionElement);
 	},
 
