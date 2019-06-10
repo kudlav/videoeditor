@@ -6,6 +6,7 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
 import {server} from '../../config';
+import PropTypes from 'prop-types';
 
 Modal.setAppElement(document.body);
 
@@ -94,3 +95,9 @@ export default class SubmitDialog extends Component {
 	}
 
 }
+
+SubmitDialog.propTypes = {
+	show: PropTypes.bool.isRequired,
+	project: PropTypes.string.isRequired,
+	onClose: PropTypes.func.isRequired,
+};

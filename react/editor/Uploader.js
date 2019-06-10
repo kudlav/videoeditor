@@ -5,6 +5,7 @@
 
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone-uploader';
+import PropTypes from 'prop-types';
 
 export default class Uploader extends Component {
 
@@ -15,14 +16,14 @@ export default class Uploader extends Component {
 	}
 
 	getUploadParams() {
-		return { url: `/api/project/${this.props.value.project}/file` };
+		return { url: `/api/project/${this.props.project}/file` };
 	}
 
 	handleChangeStatus({ meta, xhr, remove }, status) {
 		if (status === 'done') {
 			console.log(`${meta.name} uploaded!`);
 			const response = JSON.parse(xhr.response);
-			this.props.value.onAdd({
+			this.props.onAdd({
 				id: response.resource_id,
 				name: meta.name,
 				duration: response.length,
@@ -49,3 +50,8 @@ export default class Uploader extends Component {
 		);
 	}
 }
+
+Uploader.propTypes = {
+	onAdd: PropTypes.func.isRequired,
+	project: PropTypes.string.isRequired,
+};

@@ -5,6 +5,7 @@
 
 import React, { Component } from 'react';
 import Modal from 'react-modal';
+import PropTypes from 'prop-types';
 
 Modal.setAppElement(document.body);
 
@@ -29,3 +30,7 @@ export default class LoadingDialog extends Component {
 		);
 	}
 }
+
+LoadingDialog.propTypes = {
+	show: PropTypes.bool.isRequired,
+};

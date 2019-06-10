@@ -4,6 +4,7 @@
  */
 
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 
 export default class SourcesTableRow extends Component {
 	constructor(props) {
@@ -29,3 +30,13 @@ export default class SourcesTableRow extends Component {
 		);
 	}
 }
+
+SourcesTableRow.propTypes = {
+	item: PropTypes.shape({
+		id: PropTypes.string.isRequired,
+		name: PropTypes.string.isRequired,
+		duration: PropTypes.string,
+	}).isRequired,
+	onRemove: PropTypes.func.isRequired,
+	onInsert: PropTypes.func.isRequired,
+};

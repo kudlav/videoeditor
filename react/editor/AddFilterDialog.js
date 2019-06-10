@@ -8,6 +8,7 @@ import Modal from 'react-modal';
 import filters from '../filters';
 import timeManager from '../../models/timeManager';
 import {server} from '../../config';
+import PropTypes from 'prop-types';
 
 Modal.setAppElement(document.body);
 
@@ -180,3 +181,12 @@ export default class AddFilterDialog extends Component {
 		return null;
 	}
 }
+
+AddFilterDialog.propTypes = {
+	item: PropTypes.string.isRequired,
+	getItem: PropTypes.func.isRequired,
+	project: PropTypes.string.isRequired,
+	onClose: PropTypes.func.isRequired,
+	onAdd: PropTypes.func.isRequired,
+	onDel: PropTypes.func.isRequired,
+};

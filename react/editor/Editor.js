@@ -78,7 +78,6 @@ export default class Editor extends Component {
 					project={this.state.project}
 					onAddFilter={this.addFilter}
 					onDelFilter={this.delFilter}
-
 					loadData={this.loadData}
 				/>
 			</footer>

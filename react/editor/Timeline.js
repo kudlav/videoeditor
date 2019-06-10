@@ -9,6 +9,7 @@ import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
 import Editor from './Editor';
 import {server} from '../../config';
+import PropTypes from 'prop-types';
 
 export default class Timeline extends Component {
 	constructor(props) {
@@ -487,3 +488,12 @@ export default class Timeline extends Component {
 		return string;
 	}
 }
+
+Timeline.propTypes = {
+	resources: PropTypes.object.isRequired,
+	items: PropTypes.object.isRequired,
+	project: PropTypes.string.isRequired,
+	onAddFilter: PropTypes.func.isRequired,
+	onDelFilter: PropTypes.func.isRequired,
+	loadData: PropTypes.func.isRequired,
+};

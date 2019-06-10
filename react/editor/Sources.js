@@ -8,6 +8,7 @@ import {server} from '../../config';
 import timeManager from '../../models/timeManager';
 import Uploader from './Uploader';
 import SourcesTableRow from './SourcesTableRow';
+import PropTypes from 'prop-types';
 
 export default class Sources extends Component {
 	constructor(props) {
@@ -91,7 +92,7 @@ export default class Sources extends Component {
 					<tbody>
 						{Object.keys(this.props.items).map(key =>
 							<SourcesTableRow
-								key={this.props.items[key].id}
+								key={key}
 								item={this.props.items[key]}
 								onRemove={this.delResource}
 								onInsert={this.putResource}
@@ -99,10 +100,9 @@ export default class Sources extends Component {
 						}
 						<tr>
 							<td colSpan="3">
-								<Uploader value={{
-									onAdd: resource => this.props.onAddResource(resource),
-									project: this.state.project,
-								}}
+								<Uploader
+									onAdd={(resource) => this.props.onAddResource(resource)}
+									project={this.state.project}
 								/>
 							</td>
 						</tr>
@@ -112,3 +112,11 @@ export default class Sources extends Component {
 		);
 	}
 }
+
+Sources.propTypes = {
+	project: PropTypes.string.isRequired,
+	items: PropTypes.object.isRequired,
+	onAddResource: PropTypes.func.isRequired,
+	onDelResource: PropTypes.func.isRequired,
+	onPutResource: PropTypes.func.isRequired,
+};
