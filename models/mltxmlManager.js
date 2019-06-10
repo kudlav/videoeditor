@@ -275,9 +275,9 @@ export default {
 	/**
 	 * Create playlist and put the item as entry into it
 	 *
-	 * @param {Element} item
+	 * @param {Node} item
 	 * @param {Document} document
-	 * @return {Element} new playlist element
+	 * @return {HTMLElement} new playlist element
 	 */
 	entryToPlaylist(item, document) {
 		const playlists = document.querySelectorAll('mlt>playlist[id^="playlist"]');
@@ -340,6 +340,14 @@ export default {
 	},
 
 
+	/**
+	 *
+	 * @param {HTMLElement} track
+	 * @param {String} timeStart
+	 * @param {String} timeEnd
+	 * @param {Document} document
+	 * @return {Array}
+	 */
 	getItemInRange(track, timeStart, timeEnd, document) {
 		const collision = [];
 		let time = '00:00:00,000';
@@ -376,5 +384,22 @@ export default {
 		}
 
 		return collision;
+	},
+
+
+	/**
+	 * Get property of producer/filter by name.
+	 *
+	 * @param {HTMLCollectionOf<Element>} properties
+	 * @param {string} name Property name.
+	 * @return {null|string} Return value of property or null when property not found.
+	 */
+	getProperty(properties, name) {
+		for (let property of properties) {
+			if (property.getAttribute('name') === name) {
+				return property.innerHTML;
+			}
+		}
+		return null;
 	}
 };

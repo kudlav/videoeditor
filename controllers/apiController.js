@@ -283,13 +283,8 @@ exports.projectFileDELETE = (req, res, next) => {
 				return;
 			}
 
-			const properties = producer.getElementsByTagName('property');
-			let filename;
-			for (let property of properties) {
-				if (property.getAttribute('name') === 'resource') filename = property.innerHTML;
-			}
-
-			if (filename === undefined) {
+			const filename = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'resource');
+			if (filename === null) {
 				release();
 				return next(`Project "${req.params.projectID}", producer${req.params.fileID} misses resource tag`);
 			}
@@ -358,17 +353,12 @@ exports.projectFilePUT = (req, res, next) => {
 			const newEntry = document.createElement('entry');
 			newEntry.setAttribute('producer', 'producer' + req.params.fileID);
 
-			const properties = producer.getElementsByTagName('property');
-			let producerMime;
-			for (let property of properties) {
-				if (property.getAttribute('name') === 'musecut:mime_type') producerMime = property.innerHTML;
-			}
-
-			if (producerMime === undefined) {
+			const mime = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'musecut:mime_type');
+			if (mime === null) {
 				release();
 				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
 			}
-			else if (new RegExp(/^image\//).test(producerMime)) {
+			else if (new RegExp(/^image\//).test(mime)) {
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
 					release();
 					res.status(400);
@@ -393,7 +383,7 @@ exports.projectFilePUT = (req, res, next) => {
 				newEntry.setAttribute('in', '00:00:00,000');
 				newEntry.setAttribute('out', req.body.duration);
 			}
-			else if (new RegExp(/^video\//).test(producerMime)) {
+			else if (new RegExp(/^video\//).test(mime)) {
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
 					release();
 					res.status(400);
@@ -404,7 +394,7 @@ exports.projectFilePUT = (req, res, next) => {
 					return;
 				}
 			}
-			else if (new RegExp(/^audio\//).test(producerMime)) {
+			else if (new RegExp(/^audio\//).test(mime)) {
 				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
 					release();
 					res.status(400);
@@ -621,12 +611,10 @@ exports.projectFilterDELETE = (req, res, next) => {
 						break;
 					}
 					// filterName is alias
-					const properties = entry.getElementsByTagName('property');
-					for (let property of properties) {
-						if (property.getAttribute('name') === 'musecut:filter') {
-							if (property.innerHTML === req.body.filter) filter = entry;
-							break;
-						}
+					const alias = mltxmlManager.getProperty(entry.getElementsByTagName('property'), 'musecut:filter');
+					if (alias === req.body.filter) {
+						filter = entry;
+						break;
 					}
 				}
 			}
