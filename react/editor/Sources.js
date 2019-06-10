@@ -13,16 +13,13 @@ import PropTypes from 'prop-types';
 export default class Sources extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			project: this.props.project,
-		};
 
 		this.delResource = this.delResource.bind(this);
 		this.putResource = this.putResource.bind(this);
 	}
 
 	delResource(id) {
-		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;
+		const url = `${server.apiUrl}/project/${this.props.project}/file/${id}`;
 		const params = {
 			method: 'DELETE',
 		};
@@ -58,7 +55,7 @@ export default class Sources extends Component {
 		const track = (this.props.items[id].mime.includes('audio/')) ? 'audiotrack0' : 'videotrack0';
 
 		// Send request to API
-		const url = `${server.apiUrl}/project/${this.state.project}/file/${id}`;
+		const url = `${server.apiUrl}/project/${this.props.project}/file/${id}`;
 		const params = {
 			method: 'PUT',
 			headers: {
@@ -102,7 +99,7 @@ export default class Sources extends Component {
 							<td colSpan="3">
 								<Uploader
 									onAdd={(resource) => this.props.onAddResource(resource)}
-									project={this.state.project}
+									project={this.props.project}
 								/>
 							</td>
 						</tr>

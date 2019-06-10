@@ -16,7 +16,9 @@ export default class Uploader extends Component {
 	}
 
 	getUploadParams() {
-		return { url: `/api/project/${this.props.project}/file` };
+		return {
+			url: `/api/project/${this.props.project}/file`,
+		};
 	}
 
 	handleChangeStatus({ meta, xhr, remove }, status) {

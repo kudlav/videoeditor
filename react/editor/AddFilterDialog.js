@@ -19,7 +19,7 @@ export default class AddFilterDialog extends Component {
 
 		this.state = {
 			filter: filters.videoFilters[0].id,
-			level: 100,
+			level: 100, // Must match default value of first filter in /react/filters.js
 		};
 
 		this.handleLevelChange = this.handleLevelChange.bind(this);
@@ -98,7 +98,7 @@ export default class AddFilterDialog extends Component {
 	handleCloseDialog() {
 		this.setState({
 			filter: filters.videoFilters[0].id,
-			level: 100,
+			level: 100, // Must match default value of first filter in /react/filters.js
 		});
 		this.props.onClose();
 	}
