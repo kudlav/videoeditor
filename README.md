@@ -1,5 +1,5 @@
 # Web Based Video Editor Using MLT Framework
-![Overal schema](https://github.com/kudlav/videoeditor/tree/master/docs/schema.png)
+![Overal schema](https://raw.githubusercontent.com/kudlav/videoeditor/master/docs/schema.png)
 
 ## See it in action (YouTube video)
 [https://youtu.be/GemMThnqULE](https://youtu.be/GemMThnqULE)
