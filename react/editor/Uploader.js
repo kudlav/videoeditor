@@ -23,7 +23,6 @@ export default class Uploader extends Component {
 
 	handleChangeStatus({ meta, xhr, remove }, status) {
 		if (status === 'done') {
-			console.log(`${meta.name} uploaded!`);
 			const response = JSON.parse(xhr.response);
 			this.props.onAdd({
 				id: response.resource_id,
@@ -33,7 +32,7 @@ export default class Uploader extends Component {
 			});
 			remove();
 		} else if (status === 'aborted') {
-			console.log(`${meta.name}, upload failed...`);
+			alert(`${meta.name}, upload failed...`);
 		}
 	}
 
