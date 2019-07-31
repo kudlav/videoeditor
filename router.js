@@ -18,8 +18,8 @@ router.use((req, res, next) => {
 });
 
 // Vis timeline resources
-router.get('/vis.css', (req, res) => res.sendFile(__dirname + '/node_modules/vis/dist/vis.css'));
-router.get('/vis.js', (req, res) => res.sendFile(__dirname + '/node_modules/vis/dist/vis.js'));
+router.get('/vis.css', (req, res) => res.sendFile(__dirname + '/node_modules/vis-timeline/dist/vis-timeline-graph2d.min.css'));
+router.get('/vis.js', (req, res) => res.sendFile(__dirname + '/node_modules/vis-timeline/dist/vis-timeline-graph2d.min.js'));
 
 // Homepage route
 router.get('/', mainController.main);
