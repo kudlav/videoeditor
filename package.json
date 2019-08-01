@@ -7,7 +7,8 @@
     "start": "babel-node server.js",
     "build": "./node_modules/.bin/webpack --mode production",
     "dev-start": "nodemon --exec babel-node server.js --ignore public/",
-    "dev-build": "./node_modules/.bin/webpack -wd"
+    "dev-build": "./node_modules/.bin/webpack -wd",
+    "eslint": "npx eslint controllers/ models/ react/ config.js router.js server.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "jsdom": "^15.1.1",
     "json-loader": "0.5.7",
+    "log4js": "^4.5.1",
     "nanoid": "^2.0.3",
     "nodemailer": "^6.3.0",
     "prop-types": "^15.7.2",

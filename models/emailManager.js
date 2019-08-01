@@ -4,6 +4,7 @@
  */
 
 import config, {server} from '../config';
+import log from './logger';
 const nodemailer = require('nodemailer');
 
 export default {
@@ -45,9 +46,9 @@ export default {
 		}
 
 		transporter.sendMail(email, (err) => {
-			if (err) console.error(`Email to ${recipient} (project ${project}) failed!`, err);
+			if (err) log.error(`Email to ${recipient} (project ${project}) failed!`, err);
 			else {
-				console.info(`Email send to: "${recipient}"`);
+				log.info(`Email send to: "${recipient}"`);
 			}
 		});
 	}

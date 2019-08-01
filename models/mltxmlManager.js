@@ -5,6 +5,7 @@
 
 import config from '../config';
 import timeManager from './timeManager';
+import log from './logger';
 
 const { JSDOM } = require('jsdom');
 const fs = require('fs');
@@ -31,11 +32,11 @@ export default {
 				if (typeof release !== 'undefined') release();
 
 				if (err) {
-					console.warn(new Date(), `Unable to update file ${filepath}`);
+					log.error(`Unable to update file ${filepath}`);
 					reject(err);
 				}
 
-				console.info(new Date(), `File ${filepath} updated.`);
+				log.info(`File ${filepath} updated.`);
 				resolve();
 			});
 		});

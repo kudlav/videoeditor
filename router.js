@@ -11,12 +11,6 @@ const mainController = require('./controllers/mainController');
 const apiController = require('./controllers/apiController');
 const errorController = require('./controllers/errorController');
 
-// Log access
-router.use((req, res, next) => {
-	console.info(new Date(), ` @ ${req.originalUrl}`);
-	next(); // go to the next routes
-});
-
 // Vis timeline resources
 router.get('/vis.css', (req, res) => res.sendFile(__dirname + '/node_modules/vis-timeline/dist/vis-timeline-graph2d.min.css'));
 router.get('/vis.js', (req, res) => res.sendFile(__dirname + '/node_modules/vis-timeline/dist/vis-timeline-graph2d.min.js'));

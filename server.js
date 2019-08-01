@@ -17,6 +17,12 @@ const bodyParser = require('body-parser');
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(bodyParser.json());
 
+const log4js = require('log4js');
+import log from './models/logger';
+server.use(log4js.connectLogger(log, { level: 'auto', statusRules: [
+	{ codes: [304],  level: 'info' }
+]}));
+
 // View
 server.engine('html', require('ejs').renderFile);
 server.set('view engine', 'html');
@@ -28,5 +34,5 @@ server.use('/', router);
 server.use(express.static('public'));
 
 server.listen(config.port, config.host, () => {
-	console.info('Express listening on port', config.port);
+	log.info('Express listening on port', config.port);
 });

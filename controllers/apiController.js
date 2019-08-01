@@ -8,6 +8,7 @@ import mltxmlManager from '../models/mltxmlManager';
 import fileManager from '../models/fileManager';
 import timeManager from '../models/timeManager';
 import emailManager from '../models/emailManager';
+import log from '../models/logger';
 
 const fs = require('fs');
 const path = require('path');
@@ -204,14 +205,14 @@ exports.projectFilePOST = (req, res, next) => {
 		// Create a write stream of the new file
 		const fstream = fs.createWriteStream(filepath);
 
-		console.info(new Date(), `Upload of "${filename}" started`);
+		log.info(`Upload of "${filename}" started`);
 
 		// Pipe it trough
 		file.pipe(fstream);
 
 		// On finish of the upload
 		fstream.on('close', () => {
-			console.info(new Date(), `Upload of "${filename}" finished`);
+			log.info(`Upload of "${filename}" finished`);
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
@@ -291,7 +292,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			// Try to remove file, log failure
 			fs.unlink(filename, (err) => {
-				if (err) console.warn(new Date(), err);
+				if (err) log.error(err);
 			});
 
 			producer.remove();
@@ -878,14 +879,14 @@ exports.projectPUT = (req, res, next) => {
 			}
 		}
 		fs.close(file, (err) => {
-			if (err) console.error(err.stack);
+			if (err) log.error(err.stack);
 		});
 
 		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264 > stdout.log 2> stderr.log`, (err) => {
-			if (err) console.error(`exec error: ${err}`);
+			if (err) log.error(`exec error: ${err}`);
 
 			fs.unlink(path.join(projectPath, 'processing'), (err) => {
-				if (err) console.error(err.stack);
+				if (err) log.error(err.stack);
 			});
 
 			if (isset(req.body.email)) {
@@ -1382,7 +1383,7 @@ function fileErr(err, res) {
 		});
 	}
 	else {
-		console.error(err.stack);
+		log.error(err.stack);
 		res.status(500).json({
 			err: 'Projekt nelze otevřít',
 			msg: 'Během načítání projektu došlo k chybě.',
