@@ -157,7 +157,7 @@ export default class AddFilterDialog extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -189,4 +189,5 @@ AddFilterDialog.propTypes = {
 	onClose: PropTypes.func.isRequired,
 	onAdd: PropTypes.func.isRequired,
 	onDel: PropTypes.func.isRequired,
+	fetchError: PropTypes.func.isRequired,
 };

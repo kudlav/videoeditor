@@ -10,6 +10,7 @@ import Sources from './Sources';
 import Timeline from './Timeline';
 import {server} from '../../config';
 import timeManager from '../../models/timeManager';
+import FetchErrorDialog from './FetchErrorDialog';
 
 export default class Editor extends Component {
 
@@ -24,6 +25,8 @@ export default class Editor extends Component {
 		this.addTrack = this.addTrack.bind(this);
 		this.openSubmitDialog = this.openSubmitDialog.bind(this);
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
+		this.openFetchErrorDialog = this.openFetchErrorDialog.bind(this);
+		this.closeFetchErrorDialog = this.closeFetchErrorDialog.bind(this);
 
 		this.state = {
 			project: window.location.href.match(/project\/([^/]*)/)[1],
@@ -31,6 +34,8 @@ export default class Editor extends Component {
 			timeline: {},
 			loading: true,
 			showSubmitDialog: false,
+			showFetchError: false,
+			fetchError: '',
 		};
 
 		this.loadData();
@@ -42,6 +47,7 @@ export default class Editor extends Component {
 			<header>
 				<LoadingDialog show={this.state.loading}/>
 				<SubmitDialog show={this.state.showSubmitDialog} project={this.state.project} onClose={this.closeSubmitDialog}/>
+				{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
 				<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
 				<div className="divider"/>
 				{/*<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>*/}
@@ -56,6 +62,7 @@ export default class Editor extends Component {
 						onAddResource={this.addResource}
 						onDelResource={this.delResource}
 						onPutResource={this.putResource}
+						fetchError={this.openFetchErrorDialog}
 					/>
 					<div id='preview'>
 						<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
@@ -79,6 +86,7 @@ export default class Editor extends Component {
 					onAddFilter={this.addFilter}
 					onDelFilter={this.delFilter}
 					loadData={this.loadData}
+					fetchError={this.openFetchErrorDialog}
 				/>
 			</footer>
 			</>
@@ -104,7 +112,7 @@ export default class Editor extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.openFetchErrorDialog(error.message))
 		;
 	}
 
@@ -161,7 +169,7 @@ export default class Editor extends Component {
 
 				this.loadData();
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.openFetchErrorDialog(error.message))
 		;
 	}
 
@@ -193,7 +201,7 @@ export default class Editor extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.openFetchErrorDialog(error.message))
 		;
 	}
 
@@ -213,6 +221,28 @@ export default class Editor extends Component {
 
 	closeSubmitDialog() {
 		this.setState({showSubmitDialog: false});
+	}
+
+	/**
+	 * Show Connection error dialog
+	 *
+	 * @param {String} msg
+	 */
+	openFetchErrorDialog(msg) {
+		this.setState({
+			showFetchError: true,
+			fetchError: msg,
+		});
+	}
+
+	/**
+	 * Close Connection error dialog
+	 */
+	closeFetchErrorDialog() {
+		this.setState({
+			showFetchError: false,
+			fetchError: '',
+		});
 	}
 
 	/**

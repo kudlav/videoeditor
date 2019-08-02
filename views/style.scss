@@ -50,15 +50,17 @@ h3 {
 	font-weight: inherit;
 }
 
-h2.logo {
-	font-size: 4em;
-
+h2.logo, h2.error {
 	img {
 		width: 120px;
 		height: 120px;
 		vertical-align: middle;
 		padding-right: 1em;
 	}
+}
+
+h2.logo {
+	font-size: 4em;
 }
 
 select, input {

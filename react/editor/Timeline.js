@@ -164,6 +164,7 @@ export default class Timeline extends Component {
 				onClose={this.closeAddFilterDialog}
 				onAdd={(filter) => this.props.onAddFilter(filter)}
 				onDel={(filter) => this.props.onDelFilter(filter)}
+				fetchError={this.props.fetchError}
 			/>}
 			</>
 		);
@@ -215,7 +216,7 @@ export default class Timeline extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -249,7 +250,7 @@ export default class Timeline extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -355,7 +356,7 @@ export default class Timeline extends Component {
 						}
 					}
 				})
-				.catch(error => console.error(error))
+				.catch(error => this.props.fetchError(error.message))
 			;
 
 		}
@@ -444,7 +445,7 @@ export default class Timeline extends Component {
 				if (delTrack !== null) this.delTrack(delTrack);
 				else this.props.loadData();
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -468,7 +469,7 @@ export default class Timeline extends Component {
 				}
 				this.props.loadData();
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -496,4 +497,5 @@ Timeline.propTypes = {
 	onAddFilter: PropTypes.func.isRequired,
 	onDelFilter: PropTypes.func.isRequired,
 	loadData: PropTypes.func.isRequired,
+	fetchError: PropTypes.func.isRequired,
 };

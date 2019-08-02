@@ -84,7 +84,7 @@ export default class SubmitDialog extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -100,4 +100,5 @@ SubmitDialog.propTypes = {
 	show: PropTypes.bool.isRequired,
 	project: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
+	fetchError: PropTypes.func.isRequired,
 };

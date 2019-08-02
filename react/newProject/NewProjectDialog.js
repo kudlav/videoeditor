@@ -6,10 +6,22 @@
 import React, { Component } from 'react';
 import Modal from 'react-modal';
 import {server} from '../../config';
+import FetchErrorDialog from '../editor/FetchErrorDialog';
 
 Modal.setAppElement(document.body);
 
 export default class NewProjectDialog extends Component {
+
+	constructor(props) {
+		super(props);
+
+		this.state = {
+			showFetchError: false,
+			fetchError: '',
+		};
+
+		this.closeFetchErrorDialog = this.closeFetchErrorDialog.bind(this);
+	}
 
 	createProject() {
 		const url = `${server.apiUrl}/project`;
@@ -27,13 +39,36 @@ export default class NewProjectDialog extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.openFetchErrorDialog(error.message))
 		;
+	}
+
+	/**
+	 * Show Connection error dialog
+	 *
+	 * @param {String} msg
+	 */
+	openFetchErrorDialog(msg) {
+		this.setState({
+			showFetchError: true,
+			fetchError: msg,
+		});
+	}
+
+	/**
+	 * Close Connection error dialog
+	 */
+	closeFetchErrorDialog() {
+		this.setState({
+			showFetchError: false,
+			fetchError: '',
+		});
 	}
 
 	render() {
 		return (
 			<div>
+				{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
 				<Modal
 					isOpen={true}
 					contentLabel="Nový projekt"

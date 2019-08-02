@@ -34,7 +34,7 @@ export default class Sources extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -77,7 +77,7 @@ export default class Sources extends Component {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
 			})
-			.catch(error => console.error(error))
+			.catch(error => this.props.fetchError(error.message))
 		;
 	}
 
@@ -116,4 +116,5 @@ Sources.propTypes = {
 	onAddResource: PropTypes.func.isRequired,
 	onDelResource: PropTypes.func.isRequired,
 	onPutResource: PropTypes.func.isRequired,
+	fetchError: PropTypes.func.isRequired,
 };
