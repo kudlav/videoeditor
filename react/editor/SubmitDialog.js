@@ -28,7 +28,7 @@ export default class SubmitDialog extends Component {
 		return (
 			<div>
 				<Modal
-					isOpen={this.props.show}
+					isOpen={true}
 					contentLabel="Dokončení projektu"
 					className={'modal'}
 					overlayClassName={'overlay'}
@@ -97,7 +97,6 @@ export default class SubmitDialog extends Component {
 }
 
 SubmitDialog.propTypes = {
-	show: PropTypes.bool.isRequired,
 	project: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
 	fetchError: PropTypes.func.isRequired,

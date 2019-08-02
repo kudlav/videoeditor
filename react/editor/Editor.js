@@ -45,8 +45,8 @@ export default class Editor extends Component {
 		return (
 			<>
 			<header>
-				<LoadingDialog show={this.state.loading}/>
-				<SubmitDialog show={this.state.showSubmitDialog} project={this.state.project} onClose={this.closeSubmitDialog}/>
+				{this.state.loading && <LoadingDialog/>}
+				{this.state.showSubmitDialog && <SubmitDialog project={this.state.project} onClose={this.closeSubmitDialog} fetchError={this.openFetchErrorDialog}/>}
 				{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
 				<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
 				<div className="divider"/>
