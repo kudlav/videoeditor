@@ -4,7 +4,7 @@
  */
 
 import React, { Component } from 'react';
-import vis from 'vis';
+import vis from 'vis-timeline';
 import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
 import Editor from './Editor';
