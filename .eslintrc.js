@@ -21,6 +21,7 @@ module.exports = {
 		'quotes': ['error','single'],
 		'semi': ['error','always'],
 		'no-console': 'error',
+		'no-unused-vars': ['error', { "args": "none" }]
 	},
 	'settings': {
 		'react': {
