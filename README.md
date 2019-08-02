@@ -4,6 +4,9 @@
 ## See it in action (YouTube video)
 [https://youtu.be/GemMThnqULE](https://youtu.be/GemMThnqULE)
 
+## Badges
+[![Build Status](https://travis-ci.org/kudlav/videoeditor.svg?branch=master)](https://travis-ci.org/kudlav/videoeditor)
+
 ## Installation
 
 Project requires:
