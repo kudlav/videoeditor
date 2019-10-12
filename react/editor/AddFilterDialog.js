@@ -66,15 +66,15 @@ export default class AddFilterDialog extends Component {
 							<br/>
 							{AddFilterDialog.getFilter(this.state.filter).in[0].id === 'level' &&
 								<>
-								<label htmlFor={'level'}>Úroveň: </label>
-								<input type={'range'} name={'level'} min={0} max={200} defaultValue={100} onChange={this.handleLevelChange}/>
-								<span> {this.state.level} %</span>
+									<label htmlFor={'level'}>Úroveň: </label>
+									<input type={'range'} name={'level'} min={0} max={200} defaultValue={100} onChange={this.handleLevelChange}/>
+									<span> {this.state.level} %</span>
 								</>
 							}
 							{AddFilterDialog.getFilter(this.state.filter).in[0].id === 'duration' &&
 								<>
-								<label htmlFor={'duration'}>Doba trvání: </label>
-								<input type={'text'} name={'duration'} defaultValue={'00:00:00,000'} required={true} pattern={'^\\d{2,}:\\d{2}:\\d{2},\\d{3}$'} title={'Doba trvání ve formátu 00:00:00,000'} onChange={this.handleLevelChange}/>
+									<label htmlFor={'duration'}>Doba trvání: </label>
+									<input type={'text'} name={'duration'} defaultValue={'00:00:00,000'} required={true} pattern={'^\\d{2,}:\\d{2}:\\d{2},\\d{3}$'} title={'Doba trvání ve formátu 00:00:00,000'} onChange={this.handleLevelChange}/>
 								</>
 							}
 							<br/>

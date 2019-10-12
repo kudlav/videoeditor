@@ -44,51 +44,51 @@ export default class Editor extends Component {
 	render() {
 		return (
 			<>
-			<header>
-				{this.state.loading && <LoadingDialog/>}
-				{this.state.showSubmitDialog && <SubmitDialog project={this.state.project} onClose={this.closeSubmitDialog} fetchError={this.openFetchErrorDialog}/>}
-				{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
-				<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
-				<div className="divider"/>
-				{/*<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>*/}
-				{/*<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>*/}
-				<button onClick={this.openSubmitDialog} className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
-			</header>
-			<main>
-				<div>
-					<Sources
-						project={this.state.project}
-						items={this.state.resources}
-						onAddResource={this.addResource}
-						onDelResource={this.delResource}
-						onPutResource={this.putResource}
-						fetchError={this.openFetchErrorDialog}
-					/>
-					<div id='preview'>
-						<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
-						<video/>
-						<br/>
-						<div className="prev-toolbar">
-							<button className="no-border" title="Zastavit přehrávání"><i className="material-icons" aria-hidden="true">stop</i></button>
-							<button title="Pokračovat v přehrávání"><i className="material-icons" aria-hidden="true">play_arrow</i></button>
-							<button title="Pozastavit přehrávání"><i className="material-icons" aria-hidden="true">pause</i></button>
-							<button title="Předchozí událost"><i className="material-icons" aria-hidden="true">skip_previous</i></button>
-							<button title="Následující událost"><i className="material-icons" aria-hidden="true">skip_next</i></button>
+				<header>
+					{this.state.loading && <LoadingDialog/>}
+					{this.state.showSubmitDialog && <SubmitDialog project={this.state.project} onClose={this.closeSubmitDialog} fetchError={this.openFetchErrorDialog}/>}
+					{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
+					<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
+					<div className="divider"/>
+					{/*<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>*/}
+					{/*<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>*/}
+					<button onClick={this.openSubmitDialog} className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
+				</header>
+				<main>
+					<div>
+						<Sources
+							project={this.state.project}
+							items={this.state.resources}
+							onAddResource={this.addResource}
+							onDelResource={this.delResource}
+							onPutResource={this.putResource}
+							fetchError={this.openFetchErrorDialog}
+						/>
+						<div id='preview'>
+							<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
+							<video/>
+							<br/>
+							<div className="prev-toolbar">
+								<button className="no-border" title="Zastavit přehrávání"><i className="material-icons" aria-hidden="true">stop</i></button>
+								<button title="Pokračovat v přehrávání"><i className="material-icons" aria-hidden="true">play_arrow</i></button>
+								<button title="Pozastavit přehrávání"><i className="material-icons" aria-hidden="true">pause</i></button>
+								<button title="Předchozí událost"><i className="material-icons" aria-hidden="true">skip_previous</i></button>
+								<button title="Následující událost"><i className="material-icons" aria-hidden="true">skip_next</i></button>
+							</div>
 						</div>
 					</div>
-				</div>
-			</main>
-			<footer>
-				<Timeline
-					resources={this.state.resources}
-					items={this.state.timeline}
-					project={this.state.project}
-					onAddFilter={this.addFilter}
-					onDelFilter={this.delFilter}
-					loadData={this.loadData}
-					fetchError={this.openFetchErrorDialog}
-				/>
-			</footer>
+				</main>
+				<footer>
+					<Timeline
+						resources={this.state.resources}
+						items={this.state.timeline}
+						project={this.state.project}
+						onAddFilter={this.addFilter}
+						onDelFilter={this.delFilter}
+						loadData={this.loadData}
+						fetchError={this.openFetchErrorDialog}
+					/>
+				</footer>
 			</>
 		);
 	}
