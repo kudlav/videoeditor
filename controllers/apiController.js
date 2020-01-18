@@ -41,16 +41,16 @@ exports.projectPOST = (req, res, next) => {
 
 	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
 		if (err) return next(err);
-	});
 
-	mltxmlManager.saveMLT(projectID, data).then(
-		() => {
-			res.json({
-				project: projectID,
-			});
-		},
-		err => next(err)
-	);
+		mltxmlManager.saveMLT(projectID, data).then(
+			() => {
+				res.json({
+					project: projectID,
+				});
+			},
+			err => next(err)
+		);
+	});
 
 };
 
@@ -216,7 +216,6 @@ exports.projectFilePOST = (req, res, next) => {
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
-					if (length !== null) length += '0';
 					mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 						([dom, , release]) => {
 							const document = dom.window.document;
@@ -226,8 +225,13 @@ exports.projectFilePOST = (req, res, next) => {
 							node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
 							node.innerHTML += `<property name="musecut:mime_type">${mimeType}</property>`;
 							node.innerHTML += `<property name="musecut:name">${filename}</property>`;
-							if (timeManager.isValidDuration(length))
-								node.innerHTML += `<property name="length">${length}</property>`;
+							if (length !== null) {
+								if (timeManager.isValidDuration(length))
+									node.innerHTML += `<property name="length">${length}</property>`;
+								else
+									length = null;
+									log.fatal(`Unable to get duration of ${mimeType}: ${filepath}`);
+							}
 
 							const root = document.getElementsByTagName('mlt').item(0);
 							root.prepend(node);
@@ -339,6 +343,7 @@ exports.projectFilePUT = (req, res, next) => {
 				});
 				return;
 			}
+			const length = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'length');
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
@@ -385,6 +390,16 @@ exports.projectFilePUT = (req, res, next) => {
 				newEntry.setAttribute('out', req.body.duration);
 			}
 			else if (new RegExp(/^video\//).test(mime)) {
+				if (length === null) {
+					release();
+					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
+					res.status(400);
+					res.json({
+						err: 'Chybí délka souboru.',
+						msg: 'Video nemá zjištěnou délku. Opakujte akci, nebo soubor nahrajte znovu.',
+					});
+					return;
+				}
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
 					release();
 					res.status(400);
@@ -396,6 +411,16 @@ exports.projectFilePUT = (req, res, next) => {
 				}
 			}
 			else if (new RegExp(/^audio\//).test(mime)) {
+				if (length === null) {
+					release();
+					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
+					res.status(400);
+					res.json({
+						err: 'Chybí délka souboru.',
+						msg: 'Audio nemá zjištěnou délku. Opakujte akci, nebo soubor nahrajte znovu.',
+					});
+					return;
+				}
 				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
 					release();
 					res.status(400);
