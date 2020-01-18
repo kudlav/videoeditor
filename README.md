@@ -10,7 +10,7 @@
 ## Installation
 
 Project requires:
-- [Node.js](https://nodejs.org/) 8.9.0+ to run server.
+- [Node.js](https://nodejs.org/) 10.13.0+ to run server.
 - MLT framework to export video.
 - FFmpeg to handle multimedia files.
 
@@ -29,8 +29,9 @@ $ npm run dev-build
 $ npm run dev-start
 ```
 
-You can run code check using ESLint:
+You can run code check using ESLint (required installed npx):
 ```sh
+$ sudo npm i -g npx
 $ npm run eslint
 ```
 

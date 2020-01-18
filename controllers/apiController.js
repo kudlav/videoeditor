@@ -228,9 +228,10 @@ exports.projectFilePOST = (req, res, next) => {
 							if (length !== null) {
 								if (timeManager.isValidDuration(length))
 									node.innerHTML += `<property name="length">${length}</property>`;
-								else
+								else {
 									length = null;
 									log.fatal(`Unable to get duration of ${mimeType}: ${filepath}`);
+								}
 							}
 
 							const root = document.getElementsByTagName('mlt').item(0);
