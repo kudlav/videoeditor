@@ -391,11 +391,12 @@ export default {
 	/**
 	 * Get property of producer/filter by name.
 	 *
-	 * @param {HTMLCollectionOf<Element>} properties
+	 * @param {Element} element Element containing properties.
 	 * @param {string} name Property name.
 	 * @return {null|string} Return value of property or null when property not found.
 	 */
-	getProperty(properties, name) {
+	getProperty(element, name) {
+		const properties = element.getElementsByTagName('property');
 		for (let property of properties) {
 			if (property.getAttribute('name') === name) {
 				return property.innerHTML;

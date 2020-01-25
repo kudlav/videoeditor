@@ -275,7 +275,7 @@ exports.projectFileDELETE = (req, res, next) => {
 				return errorResponse(error.sourceNotFound404, res);
 			}
 
-			const filename = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'resource');
+			const filename = mltxmlManager.getProperty(producer, 'resource');
 			if (filename === null) {
 				release();
 				return next(`Project "${req.params.projectID}", producer${req.params.fileID} misses resource tag`);
@@ -320,7 +320,7 @@ exports.projectFilePUT = (req, res, next) => {
 				release();
 				return errorResponse(error.sourceNotFound404, res);
 			}
-			const length = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'length');
+			const length = mltxmlManager.getProperty(producer, 'length');
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
@@ -331,7 +331,7 @@ exports.projectFilePUT = (req, res, next) => {
 			const newEntry = document.createElement('entry');
 			newEntry.setAttribute('producer', 'producer' + req.params.fileID);
 
-			const mime = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'musecut:mime_type');
+			const mime = mltxmlManager.getProperty(producer, 'musecut:mime_type');
 			if (mime === null) {
 				release();
 				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
@@ -537,7 +537,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 						break;
 					}
 					// filterName is alias
-					const alias = mltxmlManager.getProperty(entry.getElementsByTagName('property'), 'musecut:filter');
+					const alias = mltxmlManager.getProperty(entry, 'musecut:filter');
 					if (alias === req.body.filter) {
 						filter = entry;
 						break;
