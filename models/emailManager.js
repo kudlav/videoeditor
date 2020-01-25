@@ -3,7 +3,7 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import config, {server} from '../config';
+import {config, server} from '../config';
 import log from './logger';
 const nodemailer = require('nodemailer');
 

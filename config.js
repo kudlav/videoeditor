@@ -3,7 +3,7 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-export const server = {
+exports.server = {
 	port: 8080,
 	host: 'localhost',
 
@@ -15,7 +15,7 @@ export const server = {
 	},
 };
 
-export default {
+exports.config = {
 	emailServer: 'smtp.stud.fit.vutbr.cz',
 	emailPort: 465,
 	emailUser: 'xkudla15',

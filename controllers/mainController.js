@@ -3,7 +3,7 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import config from '../config';
+import {config} from '../config';
 const fs = require('fs');
 const path = require('path');
 

@@ -3,7 +3,7 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import config from '../config';
+import {config} from '../config';
 import timeManager from './timeManager';
 import log from './logger';
 
