@@ -9,6 +9,7 @@ import fileManager from '../models/fileManager';
 import timeManager from '../models/timeManager';
 import emailManager from '../models/emailManager';
 import log from '../models/logger';
+import error from '../models/errors';
 
 const fs = require('fs');
 const path = require('path');
@@ -187,12 +188,7 @@ exports.projectGET = (req, res) => {
 exports.projectFilePOST = (req, res, next) => {
 
 	if (!isset(req.busboy)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí soubor.',
-			msg: 'Tělo požadavku musí obsahovat soubor k nahrání.',
-		});
-		return;
+		return errorResponse(error.uploadMissingFile400, res);
 	}
 
 	req.busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
@@ -270,23 +266,13 @@ exports.projectFileDELETE = (req, res, next) => {
 			const entries = document.querySelectorAll(`mlt>playlist>entry[producer="producer${req.params.fileID}"]`);
 			if (entries.length > 0) {
 				release();
-				res.status(403);
-				res.json({
-					err: 'Zdroj je používán.',
-					msg: 'Zdroj je v projektu používán. Před smazáním z projektu jej odstraňte z časové osy.',
-				});
-				return;
+				return errorResponse(error.sourceInUse403, res);
 			}
 
 			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
 			if (producer === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Zdroj nenalezen.',
-					msg: 'Zdroj se v projektu nenachází.'
-				});
-				return;
+				return errorResponse(error.sourceNotFound404, res);
 			}
 
 			const filename = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'resource');
@@ -321,12 +307,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 	// Required parameters: track
 	if (!isset(req.body.track)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinný parametr "track"',
-		});
-		return;
+		return errorResponse(error.parameterTrackMissing400, res);
 	}
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
@@ -337,24 +318,14 @@ exports.projectFilePUT = (req, res, next) => {
 			const producer = document.getElementById(`producer${req.params.fileID}`);
 			if (producer === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Zdroj nenalezen.',
-					msg: 'Zdroj se v projektu nenachází.',
-				});
-				return;
+				return errorResponse(error.sourceNotFound404, res);
 			}
 			const length = mltxmlManager.getProperty(producer.getElementsByTagName('property'), 'length');
 
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			const newEntry = document.createElement('entry');
@@ -368,23 +339,13 @@ exports.projectFilePUT = (req, res, next) => {
 			else if (new RegExp(/^image\//).test(mime)) {
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
 					release();
-					res.status(400);
-					res.json({
-						err: 'Nepodporovaný typ souboru.',
-						msg: 'Obrázky lze vložit pouze na video stopu.',
-					});
-					return;
+					return errorResponse(error.imgWrongTrack400, res);
 				}
 
 				// Images needs duration parameter
 				if (!timeManager.isValidDuration(req.body.duration)) {
 					release();
-					res.status(400);
-					res.json({
-						err: 'Chybí délka trvání.',
-						msg: 'Pro vložení obrázku na časovou osu je nutné zadat trvání ve formátu 00:00:00,000.',
-					});
-					return;
+					return errorResponse(error.parameterDurationMissing400, res);
 				}
 
 				newEntry.setAttribute('in', '00:00:00,000');
@@ -394,53 +355,28 @@ exports.projectFilePUT = (req, res, next) => {
 				if (length === null) {
 					release();
 					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
-					res.status(400);
-					res.json({
-						err: 'Chybí délka souboru.',
-						msg: 'Video nemá zjištěnou délku. Opakujte akci, nebo soubor nahrajte znovu.',
-					});
-					return;
+					return errorResponse(error.videoDurationMissing400, res);
 				}
 				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
 					release();
-					res.status(400);
-					res.json({
-						err: 'Nepodporovaný typ souboru.',
-						msg: 'Video lze vložit pouze na video stopu.',
-					});
-					return;
+					return errorResponse(error.videoWrongTrack400, res);
 				}
 			}
 			else if (new RegExp(/^audio\//).test(mime)) {
 				if (length === null) {
 					release();
 					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
-					res.status(400);
-					res.json({
-						err: 'Chybí délka souboru.',
-						msg: 'Audio nemá zjištěnou délku. Opakujte akci, nebo soubor nahrajte znovu.',
-					});
-					return;
+					return errorResponse(error.audioDurationMissing400, res);
 				}
 				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
 					release();
-					res.status(400);
-					res.json({
-						err: 'Nepodporovaný typ souboru.',
-						msg: 'Audio lze vložit pouze na audio stopu.',
-					});
-					return;
+					return errorResponse(error.audioWrongTrack400, res);
 				}
 			}
 			else {
 				// Reject everything except images, videos and audio
 				release();
-				res.status(403);
-				res.json({
-					err: 'Nepodporovaný typ souboru.',
-					msg: 'Na časovou osu lze vložit pouze video, obrázek nebo audio.',
-				});
-				return;
+				return errorResponse(error.fileWrongTrack403, res);
 			}
 
 			track.appendChild(newEntry);
@@ -464,14 +400,8 @@ exports.projectFilePUT = (req, res, next) => {
 exports.projectFilterPOST = (req, res, next) => {
 
 	// Required parameters: track, item, filter
-	if (!isset(req.body.track, req.body.item, req.body.filter)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: "track", "item", "filter".',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.item, req.body.filter))
+		return errorResponse(error.parameterFilterMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -481,23 +411,13 @@ exports.projectFilterPOST = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Položka nenalezena.',
-					msg: `Položka "${req.body.item}" se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
 			}
 
 			let trackIndex;
@@ -529,12 +449,7 @@ exports.projectFilterPOST = (req, res, next) => {
 					else filterName = filter.getAttribute('mlt_service');
 					if (filterName === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
 						release();
-						res.status(403);
-						res.json({
-							err: 'Filtr je již aplikován.',
-							msg: `Položka "${req.body.item}" na stopě "${req.body.track}" má již filtr "${req.body.filter}" aplikován.`,
-						});
-						return;
+						return errorResponse(error.filterExists403(req.body.item, req.body.track, req.body.filter), res);
 					}
 				}
 
@@ -586,14 +501,8 @@ exports.projectFilterPOST = (req, res, next) => {
 exports.projectFilterDELETE = (req, res, next) => {
 
 	// Required parameters: track, item, filter
-	if (!isset(req.body.track, req.body.item, req.body.filter)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: "track", "item", "filter".',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.item, req.body.filter))
+		return errorResponse(error.parameterFilterMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -603,23 +512,13 @@ exports.projectFilterDELETE = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Položka nenalezena.',
-					msg: `Položka "${req.body.item}" se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
 			}
 
 			let filterName = req.body.filter;
@@ -649,12 +548,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 			// Check if filter exists
 			if (mltxmlManager.isSimpleNode(item) || filter === undefined) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Filtr nenalezen.',
-					msg: `Filtr "${req.body.filter}" se na ${req.body.item}. položce stopy "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.filterNotFound404(req.body.item, req.body.track, req.body.filter), res);
 			}
 
 			filter.remove();
@@ -687,32 +581,14 @@ exports.projectFilterDELETE = (req, res, next) => {
 exports.projectTransitionPOST = (req, res, next) => {
 
 	// Required parameters: track, itemA, itemB, transition, duration
-	if (!isset(req.body.track, req.body.itemA, req.body.itemB, req.body.transition, req.body.duration)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track, itemA, itemB, transition, duration.',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.itemA, req.body.itemB, req.body.transition, req.body.duration))
+		return errorResponse(error.parameterTransitionMissing400, res);
 
-	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !timeManager.isValidDuration(req.body.duration)) {
-		res.status(400);
-		res.json({
-			err: 'Chybné parametry.',
-			msg: 'Parametry itemA, itemB musí být celočíselné, nezáporné, duration musí být nenulové, ve formátu 00:00:00,000.',
-		});
-		return;
-	}
+	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !timeManager.isValidDuration(req.body.duration))
+		return errorResponse(error.parameterTransitionWrong400, res);
 
-	if ((req.body.itemB - req.body.itemA) !== 1) {
-		res.status(400);
-		res.json({
-			err: 'Chybné parametry.',
-			msg: 'itemA musí přímo následovat po itemB.',
-		});
-		return;
-	}
+	if ((req.body.itemB - req.body.itemA) !== 1)
+		return errorResponse(error.parameterTransitionOrder400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -722,25 +598,19 @@ exports.projectTransitionPOST = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			const itemA = mltxmlManager.getItem(document, track, req.body.itemA);
 			const itemB = mltxmlManager.getItem(document, track, req.body.itemB);
 
-			if (itemA === null || itemB === null) {
+			if (itemA === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Polozka nenalezena.',
-					msg: `Položka ${req.body.itemA} nebo ${req.body.itemA} se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.itemA, req.body.track), res);
+			}
+			if (itemB === null) {
+				release();
+				return errorResponse(error.itemNotFound404(req.body.itemB, req.body.track), res);
 			}
 
 			const durationA = mltxmlManager.getDuration(itemA, document);
@@ -748,12 +618,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 			const waitBeforeTransition = timeManager.subDuration(durationA.out, req. body.duration);
 			if (req.body.duration > durationA.time || req.body.duration > durationB.time) {
 				release();
-				res.status(400);
-				res.json({
-					err: 'Příliš dlouhá doba přechodu.',
-					msg: 'Přechod je delší než jedna z položek přechodu.',
-				});
-				return;
+				return errorResponse(error.transitionTooLong400, res);
 			}
 
 			// Simple + Simple
@@ -786,12 +651,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				const multitrackB = itemB.parentElement;
 				if (multitrackA === multitrackB) {
 					release();
-					res.status(403);
-					res.json({
-						err: 'Přechod již aplikován.',
-						msg: 'Zvolené prvky již mají vzájemný přechod.',
-					});
-					return;
+					return errorResponse(error.transitionExists403, res);
 				}
 
 				let duration = req.body.duration;
@@ -891,15 +751,9 @@ exports.projectPUT = (req, res, next) => {
 		if (err) {
 			switch (err.code) {
 				case 'EEXIST':
-					res.status(403);
-					res.json({
-						err: 'Zpracování probíhá.',
-						msg: 'Projekt je již zpracováván, počkejte na dokončení.',
-					});
-					return;
+					return errorResponse(error.projectStillRendering403, res);
 				case 'ENOENT':
-					fileErr(err, res);
-					return;
+					return errorResponse(error.projectNotFound404, res);
 				default:
 					return next(err);
 			}
@@ -930,14 +784,8 @@ exports.projectPUT = (req, res, next) => {
 exports.projectItemDELETE = (req, res, next) => {
 
 	// Required parameters: track, item
-	if (!isset(req.body.track, req.body.item)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track, item.',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.item))
+		return errorResponse(error.parameterItemMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -947,23 +795,13 @@ exports.projectItemDELETE = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Položka nenalezena.',
-					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
 			}
 
 			let entry;
@@ -1023,33 +861,15 @@ exports.projectItemDELETE = (req, res, next) => {
 exports.projectItemPUTmove = (req, res, next) => {
 
 	// Required parameters: track, trackTarget, item, time
-	if (!isset(req.body.track, req.body.trackTarget, req.body.item, req.body.time)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track, trackTarget, item, time.',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.trackTarget, req.body.item, req.body.time))
+		return errorResponse(error.parameterMoveMissing400, res);
 
-	if (req.body.time !== '00:00:00,000' && !timeManager.isValidDuration(req.body.time)) {
-		res.status(400);
-		res.json({
-			err: 'Chybný parametr.',
-			msg: 'Parametr time musí být ve formátu 00:00:00,000.',
-		});
-		return;
-	}
+	if (req.body.time !== '00:00:00,000' && !timeManager.isValidDuration(req.body.time))
+		return errorResponse(error.parameterTimeWrong400, res);
 
 	if (!(req.body.trackTarget.includes('videotrack') && req.body.track.includes('videotrack'))) {
-		if (!(req.body.trackTarget.includes('audiotrack') && req.body.track.includes('audiotrack'))) {
-			res.status(400);
-			res.json({
-				err: 'Nekompatibilní stopy.',
-				msg: 'Položky nelze přesouvat mezi video a audio stopami.',
-			});
-			return;
-		}
+		if (!(req.body.trackTarget.includes('audiotrack') && req.body.track.includes('audiotrack')))
+			return errorResponse(error.tracksIncompatible400, res);
 	}
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
@@ -1059,25 +879,19 @@ exports.projectItemPUTmove = (req, res, next) => {
 
 			const track = document.getElementById(req.body.track);
 			const trackTarget = document.getElementById(req.body.trackTarget);
-			if (track === null || trackTarget === null) {
+			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" nebo "${trackTarget}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
+			}
+			if (trackTarget === null) {
+				release();
+				return errorResponse(error.trackNotFound404(req.body.trackTarget), res);
 			}
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Položka nenalezena.',
-					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
 			}
 
 			if (!mltxmlManager.isSimpleNode(item)) {
@@ -1114,12 +928,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 			// Check free space
 			if (mltxmlManager.getItemInRange(trackTarget, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0) {
 				release();
-				res.status(403);
-				res.json({
-					err: 'Cíl již obsahuje položku.',
-					msg: 'Zadané místo není volné, položku nelze přesunout.',
-				});
-				return;
+				return errorResponse(error.moveNoSpace403, res);
 			}
 
 			let targetElement = mltxmlManager.getItemAtTime(document, trackTarget, req.body.time);
@@ -1171,23 +980,11 @@ exports.projectItemPUTmove = (req, res, next) => {
 
 exports.projectItemPUTsplit = (req, res, next) => {
 	// Required parameters: track, item, time
-	if (!isset(req.body.track, req.body.item, req.body.time)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track, item, time.',
-		});
-		return;
-	}
+	if (!isset(req.body.track, req.body.item, req.body.time))
+		return errorResponse(error.parameterSplitMissing400, res);
 
-	if (!timeManager.isValidDuration(req.body.time)) {
-		res.status(400);
-		res.json({
-			err: 'Chybný parametr.',
-			msg: 'Parametr time musí být kladný, ve formátu 00:00:00,000.',
-		});
-		return;
-	}
+	if (!timeManager.isValidDuration(req.body.time))
+		return errorResponse(error.parameterDurationWrong400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -1197,35 +994,20 @@ exports.projectItemPUTsplit = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
 			if (item === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Položka nenalezena.',
-					msg: `Položka ${req.body.item} se na stopě "${req.body.track}" nenachází.`,
-				});
-				return;
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
 			}
 
 			const time = mltxmlManager.getDuration(item, document);
 
 			if (req.body.time >= time.time) {
 				release();
-				res.status(400);
-				res.json({
-					err: 'Parametr mimo rozsah hodnot.',
-					msg: `Parametr time musí mít hodnotu mezi 00:00:00,000 a ${time.time}`,
-				});
-				return;
+				return errorResponse(error.parameterTimeRange400(time.time), res);
 			}
 
 			let splitTime = req.body.time;
@@ -1279,14 +1061,8 @@ exports.projectItemPUTsplit = (req, res, next) => {
 
 exports.projectTrackPOST = (req, res, next) => {
 	// Required parameters: type
-	if (!isset(req.body.type) || (req.body.type !== 'video' && req.body.type !== 'audio')) {
-		res.status(400);
-		res.json({
-			err: 'Chybný parametr.',
-			msg: 'Chybí parametr type, nebo má jinou hodnotu, než "video" nebo "audio".',
-		});
-		return;
-	}
+	if (!isset(req.body.type) || (req.body.type !== 'video' && req.body.type !== 'audio'))
+		return errorResponse(error.parameterTrackTypeMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -1324,14 +1100,8 @@ exports.projectTrackPOST = (req, res, next) => {
 exports.projectTrackDELETE = (req, res, next) => {
 
 	// Required parameters: track, item, time
-	if (!isset(req.body.track)) {
-		res.status(400);
-		res.json({
-			err: 'Chybí parametry.',
-			msg: 'Chybí povinné parametry: track.',
-		});
-		return;
-	}
+	if (!isset(req.body.track))
+		return errorResponse(error.parameterTrackMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
@@ -1342,12 +1112,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 			const track = document.getElementById(req.body.track);
 			if (track === null) {
 				release();
-				res.status(404);
-				res.json({
-					err: 'Stopa nenalezena.',
-					msg: `Zadaná stopa  "${req.body.track}" se v projektu nenachází.`,
-				});
-				return;
+				return errorResponse(error.trackNotFound404(req.body.track), res);
 			}
 
 			// Removing default track
@@ -1365,12 +1130,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 
 				if (nextTrack === null) {
 					release();
-					res.status(403);
-					res.json({
-						err: 'Stopu nelze smazat.',
-						msg: 'Výchozí stopy "videotrack0" a "audiotrack0" nelze smazat.',
-					});
-					return;
+					return errorResponse(error.trackDefaultDel403, res);
 				}
 
 				trackID = nextElement.id;
@@ -1402,19 +1162,26 @@ exports.projectTrackDELETE = (req, res, next) => {
  * @param res
  */
 function fileErr(err, res) {
-	if (err.code === 'ENOENT') {
-		res.status(404).json({
-			err: 'Projekt neexistuje',
-			msg: 'Zadaný projekt neexistuje.',
-		});
-	}
+	if (err.code === 'ENOENT')
+		errorResponse(error.projectNotFound404, res);
 	else {
 		log.error(err.stack);
-		res.status(500).json({
-			err: 'Projekt nelze otevřít',
-			msg: 'Během načítání projektu došlo k chybě.',
-		});
+		errorResponse(error.projectFailedOpen500, res);
 	}
+}
+
+
+/**
+ * Send error response to a client
+ *
+ * @param {Object} error Object containing code, err, msg
+ * @param {Object} res Express response object.
+ */
+function errorResponse(error, res) {
+	res.status(error.code).json({
+		err: error.err,
+		msg: error.msg,
+	});
 }
 
 
