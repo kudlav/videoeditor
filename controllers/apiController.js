@@ -185,6 +185,45 @@ exports.projectGET = (req, res) => {
 };
 
 
+exports.projectPUT = (req, res, next) => {
+
+	const projectPath = mltxmlManager.getWorkerDir(req.params.projectID);
+
+	fs.open(path.join(projectPath, 'processing'), 'wx', (err, file) => {
+		if (err) {
+			switch (err.code) {
+				case 'EEXIST':
+					return errorResponse(error.projectStillRendering403, res);
+				case 'ENOENT':
+					return errorResponse(error.projectNotFound404, res);
+				default:
+					return next(err);
+			}
+		}
+		fs.close(file, (err) => {
+			if (err) log.error(err.stack);
+		});
+
+		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264 > stdout.log 2> stderr.log`, (err) => {
+			if (err) log.error(`exec error: ${err}`);
+			else log.info(`Project "${req.params.projectID}" finished`);
+
+			fs.unlink(path.join(projectPath, 'processing'), (err) => {
+				if (err) log.error(err.stack);
+			});
+
+			if (isset(req.body.email)) {
+				emailManager.sendProjectFinished(req.body.email, req.params.projectID, !(err));
+			}
+		});
+		res.json({
+			msg: 'Zpracování zahájeno'
+		});
+	});
+
+};
+
+
 exports.projectFilePOST = (req, res, next) => {
 
 	if (!isset(req.busboy)) {
@@ -739,44 +778,6 @@ exports.projectTransitionPOST = (req, res, next) => {
 		},
 		err => fileErr(err, res)
 	);
-
-};
-
-
-exports.projectPUT = (req, res, next) => {
-
-	const projectPath = mltxmlManager.getWorkerDir(req.params.projectID);
-
-	fs.open(path.join(projectPath, 'processing'), 'wx', (err, file) => {
-		if (err) {
-			switch (err.code) {
-				case 'EEXIST':
-					return errorResponse(error.projectStillRendering403, res);
-				case 'ENOENT':
-					return errorResponse(error.projectNotFound404, res);
-				default:
-					return next(err);
-			}
-		}
-		fs.close(file, (err) => {
-			if (err) log.error(err.stack);
-		});
-
-		exec(`cd ${projectPath} && melt project.mlt -consumer avformat:output.mp4 acodec=aac vcodec=libx264 > stdout.log 2> stderr.log`, (err) => {
-			if (err) log.error(`exec error: ${err}`);
-
-			fs.unlink(path.join(projectPath, 'processing'), (err) => {
-				if (err) log.error(err.stack);
-			});
-
-			if (isset(req.body.email)) {
-				emailManager.sendProjectFinished(req.body.email, req.params.projectID, !(err));
-			}
-		});
-		res.json({
-			msg: 'Zpracování zahájeno'
-		});
-	});
 
 };
 
