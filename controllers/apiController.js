@@ -15,6 +15,7 @@ const fs = require('fs');
 const path = require('path');
 const nanoid = require('nanoid');
 const { exec } = require('child_process');
+const Busboy = require('busboy');
 
 exports.default = (req, res) => {
 
@@ -226,11 +227,19 @@ exports.projectPUT = (req, res, next) => {
 
 exports.projectFilePOST = (req, res, next) => {
 
-	if (!isset(req.busboy)) {
+	let busboy;
+	try {
+		busboy = new Busboy({
+			headers: req.headers,
+			highWaterMark: 2 * 1024 * 1024, // Set 2MiB buffer
+			limits: { files: 1 },
+		});
+	} catch (_) {/* continue */}
+	if (!busboy) {
 		return errorResponse(error.uploadMissingFile400, res);
 	}
 
-	req.busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
+	busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
 
 		const fileID = nanoid();
 		const extension = path.extname(filename);
@@ -246,7 +255,7 @@ exports.projectFilePOST = (req, res, next) => {
 		file.pipe(fstream);
 
 		// On finish of the upload
-		fstream.on('close', () => {
+		fstream.on('finish', () => {
 			log.info(`Upload of "${filename}" finished`);
 
 			fileManager.getDuration(filepath, mimeType).then(
@@ -288,9 +297,12 @@ exports.projectFilePOST = (req, res, next) => {
 				}
 			);
 		});
+		fstream.on('error', () => {
+			return errorResponse(error.projectNotFound404, res);
+		});
 	});
 
-	req.pipe(req.busboy); // Pipe it trough busboy
+	return req.pipe(busboy); // Pipe it trough busboy
 
 };
 
