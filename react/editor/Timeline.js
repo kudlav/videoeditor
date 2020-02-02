@@ -450,15 +450,9 @@ export default class Timeline extends Component {
 	}
 
 	delTrack(trackId) {
-		const url = `${server.apiUrl}/project/${this.props.project}/track`;
+		const url = `${server.apiUrl}/project/${this.props.project}/track/${trackId}`;
 		const params = {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				track: trackId,
-			}),
 		};
 
 		fetch(url, params)

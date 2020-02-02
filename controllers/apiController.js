@@ -1112,25 +1112,21 @@ exports.projectTrackPOST = (req, res, next) => {
 
 exports.projectTrackDELETE = (req, res, next) => {
 
-	// Required parameters: track, item, time
-	if (!isset(req.body.track))
-		return errorResponse(error.parameterTrackMissing400, res);
-
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([dom, , release]) => {
 			const document = dom.window.document;
 			const root = document.getElementsByTagName('mlt').item(0);
-			let trackID = req.body.track;
+			let trackID = req.params.trackID;
 
-			const track = document.getElementById(req.body.track);
+			const track = document.getElementById(req.params.trackID);
 			if (track === null) {
 				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
+				return errorResponse(error.trackNotFound404(req.params.trackID), res);
 			}
 
 			// Removing default track
-			if (req.body.track === 'videotrack0' || req.body.track === 'audiotrack0') {
-				const type  = (req.body.track.includes('video')) ? 'videotrack' : 'audiotrack';
+			if (req.params.trackID === 'videotrack0' || req.params.trackID === 'audiotrack0') {
+				const type  = (req.params.trackID.includes('video')) ? 'videotrack' : 'audiotrack';
 				let nextTrack = null;
 				let nextElement = track.nextElementSibling;
 				while (nextElement !== null) {

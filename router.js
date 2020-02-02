@@ -49,7 +49,7 @@ router.put('/api/project/:projectID/item/split', apiController.projectItemPUTspl
 
 router.post('/api/project/:projectID/track', apiController.projectTrackPOST);
 
-router.delete('/api/project/:projectID/track', apiController.projectTrackDELETE);
+router.delete('/api/project/:projectID/track/:trackID', apiController.projectTrackDELETE);
 
 // Error handling
 router.use(errorController.default);
