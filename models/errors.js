@@ -21,8 +21,8 @@ const errors = {
 	};},
 	get parameterItemMissing400() { return {
 		code: 400,
-		err: 'Projekt neexistuje',
-		msg: 'Zadaný projekt neexistuje.',
+		err: 'Chybí parametry',
+		msg: 'Parametr track nebo item chybí.',
 	};},
 	get parameterDurationMissing400() { return {
 		code: 400,
