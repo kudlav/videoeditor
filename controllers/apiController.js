@@ -1148,6 +1148,20 @@ exports.projectTrackDELETE = (req, res, next) => {
 
 			const trackRef = document.querySelector(`mlt>tractor>multitrack>track[producer="${trackID}"]`);
 			trackRef.remove();
+
+			// Remove track including items containers
+			const entries = track.childNodes;
+			for (let entry of entries) {
+				// Container of entries
+				if (entry.tagName !== 'blank' && !(new RegExp(/^producer/).test(entry.getAttribute('producer')))) {
+					const tractor = document.getElementById(entry.getAttribute('producer'));
+					const tracks = tractor.getElementsByTagName('multitrack').item(0).childNodes;
+					for (let track of tracks) {
+						document.getElementById(track.getAttribute('producer')).remove();
+					}
+					tractor.remove();
+				}
+			}
 			track.remove();
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
