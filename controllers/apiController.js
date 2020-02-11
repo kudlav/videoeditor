@@ -635,7 +635,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 	if (!isset(req.body.track, req.body.itemA, req.body.itemB, req.body.transition, req.body.duration))
 		return errorResponse(error.parameterTransitionMissing400, res);
 
-	if (!isNaturalNumber(req.body.itemA, req.body.itemA) || !timeManager.isValidDuration(req.body.duration))
+	if (!isNaturalNumber(req.body.itemA, req.body.itemB) || !timeManager.isValidDuration(req.body.duration))
 		return errorResponse(error.parameterTransitionWrong400, res);
 
 	if ((req.body.itemB - req.body.itemA) !== 1)
