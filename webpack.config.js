@@ -7,11 +7,6 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.json$/,
-				include: /node_modules/,
-				loader: 'json-loader'
-			},
-			{
 				test: /\.js$/,
 				exclude: /node_modules/,
 				use: {
@@ -30,18 +25,10 @@ module.exports = {
 							name: '/[name].css',
 						}
 					},
-					{
-						loader: 'extract-loader'
-					},
-					{
-						loader: 'css-loader?-url'
-					},
-					{
-						loader: 'postcss-loader'
-					},
-					{
-						loader: 'sass-loader'
-					}
+					'extract-loader',
+					'css-loader?-url',
+					'postcss-loader',
+					'sass-loader'
 				]
 			}
 		]

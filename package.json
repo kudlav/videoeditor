@@ -40,7 +40,6 @@
     "file-loader": "^5.0.2",
     "fluent-ffmpeg": "^2.1.2",
     "jsdom": "^16.0.0",
-    "json-loader": "0.5.7",
     "log4js": "^6.1.0",
     "nanoid": "^2.1.9",
     "node-sass": "^4.13.1",
