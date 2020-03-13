@@ -297,7 +297,7 @@ export default {
 
 
 	/**
-	 *
+	 * Add playlist to multitrack with transition
 	 *
 	 * @param {Element} multitrack
 	 * @param {Element} playlist
