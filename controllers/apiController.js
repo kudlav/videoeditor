@@ -19,9 +19,7 @@ const Busboy = require('busboy');
 
 exports.default = (req, res) => {
 
-	res.json({
-		msg: 'For API documentation see https://github.com/kudlav/videoeditor',
-	});
+	res.json({ msg: 'For API documentation see https://github.com/kudlav/videoeditor' });
 
 };
 
@@ -45,11 +43,7 @@ exports.projectPOST = (req, res, next) => {
 		if (err) return next(err);
 
 		mltxmlManager.saveMLT(projectID, data).then(
-			() => {
-				res.json({
-					project: projectID,
-				});
-			},
+			() => res.json({ project: projectID }),
 			err => next(err)
 		);
 	});
@@ -217,9 +211,7 @@ exports.projectPUT = (req, res, next) => {
 				emailManager.sendProjectFinished(req.body.email, req.params.projectID, !(err));
 			}
 		});
-		res.json({
-			msg: 'Zpracování zahájeno'
-		});
+		res.json({ msg: 'Zpracování zahájeno' });
 	});
 
 };
@@ -281,14 +273,12 @@ exports.projectFilePOST = (req, res, next) => {
 							const root = document.getElementsByTagName('mlt').item(0);
 							root.prepend(node);
 							mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-								() => {
-									res.json({
-										msg: `Upload of "${filename}" OK`,
-										resource_id: fileID,
-										resource_mime: mimeType,
-										length: length,
-									});
-								},
+								() => res.json({
+									msg: `Upload of "${filename}" OK`,
+									resource_id: fileID,
+									resource_mime: mimeType,
+									length: length,
+								}),
 								err => next(err)
 							);
 						},
@@ -297,9 +287,7 @@ exports.projectFilePOST = (req, res, next) => {
 				}
 			);
 		});
-		fstream.on('error', () => {
-			return errorResponse(error.projectNotFound404, res);
-		});
+		fstream.on('error', () => errorResponse(error.projectNotFound404, res));
 	});
 
 	return req.pipe(busboy); // Pipe it trough busboy
@@ -340,11 +328,7 @@ exports.projectFileDELETE = (req, res, next) => {
 			producer.remove();
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({
-						msg: 'Zdroj byl úspěšně odebrán',
-					});
-				},
+				() => res.json({ msg: 'Zdroj byl úspěšně odebrán' }),
 				err => next(err)
 			);
 		},
@@ -433,12 +417,10 @@ exports.projectFilePUT = (req, res, next) => {
 			track.appendChild(newEntry);
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({
-						msg: 'Položka přidána na časovou osu',
-						timeline: req.body.track,
-					});
-				},
+				() => res.json({
+					msg: 'Položka přidána na časovou osu',
+					timeline: req.body.track,
+				}),
 				err => next(err)
 			);
 		},
@@ -537,9 +519,7 @@ exports.projectFilterPOST = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Filtr přidán'});
-				},
+				() => res.json({ msg: 'Filtr přidán' }),
 				err => next(err)
 			);
 		},
@@ -617,9 +597,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Filtr odebrán'});
-				},
+				() => res.json({ msg: 'Filtr odebrán' }),
 				err => next(err)
 			);
 		},
@@ -782,9 +760,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Přechod aplikován'});
-				},
+				() => res.json({ msg: 'Přechod aplikován' }),
 				err => next(err)
 			);
 		},
@@ -859,9 +835,7 @@ exports.projectItemDELETE = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Položka rozdělena'});
-				},
+				() => res.json({ msg: 'Položka smazána' }),
 				err => next(err)
 			);
 		},
@@ -979,9 +953,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Položka přesunuta'});
-				},
+				() => res.json({ msg: 'Položka přesunuta' }),
 				err => next(err)
 			);
 		},
@@ -1061,9 +1033,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 			}
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({msg: 'Položka rozdělena'});
-				},
+				() => res.json({ msg: 'Položka rozdělena' }),
 				err => next(err)
 			);
 		},
@@ -1096,12 +1066,10 @@ exports.projectTrackPOST = (req, res, next) => {
 			mainTractor.getElementsByTagName('multitrack').item(0).appendChild(newTrack);
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({
-						msg: 'Stopa přidána',
-						track: newTractor.id,
-					});
-				},
+				() => res.json({
+					msg: 'Stopa přidána',
+					track: newTractor.id,
+				}),
 				err => next(err)
 			);
 		},
@@ -1165,11 +1133,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 			track.remove();
 
 			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
-				() => {
-					res.json({
-						msg: 'Stopa smazána',
-					});
-				},
+				() => res.json({ msg: 'Stopa smazána' }),
 				err => next(err)
 			);
 		},
