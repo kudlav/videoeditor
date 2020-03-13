@@ -55,9 +55,7 @@ exports.projectPOST = (req, res, next) => {
 exports.projectGET = (req, res) => {
 
 	mltxmlManager.loadMLT(req.params.projectID, 'r').then(
-		([dom]) => {
-			const document = dom.window.document;
-
+		([document]) => {
 			// Resources
 			let resources = {};
 			const producerNodes = document.getElementsByTagName('producer');
@@ -254,9 +252,7 @@ exports.projectFilePOST = (req, res, next) => {
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
 					mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-						([dom, , release]) => {
-							const document = dom.window.document;
-
+						([document, , release]) => {
 							const node = document.createElement('producer');
 							node.id = 'producer' + fileID;
 							node.innerHTML = `<property name="resource">${path.resolve(filepath)}</property>`;
@@ -299,8 +295,7 @@ exports.projectFilePOST = (req, res, next) => {
 exports.projectFileDELETE = (req, res, next) => {
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const entries = document.querySelectorAll(`mlt>playlist>entry[producer="producer${req.params.fileID}"]`);
@@ -347,8 +342,7 @@ exports.projectFilePUT = (req, res, next) => {
 	}
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const producer = document.getElementById(`producer${req.params.fileID}`);
@@ -438,8 +432,7 @@ exports.projectFilterPOST = (req, res, next) => {
 		return errorResponse(error.parameterFilterMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -537,8 +530,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 		return errorResponse(error.parameterFilterMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -621,8 +613,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 		return errorResponse(error.parameterTransitionOrder400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -778,8 +769,7 @@ exports.projectItemDELETE = (req, res, next) => {
 		return errorResponse(error.parameterItemMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -861,8 +851,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 	}
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -973,8 +962,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 		return errorResponse(error.parameterDurationWrong400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
@@ -1049,8 +1037,7 @@ exports.projectTrackPOST = (req, res, next) => {
 		return errorResponse(error.parameterTrackTypeMissing400, res);
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 			const mainTractor = document.querySelector('mlt>tractor[id="main"]');
 
@@ -1082,8 +1069,7 @@ exports.projectTrackPOST = (req, res, next) => {
 exports.projectTrackDELETE = (req, res, next) => {
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
-		([dom, , release]) => {
-			const document = dom.window.document;
+		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 			let trackID = req.params.trackID;
 

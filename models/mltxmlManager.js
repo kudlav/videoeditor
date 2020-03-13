@@ -42,7 +42,13 @@ export default {
 		});
 	},
 
-
+	/**
+	 * Load project MLT file
+	 *
+	 * @param project
+	 * @param mode
+	 * @returns {Promise<[document, number, function]>}
+	 */
 	loadMLT(project, mode) {
 		const filepath = this.getMLTpath(project);
 		const lockFile = (mode === 'r') ? lock.readLock : lock.writeLock;
@@ -58,10 +64,11 @@ export default {
 							release();
 							return reject(err);
 						}
-						const xml = new JSDOM(data, {contentType: 'application/xml'});
+						const dom = new JSDOM(data, {contentType: 'application/xml'});
+						const document = dom.window.document;
 
 						if (mode === 'r') release();
-						return resolve([xml, fd, release]);
+						return resolve([document, fd, release]);
 					});
 				});
 			});
