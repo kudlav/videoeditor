@@ -10,6 +10,7 @@ import timeManager from '../models/timeManager';
 import emailManager from '../models/emailManager';
 import log from '../models/logger';
 import error from '../models/errors';
+import {isset, isNaturalNumber} from '../models/utils';
 
 const fs = require('fs');
 const path = require('path');
@@ -1169,32 +1170,4 @@ function errorResponse(error, res) {
 		err: error.err,
 		msg: error.msg,
 	});
-}
-
-
-/**
- * Check if numbers are positive integers
- *
- * @param numbers
- * @return {boolean} Return TRUE only if all of the parameters fits
- */
-function isNaturalNumber(...numbers) {
-	for (let number of numbers) {
-		if (typeof number !== 'number' || !Number.isInteger(number) || number < 0) return false;
-	}
-	return true;
-}
-
-
-/**
- * Determine if variables are declared
- *
- * @param variables Rest parameters
- * @return {boolean} Return TRUE only if all of the parameters are set
- */
-function isset(...variables) {
-	for (let variable of variables) {
-		if (typeof variable === 'undefined') return false;
-	}
-	return true;
 }
