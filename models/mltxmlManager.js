@@ -17,6 +17,17 @@ const lock = new RWlock();
 export default {
 
 	/**
+	 * Get XML string for new MLT project
+	 *
+	 * @returns {string} XML string
+	 */
+	emptyMLT() {
+		return '<mlt><playlist id="videotrack0"/><playlist id="audiotrack0"/>'+
+			'<tractor id="main"><multitrack><track producer="videotrack0" /><track producer="audiotrack0" />'+
+			'</multitrack></tractor></mlt>';
+	},
+
+	/**
 	 * Save string as MLT file for specified project and release lock (create new or overwrite existing)
 	 *
 	 * @param {string} project

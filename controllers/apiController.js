@@ -27,23 +27,11 @@ exports.default = (req, res) => {
 
 exports.projectPOST = (req, res, next) => {
 
-	const data = `<mlt>
-  <playlist id="videotrack0"/>
-  <playlist id="audiotrack0"/>
-    <tractor id="main">
-      <multitrack>
-        <track producer="videotrack0" />
-        <track producer="audiotrack0" />
-      </multitrack>
-  </tractor>
-</mlt>`;
-
 	let projectID = nanoid(32);
-
 	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
 		if (err) return next(err);
 
-		mltxmlManager.saveMLT(projectID, data).then(
+		mltxmlManager.saveMLT(projectID, mltxmlManager.emptyMLT()).then(
 			() => res.json({ project: projectID }),
 			err => next(err)
 		);
@@ -206,9 +194,8 @@ exports.projectPUT = (req, res, next) => {
 				if (err) log.error(err.stack);
 			});
 
-			if (isset(req.body.email)) {
+			if (isset(req.body.email))
 				emailManager.sendProjectFinished(req.body.email, req.params.projectID, !(err));
-			}
 		});
 		res.json({ msg: 'Zpracování zahájeno' });
 	});
@@ -226,9 +213,8 @@ exports.projectFilePOST = (req, res, next) => {
 			limits: { files: 1 },
 		});
 	} catch (_) {/* continue */}
-	if (!busboy) {
+	if (!busboy)
 		return errorResponse(error.uploadMissingFile400, res);
-	}
 
 	busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
 
@@ -337,9 +323,8 @@ exports.projectFileDELETE = (req, res, next) => {
 exports.projectFilePUT = (req, res, next) => {
 
 	// Required parameters: track
-	if (!isset(req.body.track)) {
+	if (!isset(req.body.track))
 		return errorResponse(error.parameterTrackMissing400, res);
-	}
 
 	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
 		([document, , release]) => {
@@ -546,9 +531,8 @@ exports.projectFilterDELETE = (req, res, next) => {
 			}
 
 			let filterName = req.body.filter;
-			if (isset(config.mapFilterNames[req.body.filter])) {
+			if (isset(config.mapFilterNames[req.body.filter]))
 				filterName = config.mapFilterNames[req.body.filter];
-			}
 
 			const tractor = item.parentElement.parentElement;
 			const trackIndex = mltxmlManager.getTrackIndex(item);
