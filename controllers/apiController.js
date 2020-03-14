@@ -285,16 +285,12 @@ exports.projectFileDELETE = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const entries = document.querySelectorAll(`mlt>playlist>entry[producer="producer${req.params.fileID}"]`);
-			if (entries.length > 0) {
-				release();
-				return errorResponse(error.sourceInUse403, res);
-			}
+			if (entries.length > 0)
+				return errorResponse(error.sourceInUse403, res, release);
 
 			const producer = document.querySelector(`mlt>producer[id="producer${req.params.fileID}"]`);
-			if (producer === null) {
-				release();
-				return errorResponse(error.sourceNotFound404, res);
-			}
+			if (producer === null)
+				return errorResponse(error.sourceNotFound404, res, release);
 
 			const filename = mltxmlManager.getProperty(producer, 'resource');
 			if (filename === null) {
@@ -331,17 +327,14 @@ exports.projectFilePUT = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const producer = document.getElementById(`producer${req.params.fileID}`);
-			if (producer === null) {
-				release();
-				return errorResponse(error.sourceNotFound404, res);
-			}
+			if (producer === null)
+				return errorResponse(error.sourceNotFound404, res, release);
+
 			const length = mltxmlManager.getProperty(producer, 'length');
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			const newEntry = document.createElement('entry');
 			newEntry.setAttribute('producer', 'producer' + req.params.fileID);
@@ -352,46 +345,34 @@ exports.projectFilePUT = (req, res, next) => {
 				return next(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing mime_type tag`);
 			}
 			else if (new RegExp(/^image\//).test(mime)) {
-				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
-					release();
-					return errorResponse(error.imgWrongTrack400, res);
-				}
+				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false)
+					return errorResponse(error.imgWrongTrack400, res, release);
 
 				// Images needs duration parameter
-				if (!timeManager.isValidDuration(req.body.duration)) {
-					release();
-					return errorResponse(error.parameterDurationMissing400, res);
-				}
+				if (!timeManager.isValidDuration(req.body.duration))
+					return errorResponse(error.parameterDurationMissing400, res, release);
 
 				newEntry.setAttribute('in', '00:00:00,000');
 				newEntry.setAttribute('out', req.body.duration);
 			}
 			else if (new RegExp(/^video\//).test(mime)) {
 				if (length === null) {
-					release();
 					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
-					return errorResponse(error.videoDurationMissing400, res);
+					return errorResponse(error.videoDurationMissing400, res, release);
 				}
-				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false) {
-					release();
-					return errorResponse(error.videoWrongTrack400, res);
-				}
+				if (new RegExp(/^videotrack\d+/).test(req.body.track) === false)
+					return errorResponse(error.videoWrongTrack400, res, release);
 			}
 			else if (new RegExp(/^audio\//).test(mime)) {
 				if (length === null) {
-					release();
 					log.error(`Project "${req.params.projectID}", producer "${req.params.fileID}" missing length tag`);
-					return errorResponse(error.audioDurationMissing400, res);
+					return errorResponse(error.audioDurationMissing400, res, release);
 				}
-				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false) {
-					release();
-					return errorResponse(error.audioWrongTrack400, res);
-				}
+				if (new RegExp(/^audiotrack\d+/).test(req.body.track) === false)
+					return errorResponse(error.audioWrongTrack400, res, release);
 			}
-			else {
-				// Reject everything except images, videos and audio
-				release();
-				return errorResponse(error.fileWrongTrack403, res);
+			else { // Reject everything except images, videos and audio
+				return errorResponse(error.fileWrongTrack403, res, release);
 			}
 
 			track.appendChild(newEntry);
@@ -421,16 +402,12 @@ exports.projectFilterPOST = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
-			if (item === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
-			}
+			if (item === null)
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res, release);
 
 			let trackIndex;
 			let newTractor;
@@ -459,10 +436,8 @@ exports.projectFilterPOST = (req, res, next) => {
 					let filterName;
 					if (filter.getAttribute('musecut:filter') !== null) filterName = filter.getAttribute('musecut:filter');
 					else filterName = filter.getAttribute('mlt_service');
-					if (filterName === req.body.filter && filter.getAttribute('track') === trackIndex.toString()) {
-						release();
-						return errorResponse(error.filterExists403(req.body.item, req.body.track, req.body.filter), res);
-					}
+					if (filterName === req.body.filter && filter.getAttribute('track') === trackIndex.toString())
+						return errorResponse(error.filterExists403(req.body.item, req.body.track, req.body.filter), res, release);
 				}
 
 				newTractor = item.parentElement.parentElement;
@@ -519,16 +494,12 @@ exports.projectFilterDELETE = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			const item = mltxmlManager.getItem(document, track, req.body.item);
-			if (item === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
-			}
+			if (item === null)
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res, release);
 
 			let filterName = req.body.filter;
 			if (isset(config.mapFilterNames[req.body.filter]))
@@ -554,10 +525,8 @@ exports.projectFilterDELETE = (req, res, next) => {
 			}
 
 			// Check if filter exists
-			if (mltxmlManager.isSimpleNode(item) || filter === undefined) {
-				release();
-				return errorResponse(error.filterNotFound404(req.body.item, req.body.track, req.body.filter), res);
-			}
+			if (mltxmlManager.isSimpleNode(item) || filter === undefined)
+				return errorResponse(error.filterNotFound404(req.body.item, req.body.track, req.body.filter), res, release);
 
 			filter.remove();
 
@@ -601,30 +570,22 @@ exports.projectTransitionPOST = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			const itemA = mltxmlManager.getItem(document, track, req.body.itemA);
 			const itemB = mltxmlManager.getItem(document, track, req.body.itemB);
 
-			if (itemA === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.itemA, req.body.track), res);
-			}
-			if (itemB === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.itemB, req.body.track), res);
-			}
+			if (itemA === null)
+				return errorResponse(error.itemNotFound404(req.body.itemA, req.body.track), res, release);
+			if (itemB === null)
+				return errorResponse(error.itemNotFound404(req.body.itemB, req.body.track), res, release);
 
 			const durationA = mltxmlManager.getDuration(itemA, document);
 			const durationB = mltxmlManager.getDuration(itemB, document);
 			const waitBeforeTransition = timeManager.subDuration(durationA.out, req. body.duration);
-			if (req.body.duration > durationA.time || req.body.duration > durationB.time) {
-				release();
-				return errorResponse(error.transitionTooLong400, res);
-			}
+			if (req.body.duration > durationA.time || req.body.duration > durationB.time)
+				return errorResponse(error.transitionTooLong400, res, release);
 
 			// Simple + Simple
 			if (mltxmlManager.isSimpleNode(itemA) && mltxmlManager.isSimpleNode(itemB)) {
@@ -654,10 +615,8 @@ exports.projectTransitionPOST = (req, res, next) => {
 			else if (!mltxmlManager.isSimpleNode(itemA)) {
 				const multitrackA = itemA.parentElement;
 				const multitrackB = itemB.parentElement;
-				if (multitrackA === multitrackB) {
-					release();
-					return errorResponse(error.transitionExists403, res);
-				}
+				if (multitrackA === multitrackB)
+					return errorResponse(error.transitionExists403, res, release);
 
 				let duration = req.body.duration;
 				let transition = req.body.transition;
@@ -757,16 +716,12 @@ exports.projectItemDELETE = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
-			if (item === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
-			}
+			if (item === null)
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res, release);
 
 			let entry;
 			let duration = mltxmlManager.getDuration(item, document).time;
@@ -785,7 +740,7 @@ exports.projectItemDELETE = (req, res, next) => {
 				}
 				else { // It's element with transition(s)
 					release();
-					return;
+					return; // TODO
 				}
 			}
 
@@ -840,20 +795,14 @@ exports.projectItemPUTmove = (req, res, next) => {
 
 			const track = document.getElementById(req.body.track);
 			const trackTarget = document.getElementById(req.body.trackTarget);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
-			if (trackTarget === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.trackTarget), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
+			if (trackTarget === null)
+				return errorResponse(error.trackNotFound404(req.body.trackTarget), res, release);
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
-			if (item === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
-			}
+			if (item === null)
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res, release);
 
 			if (!mltxmlManager.isSimpleNode(item)) {
 				item = item.parentElement; // Get multitrack of complex item
@@ -887,10 +836,8 @@ exports.projectItemPUTmove = (req, res, next) => {
 			item.remove();
 
 			// Check free space
-			if (mltxmlManager.getItemInRange(trackTarget, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0) {
-				release();
-				return errorResponse(error.moveNoSpace403, res);
-			}
+			if (mltxmlManager.getItemInRange(trackTarget, req.body.time, timeManager.addDuration(req.body.time, itemDuration), document).length > 0)
+				return errorResponse(error.moveNoSpace403, res, release);
 
 			let targetElement = mltxmlManager.getItemAtTime(document, trackTarget, req.body.time);
 
@@ -950,23 +897,17 @@ exports.projectItemPUTsplit = (req, res, next) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
 			const track = document.getElementById(req.body.track);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.body.track), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.body.track), res, release);
 
 			let item = mltxmlManager.getItem(document, track, req.body.item);
-			if (item === null) {
-				release();
-				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res);
-			}
+			if (item === null)
+				return errorResponse(error.itemNotFound404(req.body.item, req.body.track), res, release);
 
 			const time = mltxmlManager.getDuration(item, document);
 
-			if (req.body.time >= time.time) {
-				release();
-				return errorResponse(error.parameterTimeRange400(time.time), res);
-			}
+			if (req.body.time >= time.time)
+				return errorResponse(error.parameterTimeRange400(time.time), res, release);
 
 			let splitTime = req.body.time;
 			if (time.in !== '00:00:00,000') splitTime = timeManager.addDuration(time.in, req.body.time);
@@ -1058,10 +999,8 @@ exports.projectTrackDELETE = (req, res, next) => {
 			let trackID = req.params.trackID;
 
 			const track = document.getElementById(req.params.trackID);
-			if (track === null) {
-				release();
-				return errorResponse(error.trackNotFound404(req.params.trackID), res);
-			}
+			if (track === null)
+				return errorResponse(error.trackNotFound404(req.params.trackID), res, release);
 
 			// Removing default track
 			if (req.params.trackID === 'videotrack0' || req.params.trackID === 'audiotrack0') {
@@ -1076,10 +1015,8 @@ exports.projectTrackDELETE = (req, res, next) => {
 					nextElement = nextElement.nextElementSibling;
 				}
 
-				if (nextTrack === null) {
-					release();
-					return errorResponse(error.trackDefaultDel403, res);
-				}
+				if (nextTrack === null)
+					return errorResponse(error.trackDefaultDel403, res, release);
 
 				trackID = nextElement.id;
 				nextElement.id = type + '0'; // Rename next element to videotrack0/audiotrack0
@@ -1134,8 +1071,11 @@ function fileErr(err, res) {
  *
  * @param {Object} error Object containing code, err, msg
  * @param {Object} res Express response object.
+ * @param {function} destructor Optional: function is called before sending error to a client
  */
-function errorResponse(error, res) {
+function errorResponse(error, res, destructor = null) {
+	if (destructor !== null) destructor();
+
 	res.status(error.code).json({
 		err: error.err,
 		msg: error.msg,
