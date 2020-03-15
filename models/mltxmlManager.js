@@ -3,89 +3,9 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import {config} from '../config';
 import timeManager from './timeManager';
-import log from './logger';
-
-const { JSDOM } = require('jsdom');
-const fs = require('fs');
-const path = require('path');
-const RWlock = require('rwlock');
-
-const lock = new RWlock();
 
 export default {
-
-	/**
-	 * Get XML string for new MLT project
-	 *
-	 * @returns {string} XML string
-	 */
-	emptyMLT() {
-		return '<mlt><playlist id="videotrack0"/><playlist id="audiotrack0"/>'+
-			'<tractor id="main"><multitrack><track producer="videotrack0" /><track producer="audiotrack0" />'+
-			'</multitrack></tractor></mlt>';
-	},
-
-	/**
-	 * Save string as MLT file for specified project and release lock (create new or overwrite existing)
-	 *
-	 * @param {string} project
-	 * @param {string} data String without XML declaration and without doctype
-	 * @param {function|undefined} release function (optional)
-	 * @return {Promise<any>}
-	 */
-	saveMLT(project, data, release = undefined) {
-		const filepath = path.join(config.projectPath, project, 'project.mlt');
-
-		return new Promise((resolve, reject) => {
-			fs.writeFile(filepath, (config.declareXML + data), (err) => {
-				if (typeof release !== 'undefined') release();
-
-				if (err) {
-					log.error(`Unable to update file ${filepath}`);
-					reject(err);
-				}
-
-				log.info(`File ${filepath} updated.`);
-				resolve();
-			});
-		});
-	},
-
-	/**
-	 * Load project MLT file
-	 *
-	 * @param project
-	 * @param mode
-	 * @returns {Promise<[document, number, function]>}
-	 */
-	loadMLT(project, mode) {
-		const filepath = this.getMLTpath(project);
-		const lockFile = (mode === 'r') ? lock.readLock : lock.writeLock;
-		return new Promise((resolve, reject) => {
-			lockFile(filepath, (release) => {
-				fs.open(filepath, 'r+', (err, fd) => {
-					if (err) {
-						release();
-						return reject(err);
-					}
-					fs.readFile(fd, (err, data) => {
-						if (err) {
-							release();
-							return reject(err);
-						}
-						const dom = new JSDOM(data, {contentType: 'application/xml'});
-						const document = dom.window.document;
-
-						if (mode === 'r') release();
-						return resolve([document, fd, release]);
-					});
-				});
-			});
-		});
-	},
-
 
 	/**
 	 * Check if entry is without any filter or transition
@@ -104,7 +24,7 @@ export default {
 	 * @param {Document} document
 	 * @param {Element} track
 	 * @param {Number} index
-	 * @return {Element|null}
+	 * @return {?Element}
 	 */
 	getItem(document, track, index) {
 		let i = 0;
@@ -137,6 +57,14 @@ export default {
 	},
 
 
+	/**
+	 * Get element at provided time. Can return nothing, one element or two elements if the time is just between two items.
+	 *
+	 * @param {Document} document
+	 * @param {Node} track
+	 * @param {string} time
+	 * @returns {{entries: [Element], endTime: string}|{entries: [Element, Element], endTime: string}|{entries: [], endTime: string}}
+	 */
 	getItemAtTime(document, track, time) {
 		let currentTime = '00:00:00,000';
 		const entries = track.childNodes;
@@ -173,28 +101,6 @@ export default {
 			endTime: currentTime,
 			entries: [],
 		};
-	},
-
-
-	/**
-	 * Get relative path of MLT file for specified project
-	 *
-	 * @param {String} projectID
-	 * @return {string}
-	 */
-	getMLTpath(projectID) {
-		return path.join(config.projectPath, projectID, 'project.mlt');
-	},
-
-
-	/**
-	 * Get relative path of project directory
-	 *
-	 * @param {String} projectID
-	 * @return {string}
-	 */
-	getWorkerDir(projectID) {
-		return path.join(config.projectPath, projectID);
 	},
 
 
@@ -411,7 +317,7 @@ export default {
 	 *
 	 * @param {Element} element Element containing properties.
 	 * @param {string} name Property name.
-	 * @return {null|string} Return value of property or null when property not found.
+	 * @return {?string} Return value of property or null when property not found.
 	 */
 	getProperty(element, name) {
 		const properties = element.getElementsByTagName('property');

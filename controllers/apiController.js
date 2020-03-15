@@ -8,6 +8,7 @@ import mltxmlManager from '../models/mltxmlManager';
 import fileManager from '../models/fileManager';
 import timeManager from '../models/timeManager';
 import emailManager from '../models/emailManager';
+import projectManager from '../models/projectManager';
 import log from '../models/logger';
 import error from '../models/errors';
 import {isset, isNaturalNumber} from '../models/utils';
@@ -31,7 +32,7 @@ exports.projectPOST = (req, res, next) => {
 	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
 		if (err) return next(err);
 
-		mltxmlManager.saveMLT(projectID, mltxmlManager.emptyMLT()).then(
+		projectManager.save(projectID, projectManager.init()).then(
 			() => res.json({ project: projectID }),
 			err => next(err)
 		);
@@ -42,7 +43,7 @@ exports.projectPOST = (req, res, next) => {
 
 exports.projectGET = (req, res) => {
 
-	mltxmlManager.loadMLT(req.params.projectID, 'r').then(
+	projectManager.load(req.params.projectID, 'r').then(
 		([document]) => {
 			// Resources
 			let resources = {};
@@ -169,7 +170,7 @@ exports.projectGET = (req, res) => {
 
 exports.projectPUT = (req, res, next) => {
 
-	const projectPath = mltxmlManager.getWorkerDir(req.params.projectID);
+	const projectPath = projectManager.getDirectory(req.params.projectID);
 
 	fs.open(path.join(projectPath, 'processing'), 'wx', (err, file) => {
 		if (err) {
@@ -237,7 +238,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 			fileManager.getDuration(filepath, mimeType).then(
 				length => {
-					mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+					projectManager.load(req.params.projectID, 'w').then(
 						([document, , release]) => {
 							const node = document.createElement('producer');
 							node.id = 'producer' + fileID;
@@ -255,7 +256,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 							const root = document.getElementsByTagName('mlt').item(0);
 							root.prepend(node);
-							mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+							projectManager.save(req.params.projectID, root.outerHTML, release).then(
 								() => res.json({
 									msg: `Upload of "${filename}" OK`,
 									resource_id: fileID,
@@ -280,7 +281,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 exports.projectFileDELETE = (req, res, next) => {
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -305,7 +306,7 @@ exports.projectFileDELETE = (req, res, next) => {
 
 			producer.remove();
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Zdroj byl úspěšně odebrán' }),
 				err => next(err)
 			);
@@ -322,7 +323,7 @@ exports.projectFilePUT = (req, res, next) => {
 	if (!isset(req.body.track))
 		return errorResponse(error.parameterTrackMissing400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -377,7 +378,7 @@ exports.projectFilePUT = (req, res, next) => {
 
 			track.appendChild(newEntry);
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({
 					msg: 'Položka přidána na časovou osu',
 					timeline: req.body.track,
@@ -397,7 +398,7 @@ exports.projectFilterPOST = (req, res, next) => {
 	if (!isset(req.body.track, req.body.item, req.body.filter))
 		return errorResponse(error.parameterFilterMissing400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -472,7 +473,7 @@ exports.projectFilterPOST = (req, res, next) => {
 				}
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Filtr přidán' }),
 				err => next(err)
 			);
@@ -489,7 +490,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 	if (!isset(req.body.track, req.body.item, req.body.filter))
 		return errorResponse(error.parameterFilterMissing400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -542,7 +543,7 @@ exports.projectFilterDELETE = (req, res, next) => {
 				playlist.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Filtr odebrán' }),
 				err => next(err)
 			);
@@ -565,7 +566,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 	if ((req.body.itemB - req.body.itemA) !== 1)
 		return errorResponse(error.parameterTransitionOrder400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -694,7 +695,7 @@ exports.projectTransitionPOST = (req, res, next) => {
 				itemA.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Přechod aplikován' }),
 				err => next(err)
 			);
@@ -711,7 +712,7 @@ exports.projectItemDELETE = (req, res, next) => {
 	if (!isset(req.body.track, req.body.item))
 		return errorResponse(error.parameterItemMissing400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -764,7 +765,7 @@ exports.projectItemDELETE = (req, res, next) => {
 				entry.remove();
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Položka smazána' }),
 				err => next(err)
 			);
@@ -789,7 +790,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 			return errorResponse(error.tracksIncompatible400, res);
 	}
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -873,7 +874,7 @@ exports.projectItemPUTmove = (req, res, next) => {
 				trackTarget.insertBefore(item, targetElement.entries[1]);
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Položka přesunuta' }),
 				err => next(err)
 			);
@@ -892,7 +893,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 	if (!timeManager.isValidDuration(req.body.time))
 		return errorResponse(error.parameterDurationWrong400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 
@@ -946,7 +947,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 				}
 			}
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Položka rozdělena' }),
 				err => next(err)
 			);
@@ -961,7 +962,7 @@ exports.projectTrackPOST = (req, res, next) => {
 	if (!isset(req.body.type) || (req.body.type !== 'video' && req.body.type !== 'audio'))
 		return errorResponse(error.parameterTrackTypeMissing400, res);
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 			const mainTractor = document.querySelector('mlt>tractor[id="main"]');
@@ -978,7 +979,7 @@ exports.projectTrackPOST = (req, res, next) => {
 			newTrack.setAttribute('producer', newTractor.id);
 			mainTractor.getElementsByTagName('multitrack').item(0).appendChild(newTrack);
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({
 					msg: 'Stopa přidána',
 					track: newTractor.id,
@@ -993,7 +994,7 @@ exports.projectTrackPOST = (req, res, next) => {
 
 exports.projectTrackDELETE = (req, res, next) => {
 
-	mltxmlManager.loadMLT(req.params.projectID, 'w').then(
+	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
 			const root = document.getElementsByTagName('mlt').item(0);
 			let trackID = req.params.trackID;
@@ -1040,7 +1041,7 @@ exports.projectTrackDELETE = (req, res, next) => {
 			}
 			track.remove();
 
-			mltxmlManager.saveMLT(req.params.projectID, root.outerHTML, release).then(
+			projectManager.save(req.params.projectID, root.outerHTML, release).then(
 				() => res.json({ msg: 'Stopa smazána' }),
 				err => next(err)
 			);
@@ -1071,7 +1072,7 @@ function fileErr(err, res) {
  *
  * @param {Object} error Object containing code, err, msg
  * @param {Object} res Express response object.
- * @param {function} destructor Optional: function is called before sending error to a client
+ * @param {function} [destructor] Optional function called before sending error to a client
  */
 function errorResponse(error, res, destructor = null) {
 	if (destructor !== null) destructor();
