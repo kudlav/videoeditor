@@ -44,17 +44,12 @@ const errors = {
 		err: 'Chybí parametry.',
 		msg: 'Chybí povinné parametry: track, trackTarget, item, time.',
 	};},
-	parameterTimeRange400: (time) => ({
+	parameterTimeRange400: (time) => { return {
 		code: 400,
 		err: 'Parametr mimo rozsah hodnot.',
 		msg: `Parametr time musí mít hodnotu mezi 00:00:00,000 a ${time}`,
-	}),
-	get parameterTimeWrong400() { return {
-		code: 400,
-		err: 'Chybný parametr.',
-		msg: 'Parametr time musí být ve formátu 00:00:00,000.',
 	};},
-	get parameterDurationWrong400() { return {
+	get parameterTimeWrong400() { return {
 		code: 400,
 		err: 'Chybný parametr.',
 		msg: 'Parametr time musí být kladný, ve formátu 00:00:00,000.',
@@ -129,11 +124,11 @@ const errors = {
 		err: 'Přechod již aplikován.',
 		msg: 'Zvolené prvky již mají vzájemný přechod.',
 	};},
-	filterExists403: (item, track, filter) => ({
+	filterExists403: (item, track, filter) => { return {
 		code: 403,
 		err: 'Filtr je již aplikován.',
 		msg: `Položka "${item}" na stopě "${track}" má již filtr "${filter}" aplikován.`,
-	}),
+	};},
 	get projectStillRendering403() { return {
 		code: 403,
 		err: 'Zpracování probíhá.',
@@ -154,21 +149,21 @@ const errors = {
 		err: 'Zdroj nenalezen.',
 		msg: 'Zdroj se v projektu nenachází.'
 	};},
-	trackNotFound404: (track) => ({
+	trackNotFound404: (track) => { return {
 		code: 404,
 		err: 'Stopa nenalezena.',
 		msg: `Zadaná stopa  "${track}" se v projektu nenachází.`,
-	}),
-	itemNotFound404: (item, track) => ({
+	};},
+	itemNotFound404: (item, track) => { return {
 		code: 404,
 		err: 'Položka nenalezena.',
 		msg: `Položka "${item}" se na stopě "${track}" nenachází.`,
-	}),
-	filterNotFound404: (item, track, filter) => ({
+	};},
+	filterNotFound404: (item, track, filter) => { return {
 		code: 404,
 		err: 'Filtr nenalezen.',
 		msg: `Filtr "${filter}" se na ${item}. položce stopy "${track}" nenachází.`,
-	}),
+	};},
 	get projectFailedOpen500() { return {
 		err: 'Projekt nelze otevřít',
 		msg: 'Během načítání projektu došlo k chybě.',

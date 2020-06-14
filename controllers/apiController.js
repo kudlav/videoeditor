@@ -891,7 +891,7 @@ exports.projectItemPUTsplit = (req, res, next) => {
 		return errorResponse(error.parameterSplitMissing400, res);
 
 	if (!timeManager.isValidDuration(req.body.time))
-		return errorResponse(error.parameterDurationWrong400, res);
+		return errorResponse(error.parameterTimeWrong400, res);
 
 	projectManager.load(req.params.projectID, 'w').then(
 		([document, , release]) => {
