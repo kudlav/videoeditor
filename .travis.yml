@@ -14,3 +14,4 @@ install:
   - npm install
 script:
   - npm run eslint
+  - npm start & sleep 5s && npm test

@@ -1,6 +1,6 @@
 {
   "name": "videoeditor",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "Web Based Video Editor Using MLT Framework",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "build": "./node_modules/.bin/webpack --mode production",
     "dev-start": "nodemon --exec babel-node server.js --ignore public/",
     "dev-build": "./node_modules/.bin/webpack -wd",
-    "eslint": "npx eslint controllers/ models/ react/ config.js router.js server.js"
+    "eslint": "npx eslint controllers/ models/ react/ test/ config.js router.js server.js",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -24,43 +25,46 @@
     "node": ">= 10.13.0"
   },
   "dependencies": {
-    "@babel/core": "^7.8.3",
-    "@babel/node": "^7.8.3",
-    "@babel/preset-env": "^7.8.3",
+    "@babel/core": "^7.8.7",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
     "@babel/preset-react": "^7.8.3",
     "autoprefixer": "^9.7.4",
-    "axios": "^0.19.1",
+    "axios": "^0.19.2",
     "babel-loader": "^8.0.6",
     "body-parser": "^1.19.0",
     "busboy": "^0.3.1",
     "css-loader": "^3.4.2",
     "ejs": "^3.0.1",
     "express": "^4.17.1",
-    "extract-loader": "^3.1.0",
-    "file-loader": "^5.0.2",
+    "extract-loader": "^4.0.3",
+    "file-loader": "^5.1.0",
     "fluent-ffmpeg": "^2.1.2",
-    "jsdom": "^16.0.0",
-    "log4js": "^6.1.0",
-    "nanoid": "^2.1.9",
+    "form-data": "^3.0.0",
+    "jsdom": "^16.2.1",
+    "log4js": "^6.1.2",
+    "nanoid": "^2.1.11",
     "node-sass": "^4.13.1",
-    "nodemailer": "^6.4.2",
+    "nodemailer": "^6.4.5",
     "postcss-loader": "^3.0.0",
     "prop-types": "^15.7.2",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
     "react-dropzone-uploader": "^2.11.0",
-    "react-modal": "^3.11.1",
+    "react-modal": "^3.11.2",
     "rwlock": "^5.0.0",
-    "vis-timeline": "^5.1.0",
     "sass-loader": "^8.0.2",
-    "webpack": "^4.41.5",
-    "webpack-cli": "^3.3.10"
+    "vis-timeline": "^5.1.0",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
   },
   "devDependencies": {
-    "@babel/cli": "^7.8.3",
-    "babel-eslint": "^10.0.3",
+    "@babel/cli": "^7.8.4",
+    "babel-eslint": "^10.1.0",
     "eslint": "^6.8.0",
-    "eslint-plugin-react": "^7.18.0",
+    "eslint-plugin-react": "^7.19.0",
+    "mocha": "^7.1.0",
+    "node-fetch": "^2.6.0",
     "nodemon": "^2.0.2"
   }
 }

@@ -2,18 +2,18 @@ openapi: 3.0.1
 info:
   title: Videoeditor
   description: API for clients of Web Based Video Editor.
-  termsOfService: https://github.com/kudlav/videoeditor/blob/master/LICENSE
+  termsOfService: 'https://github.com/kudlav/videoeditor/blob/master/LICENSE'
   contact:
     email: xkudla15@vut.cz
   license:
     name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  version: 1.0.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  version: 2.0.1
 externalDocs:
   description: Github repository
-  url: https://github.com/kudlav/videoeditor/
+  url: 'https://github.com/kudlav/videoeditor/'
 servers:
-  - url: https://editor.prednasky.com/api
+  - url: 'https://editor.prednasky.com/api'
 tags:
   - name: project
     description: Everything about project
@@ -25,7 +25,7 @@ paths:
       summary: Start new project
       operationId: projectPOST
       responses:
-        200:
+        '200':
           description: successful operation
           content:
             application/json:
@@ -35,7 +35,7 @@ paths:
                   project:
                     type: string
                     description: ID of new project.
-  /project/{projectID}:
+  '/project/{projectID}':
     get:
       tags:
         - project
@@ -49,7 +49,7 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        '200':
           description: Project loaded.
           content:
             application/json:
@@ -61,11 +61,15 @@ paths:
                     description: id of project
                   resources:
                     type: object
-                    description: 'associtaive array of resource objects {id: string, duration: string|null, mime: string|null, name: string|null}'
+                    description: >-
+                      associtaive array of resource objects {id: {id: string,
+                      duration: string|null, mime: string|null, name:
+                      string|null}}
                   timeline:
                     type: object
-                    description: 'empty array'
-        404:
+                    description: >-
+                      object containing arrays {audio: array, video: array}, item of arrays has following structure: {id: string, items: array}
+        '404':
           description: Project not found.
           content:
             application/json:
@@ -84,13 +88,13 @@ paths:
             type: string
       deprecated: true
       responses:
-        200:
+        '200':
           description: Project removed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        404:
+        '404':
           description: Project not found.
           content:
             application/json:
@@ -99,7 +103,7 @@ paths:
     put:
       tags:
         - project
-      summary: Finish project, get video
+      summary: 'Finish project, get video'
       operationId: projectPUT
       parameters:
         - name: projectID
@@ -117,20 +121,19 @@ paths:
                   type: string
                   description: email for finish notification
       responses:
-        200:
+        '200':
           description: Rendering has started.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        404:
+        '404':
           description: Project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-
-  /project/{projectID}/file:
+  '/project/{projectID}/file':
     post:
       tags:
         - file
@@ -154,7 +157,7 @@ paths:
                   format: binary
         required: true
       responses:
-        200:
+        '200':
           description: File uploaded.
           content:
             application/json:
@@ -167,19 +170,19 @@ paths:
                   resource_id:
                     type: string
                     description: uploaded file ID
-        400:
-          description: Bad request, missing file in request body.
+        '400':
+          description: 'Bad request, missing file in request body.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '404':
           description: Project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/file/{fileID}:
+  '/project/{projectID}/file/{fileID}':
     delete:
       tags:
         - file
@@ -199,19 +202,19 @@ paths:
           schema:
             type: string
       responses:
-        200:
+        '200':
           description: File removed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        403:
-          description: Unable to remove, resource is in use.
+        '403':
+          description: 'Unable to remove, resource is in use.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '404':
           description: Resource or project not found.
           content:
             application/json:
@@ -220,7 +223,7 @@ paths:
     put:
       tags:
         - file
-      summary: Add file to the end of default timeline
+      summary: Add file to the end of timeline
       operationId: projectFilePUT
       parameters:
         - name: projectID
@@ -235,13 +238,19 @@ paths:
           required: true
           schema:
             type: string
+        - name: track
+          in: header
+          description: track ID
+          required: true
+          schema:
+            type: string
         - name: duration
           in: header
-          description: 'required for image files, format: "00:00:00,00"'
+          description: 'required for image files, format: "00:00:00,000"'
           schema:
             type: string
       responses:
-        200:
+        '200':
           description: File added to a timeline.
           content:
             application/json:
@@ -254,31 +263,36 @@ paths:
                   timeline:
                     type: string
                     description: file added to timeline with following ID
-        400:
-          description: Bad request, missing duration of image.
+        '400':
+          description: 'Bad request, missing duration of image.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        403:
+        '403':
           description: Unsupported file type for the timeline.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '404':
           description: Resource or project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/filter:
+  '/project/{projectID}/filter':
     post:
       tags:
         - filter
       summary: Apply filter to a timeline item
       operationId: projectFilterPOST
-      description: 'You can use filters from MLT documentation. Each filter can be applied only once. There are some special names to distinguish multiple brightness and volume filters: fadeInBrightnerss => brightness, fadeOutBrightnerss => brightness, fadeInVolume => volume, fadeOutVolume => volume'
+      description: >-
+        You can use filters from MLT documentation. Each filter can be applied
+        only once. There are some special names to distinguish multiple
+        brightness and volume filters: fadeInBrightnerss => brightness,
+        fadeOutBrightnerss => brightness, fadeInVolume => volume, fadeOutVolume
+        => volume
       externalDocs:
         url: 'https://www.mltframework.org/plugins/PluginsFilters/'
         description: Available filters and usage
@@ -308,26 +322,26 @@ paths:
                   description: filter properties
         required: true
       responses:
-        200:
+        '200':
           description: Filter applied.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track, item or filter parameter.
+        '400':
+          description: 'Bad request, missing track, item or filter parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        403:
+        '403':
           description: Filter already applied.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
-          description: Track, item or project not found.
+        '404':
+          description: 'Track, item or project not found.'
           content:
             application/json:
               schema:
@@ -360,25 +374,25 @@ paths:
                   description: type of filter
         required: true
       responses:
-        200:
+        '200':
           description: Filter removed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track, item or filter parameter.
+        '400':
+          description: 'Bad request, missing track, item or filter parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
-          description: Track, item, filter or project not found.
+        '404':
+          description: 'Track, item, filter or project not found.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/transition:
+  '/project/{projectID}/transition':
     post:
       tags:
         - transition
@@ -413,26 +427,26 @@ paths:
                   description: duration of transition
         required: true
       responses:
-        200:
+        '200':
           description: Transition applied.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing or invalid parameters in request body.
+        '400':
+          description: 'Bad request, missing or invalid parameters in request body.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        403:
+        '403':
           description: Transition already exists.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
-          description: Item, track or project not found.
+        '404':
+          description: 'Item, track or project not found.'
           content:
             application/json:
               schema:
@@ -467,25 +481,25 @@ paths:
                   type: string
                   description: type of transition
       responses:
-        200:
+        '200':
           description: Transition removed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track, item or transition parameter.
+        '400':
+          description: 'Bad request, missing track, item or transition parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
-          description: Track, item, transition or project not found.
+        '404':
+          description: 'Track, item, transition or project not found.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/item:
+  '/project/{projectID}/item':
     delete:
       tags:
         - item
@@ -511,25 +525,25 @@ paths:
                   description: index of track item
         required: true
       responses:
-        200:
+        '200':
           description: Item removed.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track or item parameter.
+        '400':
+          description: 'Bad request, missing track or item parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '404':
           description: Track or item not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/item/move:
+  '/project/{projectID}/item/move':
     put:
       tags:
         - item
@@ -550,7 +564,7 @@ paths:
                 track:
                   type: string
                   description: track containing item
-                targetTrack:
+                trackTarget:
                   type: string
                   description: destination track
                 item:
@@ -558,34 +572,34 @@ paths:
                   description: index of track item
                 time:
                   type: string
-                  description: new start time of item, in format '00:00:00,000'
+                  description: 'new start time of item, in format ''00:00:00,000'''
         required: true
       responses:
-        200:
+        '200':
           description: Item moved.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track or item parameter.
+        '400':
+          description: 'Bad request, missing track or item parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        403:
+        '403':
           description: Not enought free space at target place.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
-          description: Track or item not found.
+        '404':
+          description: Track, item or project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/item/split:
+  '/project/{projectID}/item/split':
     put:
       tags:
         - item
@@ -611,28 +625,28 @@ paths:
                   description: index of track item
                 time:
                   type: string
-                  description: relative position of cut in format '00:00:00,000'
+                  description: 'relative position of cut in format ''00:00:00,000'''
         required: true
       responses:
-        200:
+        '200':
           description: Item splitted.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SuccessResponse'
-        400:
-          description: Bad request, missing track or item parameter.
+        '400':
+          description: 'Bad request, missing track or item parameter or time longer than item duration.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '404':
           description: Track or item not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-  /project/{projectID}/track:
+  '/project/{projectID}/track':
     post:
       tags:
         - track
@@ -655,32 +669,36 @@ paths:
                   description: Type of track (video/audio).
         required: true
       responses:
-        200:
+        '200':
           description: Track created.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  project:
+                  msg:
+                    type: string
+                    description: Info message.
+                  track:
                     type: string
                     description: ID of new track.
-        404:
+        '400':
+          description: 'Bad request, missing type parameter (video/audio).'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
           description: Project not found.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        400:
-          description: Bad request, missing type parameter (video/audio).
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+  '/project/{projectID}/track/{trackID}':
     delete:
       tags:
         - track
-      summary: Remove track
+      summary: Remove track. When removing default track, track with lowest track became as default.
       operationId: projectTrackDELETE
       parameters:
         - name: projectID
@@ -689,40 +707,37 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                track:
-                  type: string
-                  description: Track ID.
-        required: true
+        - name: trackID
+          in: path
+          description: track ID
+          required: true
+          schema:
+            type: string
       responses:
-        200:
+        '200':
           description: Track removed.
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  project:
+                  msg:
                     type: string
-                    description: ID of new track.
-        403:
-          description: Unable to remove, track is not empty.
+                    description: Info message.
+        '400':
+          description: 'Bad request, missing track parameter.'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-        404:
+        '403':
+          description: 'Unable to remove default track.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
           description: Project not found.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        400:
-          description: Bad request, missing track parameter.
           content:
             application/json:
               schema:
