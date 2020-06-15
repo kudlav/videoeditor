@@ -13,9 +13,9 @@ import log from '../models/logger';
 import error from '../models/errors';
 import {isset, isNaturalNumber} from '../models/utils';
 
+import {nanoid} from 'nanoid';
 const fs = require('fs');
 const path = require('path');
-const nanoid = require('nanoid');
 const { exec } = require('child_process');
 const Busboy = require('busboy');
 
