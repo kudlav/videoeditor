@@ -117,7 +117,7 @@ describe('API: project - everything about project', function () {
 				.catch(error => done(error));
 		});
 
-		it('finish existing project with email multiple times', function (done) {
+		it('finish existing project with email successfully', function (done) {
 			const request = {
 				method: 'PUT',
 				headers: {'Content-Type': 'application/json; charset=utf-8'},
@@ -132,17 +132,19 @@ describe('API: project - everything about project', function () {
 					assert.equal(typeof data.err, 'undefined', 'response contains error');
 					assert.equal(typeof data.msg, 'string', 'missing msg in response');
 					assert.notEqual(data.msg.length, 0, 'empty msg in response');
-					// Try to finish project for the second time
+
+					// TRY to finish project quickly for the second time
 					const expected = errors.projectStillRendering403;
 					fetch(`${server.apiUrl}/project/${projectId}`, request)
-						.then(res => {
-							assert.equal(res.status, 403, 'return code does not match');
-							return res.json();
-						})
-						.then(data => {
-							assert.equal(data.err, expected.err, 'wrong error title in response');
-							assert.equal(data.msg, expected.msg, 'wrong error message in response');
-							done();
+						.then(async res => {
+							if (res.status !== 200) {
+								assert.equal(res.status, 403, 'return code does not match');
+								data = await res.json();
+								assert.equal(data.err, expected.err, 'wrong error title in response');
+								assert.equal(data.msg, expected.msg, 'wrong error message in response');
+								done();
+							}
+							else done();
 						})
 						.catch(error => done(error));
 				})
