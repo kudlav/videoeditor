@@ -4,7 +4,7 @@
  */
 
 import React, { Component } from 'react';
-import vis from 'vis-timeline';
+import { Timeline as Vis } from 'vis-timeline/standalone';
 import timeManager from '../../models/timeManager';
 import AddFilterDialog from './AddFilterDialog';
 import Editor from './Editor';
@@ -38,7 +38,7 @@ export default class Timeline extends Component {
 	}
 
 	componentDidMount() {
-		const container = document.getElementById('vis-timeline');
+		const container = document.getElementById('timeline');
 		const options = {
 			orientation: 'top',
 			min: new Date(1970, 0, 1),
@@ -80,7 +80,7 @@ export default class Timeline extends Component {
 				}
 			}
 		};
-		this.timeline = new vis.Timeline(container, [], [], options);
+		this.timeline = new Vis(container, [], [], options);
 		this.timeline.addCustomTime(new Date(1970, 0, 1));
 		this.timeline.setCustomTimeTitle('00:00:00,000');
 		this.timeline.on('select', this.onSelect);
@@ -156,7 +156,7 @@ export default class Timeline extends Component {
 				{/*<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>*/}
 				<button onClick={this.buttonDel}><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
 				<div id="time">{this.state.timePointer} / {this.state.duration}</div>
-				<div id="vis-timeline"/>
+				<div id="timeline"/>
 				{this.state.showAddFilterDialog && <AddFilterDialog
 					item={this.state.selectedItems[0]}
 					getItem={this.getItem}

@@ -396,60 +396,61 @@ tr:nth-child(even) {
 /*
  * TIMELINE
  */
-.vis-timeline {
+#timeline {
+  .vis-timeline {
 	border: none;
-}
+  }
 
-.vis-item {
+  .vis-item {
 	height: 4em;
 
 	&.video, &.audio {
-		border-radius: 10px;
-		color: #FFF;
-		padding: 2px;
+	  border-radius: 10px;
+	  color: #FFF;
+	  padding: 2px;
 	}
 
 	&.video {
-		background-color: #27438b;
-		border-color: #1d346e;
+	  background-color: #27438b;
+	  border-color: #1d346e;
 
-		&.stick-right {
-			border-right: 5px solid #4caf50;
-		}
+	  &.stick-right {
+		border-right: 5px solid #4caf50;
+	  }
 
-		&.stick-left {
-			border-left: 5px solid #4caf50;
-		}
+	  &.stick-left {
+		border-left: 5px solid #4caf50;
+	  }
 	}
 
 	&.audio {
-		background-color: #2d7741;
-		border-color: #1f512c;
+	  background-color: #2d7741;
+	  border-color: #1f512c;
 
-		&.stick-right {
-			border-right: 5px solid #30acff;
-		}
+	  &.stick-right {
+		border-right: 5px solid #30acff;
+	  }
 
-		&.stick-left {
-			border-left: 5px solid #30acff;
-		}
+	  &.stick-left {
+		border-left: 5px solid #30acff;
+	  }
 	}
 
 	&.vis-selected {
-		border-color: #FFC200;
+	  border-color: #FFC200;
 	}
 
 	div.filter {
-		position: relative;
-		top: -5px;
-		left: -5px;
-		width: 0;
-		height: 0;
-		border-top: 40px solid rgba(255, 255, 255, 0.2);
-		border-right: 40px solid transparent;
-		z-index: 1;
-		display: inline-block;
-		vertical-align: top;
+	  position: relative;
+	  top: -5px;
+	  left: -5px;
+	  width: 0;
+	  height: 0;
+	  border-top: 40px solid rgba(255, 255, 255, 0.2);
+	  border-right: 40px solid transparent;
+	  z-index: 1;
+	  display: inline-block;
+	  vertical-align: top;
 	}
 
 	i.filter {
@@ -458,24 +459,25 @@ tr:nth-child(even) {
 	  left: 4px;
 	  z-index: 2;
 	}
-}
+  }
 
-.vis-time-axis .vis-text{
+  .vis-time-axis .vis-text {
 	color: inherit;
-}
+  }
 
-.vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-grid.vis-major, .vis-panel.vis-center, .vis-panel.vis-left, .vis-panel.vis-right, .vis-panel.vis-top, .vis-panel.vis-bottom {
+  .vis-time-axis .vis-grid.vis-minor, .vis-time-axis .vis-grid.vis-major, .vis-panel.vis-center, .vis-panel.vis-left, .vis-panel.vis-right, .vis-panel.vis-top, .vis-panel.vis-bottom {
 	border-color: #555;
-}
+  }
 
-.vis-custom-time {
+  .vis-custom-time {
 	background-color: #FF7676;
-}
+  }
 
-.vis-labelset .vis-label .vis-inner {
-  padding: 0;
-}
+  .vis-labelset .vis-label .vis-inner {
+	padding: 0;
+  }
 
-.vis-foreground .vis-group {
-  border-bottom: none;
+  .vis-foreground .vis-group {
+	border-bottom: none;
+  }
 }

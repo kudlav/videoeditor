@@ -54,7 +54,7 @@
     "react-modal": "^3.11.2",
     "rwlock": "^5.0.0",
     "sass-loader": "^8.0.2",
-    "vis-timeline": "^5.1.0",
+    "vis-timeline": "^7.3.6",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   },
