@@ -139,12 +139,14 @@ export default class Timeline extends Component {
 
 		if (this.state.duration !== duration) this.setState({duration: duration});
 
+		const fitTimeline = (items.length > this.timeline.itemsData.length);
+
 		this.timeline.setData({
 			items: items,
 			groups: groups,
 		});
 
-		this.timeline.fit();
+		if (fitTimeline) this.timeline.fit();
 	}
 
 	render() {
