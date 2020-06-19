@@ -44,9 +44,10 @@ exports.projectPOST = (req, res, next) => {
 exports.projectGET = (req, res) => {
 
 	projectManager.load(req.params.projectID, 'r').then(
-		([document]) => {
+		async ([document]) => {
+
 			// Resources
-			let resources = {};
+			const resources = {};
 			const producerNodes = document.getElementsByTagName('producer');
 			for (let producer of producerNodes) {
 				let id = producer.id.replace(/^producer/, '');
@@ -77,7 +78,6 @@ exports.projectGET = (req, res) => {
 				audio: [],
 				video: [],
 			};
-
 			const tracks = document.querySelectorAll('mlt>playlist[id*="track"]');
 			for (let track of tracks) {
 				const trackEntry = {
@@ -128,8 +128,7 @@ exports.projectGET = (req, res) => {
 										filters.push({
 											service: serviceAlias,
 										});
-									}
-									else {
+									} else {
 										filters.push({
 											service: trackFilter.getAttribute('mlt_service'),
 										});
@@ -151,16 +150,35 @@ exports.projectGET = (req, res) => {
 
 				if (new RegExp(/^videotrack\d+/).test(track.id)) {
 					timeline.video.push(trackEntry);
-				}
-				else {
+				} else {
 					timeline.audio.push(trackEntry);
 				}
 			}
+
+			// Processing
+			let processing = await new Promise((resolve) => {
+				const projectPath = projectManager.getDirectory(req.params.projectID);
+				fs.access(path.join(projectPath, 'processing'), fs.constants.F_OK, (err) => {
+					if (err) resolve(null);
+					else { // project is processing right now
+						exec(`cat ${path.join(projectPath, 'stderr.log')} | tr "\\r\\n" "\\n" | tr "\\r" "\\n" |` +
+							' grep percentage: | tail -1 | sed "s/.*percentage://"', (error, stdout) => {
+							if (error) {
+								log.error(error);
+								resolve(null);
+							}
+							const parsed = Number.parseInt(stdout.trim());
+							resolve((!Number.isNaN(parsed)) ? parsed : null);
+						});
+					}
+				});
+			});
 
 			res.json({
 				project: req.params.projectID,
 				resources: resources,
 				timeline: timeline,
+				processing: processing
 			});
 		},
 		err => fileErr(err, res)

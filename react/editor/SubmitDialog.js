@@ -78,7 +78,8 @@ export default class SubmitDialog extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					window.location = `${server.serverUrl}/project/${this.props.project}/finished`;
+					this.handleCloseDialog();
+					this.props.onProcessing();
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -100,4 +101,5 @@ SubmitDialog.propTypes = {
 	project: PropTypes.string.isRequired,
 	onClose: PropTypes.func.isRequired,
 	fetchError: PropTypes.func.isRequired,
+	onProcessing: PropTypes.func.isRequired
 };

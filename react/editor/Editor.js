@@ -11,6 +11,7 @@ import Timeline from './Timeline';
 import {server} from '../../config';
 import timeManager from '../../models/timeManager';
 import FetchErrorDialog from './FetchErrorDialog';
+import SubmitToolbar from './SubmitToolbar';
 
 export default class Editor extends Component {
 
@@ -27,11 +28,13 @@ export default class Editor extends Component {
 		this.closeSubmitDialog = this.closeSubmitDialog.bind(this);
 		this.openFetchErrorDialog = this.openFetchErrorDialog.bind(this);
 		this.closeFetchErrorDialog = this.closeFetchErrorDialog.bind(this);
+		this.startProcessing = this.startProcessing.bind(this);
 
 		this.state = {
 			project: window.location.href.match(/project\/([^/]*)/)[1],
 			resources: {},
 			timeline: {},
+			processing: null,
 			loading: true,
 			showSubmitDialog: false,
 			showFetchError: false,
@@ -46,13 +49,13 @@ export default class Editor extends Component {
 			<>
 				<header>
 					{this.state.loading && <LoadingDialog/>}
-					{this.state.showSubmitDialog && <SubmitDialog project={this.state.project} onClose={this.closeSubmitDialog} fetchError={this.openFetchErrorDialog}/>}
+					{this.state.showSubmitDialog && <SubmitDialog project={this.state.project} onClose={this.closeSubmitDialog} onProcessing={this.startProcessing} fetchError={this.openFetchErrorDialog}/>}
 					{this.state.showFetchError && <FetchErrorDialog msg={this.state.fetchError} onClose={this.closeFetchErrorDialog}/>}
 					<a href={'/'}><button className="error"><i className="material-icons" aria-hidden="true">arrow_back</i>Zrušit úpravy</button></a>
 					<div className="divider"/>
 					{/*<button><i className="material-icons" aria-hidden="true">language</i>Jazyk</button>*/}
 					{/*<button><i className="material-icons" aria-hidden="true">save_alt</i>Exportovat</button>*/}
-					<button onClick={this.openSubmitDialog} className="success" style={{float: 'right'}}><i className="material-icons" aria-hidden="true">done_outline</i>Dokončit</button>
+					<SubmitToolbar openSubmitDialog={this.openSubmitDialog} progress={this.state.processing} project={this.state.project}/>
 				</header>
 				<main>
 					<div>
@@ -102,11 +105,14 @@ export default class Editor extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
+					if (data.processing !== null) setTimeout(this.loadData, 5000);
+					if (this.state.processing !== null && data.processing === null) data.processing = 100;
 					this.setState({
 						resources: data.resources,
 						timeline: data.timeline,
+						processing: data.processing,
+						loading: false
 					});
-					this.setState({loading: false});
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -243,6 +249,16 @@ export default class Editor extends Component {
 			showFetchError: false,
 			fetchError: '',
 		});
+	}
+
+	/**
+	 * Start fetching processing state
+	 */
+	startProcessing() {
+		if (this.state.processing === null || this.state.processing === 100) {
+			this.setState({ processing: 0 });
+		}
+		setTimeout(this.loadData, 5000);
 	}
 
 	/**
