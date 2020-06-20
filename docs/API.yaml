@@ -48,16 +48,6 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              properties:
-                fields:
-                  type: array
-                  items:
-                    type: string
-                  description: optionally specify which field want to recieve
       responses:
         '200':
           description: Project loaded.
