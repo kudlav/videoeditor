@@ -23,6 +23,10 @@ header {
 	flex-wrap: nowrap;
 	align-items: center;
 
+	a {
+		margin: 0 1em;
+	}
+
 	.right {
 		margin-left: auto;
 	}
@@ -196,7 +200,7 @@ progress {
 	display: inline-block;
 	margin: 0 10px;
 	border-left: 1px solid #888;
-	height: 1em;
+	height: 1.4em;
 }
 
 .loader {
@@ -223,8 +227,8 @@ button, input[type="submit"] {
 	color: inherit;
 	border: 1px solid #555;
 	display: inline-block;
-	padding: 0 7px 2px 7px;
-	margin: 10px 3px;
+	padding: 2px 7px 4px 7px;
+	margin: 8px 3px;
 	cursor: pointer;
 	font-family: SourceSans;
 	border-radius: 5px;
@@ -301,6 +305,10 @@ tr:nth-child(even) {
 		height: 50px;
 		text-align: center;
 		font-size: 3.5em;
+	}
+
+	td:first-child {
+		width: 2.5em;
 	}
 
 	table i {

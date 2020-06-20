@@ -14,7 +14,7 @@ const errorController = require('./controllers/errorController');
 // Homepage route
 router.get('/', mainController.main);
 router.get('/project/:projectID', mainController.project);
-router.get('/project/:projectID/output', mainController.finished);
+router.get('/project/:projectID/output.mp4', mainController.finished);
 
 // API route
 router.all('/api', apiController.default);
