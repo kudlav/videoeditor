@@ -4,14 +4,15 @@
  */
 
 import React, { Component } from 'react';
+import TimelineModel from './TimelineModel';
 import LoadingDialog from './LoadingDialog';
 import SubmitDialog from './SubmitDialog';
 import Sources from './Sources';
 import Timeline from './Timeline';
 import {server} from '../../config';
-import timeManager from '../../models/timeManager';
 import FetchErrorDialog from './FetchErrorDialog';
 import SubmitToolbar from './SubmitToolbar';
+import Preview from './Preview';
 
 export default class Editor extends Component {
 
@@ -29,6 +30,14 @@ export default class Editor extends Component {
 		this.openFetchErrorDialog = this.openFetchErrorDialog.bind(this);
 		this.closeFetchErrorDialog = this.closeFetchErrorDialog.bind(this);
 		this.startProcessing = this.startProcessing.bind(this);
+		this.play = this.play.bind(this);
+		this.playing = this.playing.bind(this);
+		this.pause = this.pause.bind(this);
+		this.setTime = this.setTime.bind(this);
+
+		this.datetimeStart = new Date(1970, 0, 1);
+		this.timerStart = new Date(1970, 0, 1);
+		this.timerFunction = null;
 
 		this.state = {
 			project: window.location.href.match(/project\/([^/]*)/)[1],
@@ -39,6 +48,8 @@ export default class Editor extends Component {
 			showSubmitDialog: false,
 			showFetchError: false,
 			fetchError: '',
+			time: new Date(1970, 0, 1),
+			playing: false
 		};
 
 		this.loadData();
@@ -67,18 +78,14 @@ export default class Editor extends Component {
 							onPutResource={this.putResource}
 							fetchError={this.openFetchErrorDialog}
 						/>
-						<div id='preview'>
-							<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
-							<video/>
-							<br/>
-							<div className="prev-toolbar">
-								<button className="no-border" title="Zastavit přehrávání"><i className="material-icons" aria-hidden="true">stop</i></button>
-								<button title="Pokračovat v přehrávání"><i className="material-icons" aria-hidden="true">play_arrow</i></button>
-								<button title="Pozastavit přehrávání"><i className="material-icons" aria-hidden="true">pause</i></button>
-								<button title="Předchozí událost"><i className="material-icons" aria-hidden="true">skip_previous</i></button>
-								<button title="Následující událost"><i className="material-icons" aria-hidden="true">skip_next</i></button>
-							</div>
-						</div>
+						<Preview
+							items={this.state.timeline}
+							time={this.state.time}
+							playing={this.state.playing}
+							pause={this.pause}
+							play={this.play}
+							setTime={this.setTime}
+						/>
 					</div>
 				</main>
 				<footer>
@@ -90,6 +97,8 @@ export default class Editor extends Component {
 						onDelFilter={this.delFilter}
 						loadData={this.loadData}
 						fetchError={this.openFetchErrorDialog}
+						time={this.state.time}
+						setTime={this.setTime}
 					/>
 				</footer>
 			</>
@@ -136,7 +145,7 @@ export default class Editor extends Component {
 
 	putResource(id, duration, trackId) {
 		const timeline = Object.assign({}, this.state.timeline);
-		const track = Editor.findTrack(timeline, trackId);
+		const track = TimelineModel.findTrack(timeline, trackId);
 		const trackLength = track.items.length;
 
 		track.items.push({
@@ -172,7 +181,6 @@ export default class Editor extends Component {
 				if (typeof data.err !== 'undefined') {
 					alert(`${data.err}\n\n${data.msg}`);
 				}
-
 				this.loadData();
 			})
 			.catch(error => this.openFetchErrorDialog(error.message))
@@ -195,12 +203,10 @@ export default class Editor extends Component {
 				if (typeof data.err === 'undefined') {
 					const timeline = Object.assign({}, this.state.timeline);
 
-					const track = Editor.findTrack(timeline, parameters.track);
-					const item = Editor.findItem(track.items, parameters.item).item;
+					const track = TimelineModel.findTrack(timeline, parameters.track);
+					const item = TimelineModel.findItem(track.items, parameters.item).item;
 
-					item.filters.push({
-						service: parameters.filter,
-					});
+					item.filters.push({ service: parameters.filter });
 					this.setState({timeline: timeline});
 				}
 				else {
@@ -213,8 +219,8 @@ export default class Editor extends Component {
 
 	delFilter(parameters) {
 		const timeline = Object.assign({}, this.state.timeline);
-		const track = Editor.findTrack(timeline, parameters.track);
-		const item = Editor.findItem(track.items, parameters.item).item;
+		const track = TimelineModel.findTrack(timeline, parameters.track);
+		const item = TimelineModel.findItem(track.items, parameters.item).item;
 
 		item.filters = item.filters.filter(filter => filter.service !== parameters.filter);
 
@@ -261,62 +267,32 @@ export default class Editor extends Component {
 		setTimeout(this.loadData, 5000);
 	}
 
-	/**
-	 * Get track with specified trackId
-	 *
-	 * @param {Object} timeline
-	 * @param {String} trackId
-	 * @return {null|Object}
-	 */
-	static findTrack(timeline, trackId) {
-		let track = null;
-		for (let videotrack of timeline.video) {
-			if (videotrack.id === trackId) {
-				track = videotrack;
-				break;
-			}
-		}
-		if (track === null) {
-			for (let audiotrack of timeline.audio) {
-				if (audiotrack.id === trackId) {
-					track = audiotrack;
-					break;
-				}
-			}
-		}
-
-		return track;
+	play() {
+		this.datetimeStart = new Date();
+		this.timerStart = this.state.time;
+		this.setState({ playing: true });
+		this.timerFunction = setInterval(this.playing, 33);
 	}
 
-	/**
-	 * Get nth item of track. Blanks are ignored, first element is zero element.
-	 *
-	 * @param {Array} items
-	 * @param {Number} position
-	 * @return {null|Object}
-	 */
-	static findItem(items, position) {
-		let time = '00:00:00,000';
-		let index = 0;
-		for (let item of items) {
-			if (item.resource === 'blank') {
-				time = timeManager.addDuration(item.length, time);
-			}
-			else {
-				let startTime = time;
-				time = timeManager.addDuration(time, item.out);
-				time = timeManager.subDuration(time, item.in);
-				// todo Subtract transition duration
-				if (index === position) {
-					return {
-						item: item,
-						start: startTime,
-						end: time,
-					};
-				}
-				index++;
-			}
-		}
-		return null;
+	playing() {
+		this.setState({
+			playing: true,
+			time: new Date(this.timerStart.getTime() + Date.now() - this.datetimeStart.getTime())
+		});
 	}
+
+	pause() {
+		clearInterval(this.timerFunction);
+		this.playing();
+		this.setState({ playing: false });
+	}
+
+	setTime(time) {
+		if (this.timerFunction !== null || this.state.playing) {
+			clearInterval(this.timerFunction);
+			this.setState({ playing: false });
+		}
+		this.setState({ time: time });
+	}
+
 }

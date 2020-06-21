@@ -7,6 +7,26 @@
 ## Badges
 [![Build Status](https://travis-ci.org/kudlav/videoeditor.svg?branch=master)](https://travis-ci.org/kudlav/videoeditor)
 
+## Features
+- web application no plugin required
+- server side rendering
+- supported modern browsers (Firefox, Chrome, Safari, ...)
+- open-source, Apache-2.0 license
+- project automatically saved on server (as MLT XML), accessible via link
+- unlimited number of video and audio tracks
+- 6 video and audio filters (with ability to create more filters)
+
+### Input
+- Supported formats depends on mlt framework, respectively on supported formats by ffmpeg.
+- Video duration tested up to 1 hour 30 minutes.
+- Input resolution up to 4K.
+
+### Output
+Currently set to:
+- Container: mp4
+- Audio codec: aac
+- Video codec: libx264
+
 ## Installation
 
 Project requires:

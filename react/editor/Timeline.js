@@ -6,8 +6,8 @@
 import React, { Component } from 'react';
 import { Timeline as Vis } from 'vis-timeline/standalone';
 import timeManager from '../../models/timeManager';
+import TimelineModel from './TimelineModel';
 import AddFilterDialog from './AddFilterDialog';
-import Editor from './Editor';
 import {server} from '../../config';
 import PropTypes from 'prop-types';
 
@@ -21,7 +21,6 @@ export default class Timeline extends Component {
 			selectedItems: [],
 			showAddFilterDialog: false,
 			duration: '00:00:00,000',
-			timePointer: '00:00:00,000',
 		};
 
 		this.onSelect = this.onSelect.bind(this);
@@ -32,7 +31,7 @@ export default class Timeline extends Component {
 		this.buttonSplit = this.buttonSplit.bind(this);
 		this.buttonDel = this.buttonDel.bind(this);
 		this.closeAddFilterDialog = this.closeAddFilterDialog.bind(this);
-		this.getItem = this.getItem.bind(this);
+		this.getItemFromTrackIndex = this.getItemFromTrackIndex.bind(this);
 		this.addTrack = this.addTrack.bind(this);
 		this.delTrack = this.delTrack.bind(this);
 	}
@@ -90,6 +89,15 @@ export default class Timeline extends Component {
 	}
 
 	componentDidUpdate(prevProps) {
+
+		const time = TimelineModel.dateToString(this.props.time);
+		if (time > this.state.duration) {
+			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+			this.props.setTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));		}
+		else {
+			this.timeline.setCustomTime(this.props.time);
+			this.timeline.setCustomTimeTitle(TimelineModel.dateToString(this.props.time));
+		}
 
 		if (prevProps.items === this.props.items) return;
 
@@ -157,11 +165,11 @@ export default class Timeline extends Component {
 				<button onClick={this.buttonSplit}><i className="material-icons" aria-hidden="true">flip</i>Rozdělit v bodě</button>
 				{/*<button><i className="material-icons" aria-hidden="true">menu</i>Vlastnosti</button>*/}
 				<button onClick={this.buttonDel}><i className="material-icons" aria-hidden="true">remove</i>Odebrat</button>
-				<div id="time">{this.state.timePointer} / {this.state.duration}</div>
+				<div id="time">{TimelineModel.dateToString(this.props.time)} / {this.state.duration}</div>
 				<div id="timeline"/>
 				{this.state.showAddFilterDialog && <AddFilterDialog
 					item={this.state.selectedItems[0]}
-					getItem={this.getItem}
+					getItem={this.getItemFromTrackIndex}
 					project={this.props.project}
 					onClose={this.closeAddFilterDialog}
 					onAdd={(filter) => this.props.onAddFilter(filter)}
@@ -189,8 +197,8 @@ export default class Timeline extends Component {
 	buttonSplit() {
 		if (this.state.selectedItems.length !== 1) return;
 
-		const item = this.getItem(this.state.selectedItems[0]);
-		const splitTime = Timeline.dateToString(this.timeline.getCustomTime());
+		const item = this.getItemFromTrackIndex(this.state.selectedItems[0]);
+		const splitTime = TimelineModel.dateToString(this.timeline.getCustomTime());
 		const splitItemTime = timeManager.subDuration(splitTime, item.start);
 		if (splitTime <= item.start || splitTime >= item.end) return;
 
@@ -242,8 +250,8 @@ export default class Timeline extends Component {
 			.then(response => response.json())
 			.then(data => {
 				if (typeof data.err === 'undefined') {
-					const track = Editor.findTrack(this.props.items, itemPath[0]);
-					if (Editor.findItem(track.items, 1) === null) this.delTrack(itemPath[0]);
+					const track = TimelineModel.findTrack(this.props.items, itemPath[0]);
+					if (TimelineModel.findItem(track.items, 1) === null) this.delTrack(itemPath[0]);
 					else this.props.loadData();
 
 					this.setState({selectedItems: []});
@@ -256,54 +264,24 @@ export default class Timeline extends Component {
 		;
 	}
 
-	getItem(trackIndex) {
+	getItemFromTrackIndex(trackIndex) {
 		const itemPath = trackIndex.split(':');
-		const trackItems = Editor.findTrack(this.props.items, itemPath[0]).items;
-		return Editor.findItem(trackItems, Number(itemPath[1]));
-	}
-
-	getItemInRange(timelineID, itemID, start, end) {
-		const track = Editor.findTrack(this.props.items, timelineID);
-		const items = [];
-		let time = '00:00:00,000';
-		let index = 0;
-		for (let item of track.items) {
-			if (item.resource === 'blank') {
-				time = timeManager.addDuration(item.length, time);
-			}
-			else {
-				if (end <= time) break;
-				const timeStart = time;
-				time = timeManager.addDuration(time, item.out);
-				time = timeManager.subDuration(time, item.in);
-				// todo Subtract transition duration
-				if (index++ === itemID) continue; // Same item
-				if (start >= time) continue;
-				items.push({
-					start: timeStart,
-					end: time,
-				});
-			}
-		}
-		return items;
+		const trackItems = TimelineModel.findTrack(this.props.items, itemPath[0]).items;
+		return TimelineModel.findItem(trackItems, Number(itemPath[1]));
 	}
 
 	onTimeChange(event) {
-		const timePointer = Timeline.dateToString(event.time);
+		const timePointer = TimelineModel.dateToString(event.time);
 
 		if (event.time.getFullYear() < 1970) {
-			this.timeline.setCustomTime(new Date(1970, 0, 1));
-			this.timeline.setCustomTimeTitle('00:00:00,000');
-			this.setState({timePointer: '00:00:00,000'});
+			this.props.setTime(new Date(1970, 0, 1));
 		}
 		else if (timePointer > this.state.duration) {
 			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-			this.timeline.setCustomTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));
-			this.timeline.setCustomTimeTitle(this.state.duration);
-			this.setState({timePointer: this.state.duration});
+			this.props.setTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));
 		}
 		else {
-			this.setState({timePointer: timePointer});
+			this.props.setTime(event.time);
 			this.timeline.setCustomTimeTitle(timePointer);
 		}
 	}
@@ -329,7 +307,7 @@ export default class Timeline extends Component {
 					track: itemPath[0],
 					trackTarget: item.group,
 					item: Number(itemPath[1]),
-					time: Timeline.dateToString(item.start),
+					time: TimelineModel.dateToString(item.start),
 				}),
 			};
 
@@ -345,11 +323,11 @@ export default class Timeline extends Component {
 						}
 						else { // Moving between tracks
 							const trackType = (item.group.includes('audio')) ? 'audio' : 'video';
-							const prevTrack = Editor.findTrack(this.props.items, itemPath[0]);
-							const newTrack = Editor.findTrack(this.props.items, item.group);
+							const prevTrack = TimelineModel.findTrack(this.props.items, itemPath[0]);
+							const newTrack = TimelineModel.findTrack(this.props.items, item.group);
 
 							const addTrack = (newTrack.items.length === 0); //
-							const delTrack = (Editor.findItem(prevTrack.items, 1) === null);
+							const delTrack = (TimelineModel.findItem(prevTrack.items, 1) === null);
 
 							if (addTrack && delTrack) this.addTrack(trackType, prevTrack.id);
 							else if (addTrack) this.addTrack(trackType, null);
@@ -377,9 +355,10 @@ export default class Timeline extends Component {
 
 			item.className = (item.className.includes('video')) ? 'video' : 'audio';
 			const itemIndex = (itemPath[0] === item.group) ? Number(itemPath[1]) : null;
-			const start = Timeline.dateToString(item.start);
-			const end = Timeline.dateToString(item.end);
-			const collision = this.getItemInRange(item.group, itemIndex, start, end);
+			const start = TimelineModel.dateToString(item.start);
+			const end = TimelineModel.dateToString(item.end);
+			const track = TimelineModel.findTrack(this.props.items, item.group);
+			const collision = TimelineModel.getItemInRange(track, itemIndex, start, end);
 			if (collision.length === 0) {
 				// Free
 				return item;
@@ -417,7 +396,8 @@ export default class Timeline extends Component {
 					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
 				}
 				// Check if there is enough space
-				if (this.getItemInRange(item.group, itemIndex, itemStart, itemEnd).length === 0) {
+				const track = TimelineModel.findTrack(this.props.items, item.group);
+				if (TimelineModel.getItemInRange(track, itemIndex, itemStart, itemEnd).length === 0) {
 					return item;
 				}
 				return null;
@@ -468,22 +448,6 @@ export default class Timeline extends Component {
 			.catch(error => this.props.fetchError(error.message))
 		;
 	}
-
-	/**
-	 * Get duration format from Date object
-	 *
-	 * @param {Date} date
-	 * @return {string} Duration in format '00:00:00,000'
-	 */
-	static dateToString(date) {
-		let string = `${date.getHours()}:`;
-		if (string.length < 3) string = '0' + string;
-
-		string += `00${date.getMinutes()}:`.slice(-3);
-		string += `00${date.getSeconds()},`.slice(-3);
-		string += `${date.getMilliseconds()}000`.slice(0,3);
-		return string;
-	}
 }
 
 Timeline.propTypes = {
@@ -494,4 +458,6 @@ Timeline.propTypes = {
 	onDelFilter: PropTypes.func.isRequired,
 	loadData: PropTypes.func.isRequired,
 	fetchError: PropTypes.func.isRequired,
+	time: PropTypes.object.isRequired,
+	setTime: PropTypes.func.isRequired
 };
