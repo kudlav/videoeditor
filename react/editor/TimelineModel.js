@@ -3,8 +3,6 @@
  * @author Vladan Kudlac <vladankudlac@gmail.com>
  */
 
-import timeManager from '../../models/timeManager';
-
 export default {
 
 	/**
@@ -12,55 +10,23 @@ export default {
 	 *
 	 * @param {Array} items
 	 * @param {Number} position
-	 * @return {null|Object}
+	 * @return {Object|undefined}
 	 */
 	findItem(items, position) {
-		let time = '00:00:00,000';
-		let index = 0;
-		for (let item of items) {
-			if (item.resource === 'blank') {
-				time = timeManager.addDuration(item.length, time);
-			}
-			else {
-				let startTime = time;
-				time = timeManager.addDuration(time, item.out);
-				time = timeManager.subDuration(time, item.in);
-				// todo Subtract transition duration
-				if (index === position) {
-					return {
-						item: item,
-						start: startTime,
-						end: time,
-					};
-				}
-				index++;
-			}
-		}
-		return null;
+		return items.find((item, index) => (index === position));
 	},
 
 	/**
 	 * Get track with specified trackId
 	 *
-	 * @param {Object} timeline
+	 * @param {Object} timeline Object with 'video' and 'audio' entries.
 	 * @param {string} trackId
-	 * @return {null|Object}
+	 * @return {Object|undefined}
 	 */
 	findTrack(timeline, trackId) {
-		let track = null;
-		for (let videotrack of timeline.video) {
-			if (videotrack.id === trackId) {
-				track = videotrack;
-				break;
-			}
-		}
-		if (track === null) {
-			for (let audiotrack of timeline.audio) {
-				if (audiotrack.id === trackId) {
-					track = audiotrack;
-					break;
-				}
-			}
+		let track = timeline.video.find(track => (track.id === trackId));
+		if (track === undefined) {
+			track = timeline.audio.find(track => (track.id === trackId));
 		}
 		return track;
 	},
@@ -72,28 +38,16 @@ export default {
 	 * @param {number | null} itemID If set, item with this index will be excluded from search
 	 * @param {string} start
 	 * @param {string} end
+	 * @return {Array} List of items
 	 */
 	getItemInRange(track, itemID, start, end) {
 		const items = [];
-		let time = '00:00:00,000';
 		let index = 0;
 		for (let item of track.items) {
-			if (item.resource === 'blank') {
-				time = timeManager.addDuration(item.length, time);
-			}
-			else {
-				if (end <= time) break;
-				const timeStart = time;
-				time = timeManager.addDuration(time, item.out);
-				time = timeManager.subDuration(time, item.in);
-				// todo Subtract transition duration
-				if (index++ === itemID) continue; // Same item
-				if (start >= time) continue;
-				items.push({
-					start: timeStart,
-					end: time,
-				});
-			}
+			if (end <= item.start) break;
+			if (index++ === itemID) continue; // Same item
+			if (start >= item.end) continue;
+			items.push(item);
 		}
 		return items;
 	},
@@ -114,4 +68,4 @@ export default {
 		return string;
 	}
 
-}
+};

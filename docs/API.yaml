@@ -8,7 +8,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-  version: 2.0.1
+  version: 3.1.0
 externalDocs:
   description: Github repository
   url: 'https://github.com/kudlav/videoeditor/'
@@ -61,14 +61,34 @@ paths:
                     description: id of project
                   resources:
                     type: object
-                    description: >-
-                      associtaive array of resource objects {id: {id: string,
-                      duration: string|null, mime: string|null, name:
-                      string|null}}
+                    properties:
+                      _ID_:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          duration:
+                            type: string
+                            nullable: true
+                          mime:
+                            type: string
+                            nullable: true
+                          name:
+                            type: string
+                            nullable: true
+                    description: associtaive array of resource objects
                   timeline:
                     type: object
-                    description: >-
-                      object containing arrays {audio: array, video: array}, item of arrays has following structure: {id: string, items: array}
+                    properties:
+                      audio:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Timeline'
+                      video:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Timeline'
+                    description: audio and video tracks with items
                   processing:
                     type: number
                     nullable: true
@@ -763,3 +783,32 @@ components:
         msg:
           type: string
           description: info message
+    Timeline:
+      type: object
+      properties:
+        id:
+          type: string
+        duration:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              resource:
+                type: string
+              in:
+                type: string
+              out:
+                type: string
+              start:
+                type: string
+              end:
+                type: string
+              filters:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    service:
+                      type: string

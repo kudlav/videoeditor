@@ -113,39 +113,27 @@ export default class Timeline extends Component {
 				content: '<div style="width:0;height:66px;"></div>',
 			});
 
-			let actualTime = '00:00:00,000';
-			let index = 0;
+			track.items.forEach((item, index) => {
+				const start = item.start.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+				const end = item.end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+				let content = this.props.resources[item.resource].name;
+				if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">flare</i>' + content;
+				items.push({
+					id: track.id + ':' + index,
+					content: content,
+					start: new Date(1970, 0, 1, Number(start[1]), Number(start[2]), Number(start[3]), Number(start[4])),
+					end: new Date(1970, 0, 1, Number(end[1]), Number(end[2]), Number(end[3]), Number(end[4])),
+					group: track.id,
+					className: (videoMatch.test(track.id)) ? 'video' : 'audio',
+				});
+			});
 
-			for (let item of track.items) {
-				if (item.resource === 'blank') {
-					actualTime = timeManager.addDuration(item.length, actualTime);
-				}
-				else {
-					const timeIn = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					actualTime = timeManager.addDuration(actualTime, item.out);
-					actualTime = timeManager.subDuration(actualTime, item.in);
-					const timeOut = actualTime.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					let content = this.props.resources[item.resource].name;
-					if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">flare</i>' + content;
-					// todo Subtract transition duration
-					items.push({
-						id: track.id + ':' + index,
-						content: content,
-						start: new Date(1970, 0, 1, Number(timeIn[1]), Number(timeIn[2]), Number(timeIn[3]), Number(timeIn[4])),
-						end: new Date(1970, 0, 1, Number(timeOut[1]), Number(timeOut[2]), Number(timeOut[3]), Number(timeOut[4])),
-						group: track.id,
-						className: (videoMatch.test(track.id)) ? 'video' : 'audio',
-					});
-					index++;
-				}
-			}
-
-			if (actualTime > duration) {
-				duration = actualTime;
+			if (track.duration > duration) {
+				duration = track.duration;
 			}
 		}
 
-		if (this.state.duration !== duration) this.setState({duration: duration});
+		if (this.state.duration !== duration) this.setState({ duration: duration });
 
 		const fitTimeline = (items.length > this.timeline.itemsData.length);
 
@@ -181,17 +169,16 @@ export default class Timeline extends Component {
 	}
 
 	onSelect(properties) {
-		this.setState({selectedItems: properties.items});
+		this.setState({ selectedItems: properties.items });
 	}
 
 	buttonFilter() {
 		if (this.state.selectedItems.length === 0) return;
-
-		this.setState({showAddFilterDialog: true});
+		this.setState({ showAddFilterDialog: true });
 	}
 
 	closeAddFilterDialog() {
-		this.setState({showAddFilterDialog: false});
+		this.setState({ showAddFilterDialog: false });
 	}
 
 	buttonSplit() {
@@ -237,9 +224,7 @@ export default class Timeline extends Component {
 		const url = `${server.apiUrl}/project/${this.props.project}/item`;
 		const params = {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
 				track: itemPath[0],
 				item: Number(itemPath[1]),
@@ -251,10 +236,12 @@ export default class Timeline extends Component {
 			.then(data => {
 				if (typeof data.err === 'undefined') {
 					const track = TimelineModel.findTrack(this.props.items, itemPath[0]);
-					if (TimelineModel.findItem(track.items, 1) === null) this.delTrack(itemPath[0]);
+					if (itemPath[0] !== 'videotrack0' && itemPath[0] !== 'audiotrack0' && TimelineModel.findItem(track.items, 1) === undefined) {
+						this.delTrack(itemPath[0]);
+					}
 					else this.props.loadData();
 
-					this.setState({selectedItems: []});
+					this.setState({ selectedItems: [] });
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -327,7 +314,7 @@ export default class Timeline extends Component {
 							const newTrack = TimelineModel.findTrack(this.props.items, item.group);
 
 							const addTrack = (newTrack.items.length === 0); //
-							const delTrack = (TimelineModel.findItem(prevTrack.items, 1) === null);
+							const delTrack = (TimelineModel.findItem(prevTrack.items, 1) === undefined);
 
 							if (addTrack && delTrack) this.addTrack(trackType, prevTrack.id);
 							else if (addTrack) this.addTrack(trackType, null);

@@ -13,6 +13,7 @@ import {server} from '../../config';
 import FetchErrorDialog from './FetchErrorDialog';
 import SubmitToolbar from './SubmitToolbar';
 import Preview from './Preview';
+import timeManager from '../../models/timeManager';
 
 export default class Editor extends Component {
 
@@ -147,15 +148,20 @@ export default class Editor extends Component {
 		const timeline = Object.assign({}, this.state.timeline);
 		const track = TimelineModel.findTrack(timeline, trackId);
 		const trackLength = track.items.length;
+		if (duration === null) duration = this.state.resources[id].duration;
+		const timeEnd = timeManager.addDuration(track.duration, duration);
 
 		track.items.push({
 			resource: id,
 			in: '00:00:00,000',
-			out: (duration !== null) ? duration : this.state.resources[id].duration,
+			out: duration,
+			start: track.duration,
+			end: timeEnd,
 			filters: [],
 			transitionTo: null,
 			transitionFrom: null,
 		});
+		track.duration = timeEnd;
 		this.setState({timeline: timeline});
 
 		if (trackLength === 0) {
@@ -202,12 +208,11 @@ export default class Editor extends Component {
 			.then(data => {
 				if (typeof data.err === 'undefined') {
 					const timeline = Object.assign({}, this.state.timeline);
-
 					const track = TimelineModel.findTrack(timeline, parameters.track);
-					const item = TimelineModel.findItem(track.items, parameters.item).item;
+					const item = TimelineModel.findItem(track.items, parameters.item);
 
 					item.filters.push({ service: parameters.filter });
-					this.setState({timeline: timeline});
+					this.setState({ timeline: timeline });
 				}
 				else {
 					alert(`${data.err}\n\n${data.msg}`);
@@ -220,11 +225,11 @@ export default class Editor extends Component {
 	delFilter(parameters) {
 		const timeline = Object.assign({}, this.state.timeline);
 		const track = TimelineModel.findTrack(timeline, parameters.track);
-		const item = TimelineModel.findItem(track.items, parameters.item).item;
+		const item = TimelineModel.findItem(track.items, parameters.item);
 
 		item.filters = item.filters.filter(filter => filter.service !== parameters.filter);
 
-		this.setState({timeline: timeline});
+		this.setState({ timeline: timeline });
 	}
 
 	openSubmitDialog() {

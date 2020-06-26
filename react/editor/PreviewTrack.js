@@ -11,7 +11,7 @@ export default class PreviewTrack extends Component {
 
 	render() {
 		const currentTimestamp = TimelineModel.dateToString(this.props.time);
-		const items = TimelineModel.getItemInRange(this.props.track, null, currentTimestamp, '23:59:59,999')
+		const items = TimelineModel.getItemInRange(this.props.track, null, currentTimestamp, '23:59:59,999');
 
 		return (
 			<p>{this.props.track.id}: {items.length}</p>

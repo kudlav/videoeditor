@@ -30,7 +30,7 @@ export default class AddFilterDialog extends Component {
 	}
 
 	render() {
-		const item = this.props.getItem(this.props.item).item;
+		const item = this.props.getItem(this.props.item);
 
 		return (
 			<div>

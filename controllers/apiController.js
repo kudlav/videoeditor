@@ -86,20 +86,22 @@ exports.projectGET = (req, res) => {
 				};
 
 				const entries = track.childNodes;
+				let time = '00:00:00,000';
 				for (let entry of entries) {
 					if (entry.tagName === 'blank') {
-						trackEntry.items.push({
-							resource: 'blank',
-							length: entry.getAttribute('length'),
-						});
+						time = timeManager.addDuration(entry.getAttribute('length'), time);
 					}
 					// Simple entry
 					else if (new RegExp(/^producer/).test(entry.getAttribute('producer'))) {
 						const duration = mltxmlManager.getDuration(entry, document);
+						const startTime = time;
+						time = timeManager.addDuration(duration.time, time);
 						trackEntry.items.push({
 							resource: entry.getAttribute('producer').replace(/^producer/, ''),
 							in: duration.in,
 							out: duration.out,
+							start: startTime,
+							end: time,
 							filters: [],
 							transitionTo: null,
 							transitionFrom: null,
@@ -115,6 +117,8 @@ exports.projectGET = (req, res) => {
 							const playlist = document.getElementById(track.getAttribute('producer'));
 							const playlistEntry = playlist.getElementsByTagName('entry').item(0);
 							const duration = mltxmlManager.getDuration(playlistEntry, document);
+							const startTime = time;
+							time = timeManager.addDuration(duration.time, time);
 							let filters = [];
 							for (let trackFilter of trackFilters) {
 								if (trackFilter.getAttribute('track') === index.toString()) {
@@ -139,6 +143,8 @@ exports.projectGET = (req, res) => {
 								resource: playlistEntry.getAttribute('producer').replace(/^producer/, ''),
 								in: duration.in,
 								out: duration.out,
+								start: startTime,
+								end: time,
 								filters: filters,
 								transitionTo: null,
 								transitionFrom: null,
@@ -147,6 +153,7 @@ exports.projectGET = (req, res) => {
 						}
 					}
 				}
+				trackEntry['duration'] = time;
 
 				if (new RegExp(/^videotrack\d+/).test(track.id)) {
 					timeline.video.push(trackEntry);

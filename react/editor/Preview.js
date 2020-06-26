@@ -6,7 +6,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import PreviewTrack from './PreviewTrack';
-import SourcesTableRow from './SourcesTableRow';
 
 export default class Preview extends Component {
 
