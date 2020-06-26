@@ -66,6 +66,17 @@ export default {
 		string += `00${date.getSeconds()},`.slice(-3);
 		string += `${date.getMilliseconds()}000`.slice(0,3);
 		return string;
+	},
+
+	/**
+	 * Get instance of Date from string
+	 *
+	 * @param string Timestamp in format "00:00:00,000"
+	 * @return {Date}
+	 */
+	dateFromString(string) {
+		const parsed = string.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
+		return (parsed !== null) ? new Date(1970, 0, 1, parsed[1], parsed[2], parsed[3], parsed[4]) : null;
 	}
 
 };

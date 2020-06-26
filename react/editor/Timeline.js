@@ -92,8 +92,8 @@ export default class Timeline extends Component {
 
 		const time = TimelineModel.dateToString(this.props.time);
 		if (time > this.state.duration) {
-			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-			this.props.setTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));		}
+			this.props.setTime(TimelineModel.dateFromString(this.state.duration));
+		}
 		else {
 			this.timeline.setCustomTime(this.props.time);
 			this.timeline.setCustomTimeTitle(TimelineModel.dateToString(this.props.time));
@@ -114,15 +114,13 @@ export default class Timeline extends Component {
 			});
 
 			track.items.forEach((item, index) => {
-				const start = item.start.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-				const end = item.end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
 				let content = this.props.resources[item.resource].name;
 				if (item.filters.length > 0) content = '<div class="filter"></div><i class="filter material-icons">flare</i>' + content;
 				items.push({
 					id: track.id + ':' + index,
 					content: content,
-					start: new Date(1970, 0, 1, Number(start[1]), Number(start[2]), Number(start[3]), Number(start[4])),
-					end: new Date(1970, 0, 1, Number(end[1]), Number(end[2]), Number(end[3]), Number(end[4])),
+					start: TimelineModel.dateFromString(item.start),
+					end: TimelineModel.dateFromString(item.end),
 					group: track.id,
 					className: (videoMatch.test(track.id)) ? 'video' : 'audio',
 				});
@@ -264,8 +262,7 @@ export default class Timeline extends Component {
 			this.props.setTime(new Date(1970, 0, 1));
 		}
 		else if (timePointer > this.state.duration) {
-			const parsedDuration = this.state.duration.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-			this.props.setTime(new Date(1970, 0, 1, parsedDuration[1], parsedDuration[2], parsedDuration[3], parsedDuration[4]));
+			this.props.setTime(TimelineModel.dateFromString(this.state.duration));
 		}
 		else {
 			this.props.setTime(event.time);
@@ -363,24 +360,20 @@ export default class Timeline extends Component {
 					// Put before
 					item.className = (item.className === 'video') ? 'video stick-right' : 'audio stick-right';
 					itemEnd = collision[0].start;
-					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
+					item.end = TimelineModel.dateFromString(itemEnd);
 
 					itemStart = timeManager.subDuration(collision[0].start, duration);
-					const itemStartParsed = itemStart.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					if (itemStartParsed === null) return null; // Not enough space at begining of timeline
-					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);
+					item.start = TimelineModel.dateFromString(itemStart);
+					if (item.start === null) return null; // Not enough space at begining of timeline
 				}
 				else {
 					// Put after
 					item.className = (item.className === 'video') ? 'video stick-left' : 'audio stick-left';
 					itemStart = collision[0].end;
-					const itemStartParsed = collision[0].end.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					item.start = new Date(1970, 0, 1, itemStartParsed[1], itemStartParsed[2], itemStartParsed[3], itemStartParsed[4]);
+					item.start = TimelineModel.dateFromString(collision[0].end);
 
 					itemEnd = timeManager.addDuration(collision[0].end, duration);
-					const itemEndParsed = itemEnd.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-					item.end = new Date(1970, 0, 1, itemEndParsed[1], itemEndParsed[2], itemEndParsed[3], itemEndParsed[4]);
+					item.end = TimelineModel.dateFromString(itemEnd);
 				}
 				// Check if there is enough space
 				const track = TimelineModel.findTrack(this.props.items, item.group);
