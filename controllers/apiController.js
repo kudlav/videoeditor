@@ -28,7 +28,7 @@ exports.default = (req, res) => {
 
 exports.projectPOST = (req, res, next) => {
 
-	let projectID = nanoid(32);
+	let projectID = nanoid(config.projectIDlength);
 	fs.mkdir(path.join(config.projectPath, projectID), { recursive: true }, (err) => {
 		if (err) return next(err);
 
@@ -244,7 +244,7 @@ exports.projectFilePOST = (req, res, next) => {
 
 	busboy.on('file', (fieldname, file, filename, transferEncoding, mimeType) => {
 
-		const fileID = nanoid();
+		const fileID = nanoid(config.fileIDlength);
 		const extension = path.extname(filename);
 		let filepath = path.join(config.projectPath, req.params.projectID, fileID);
 		if (extension.length > 1) filepath += extension;
