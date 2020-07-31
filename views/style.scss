@@ -110,11 +110,21 @@ progress {
 #preview {
 	width: 490px;
 	text-align: center;
+}
+
+#preview-player {
+	display: inline-block;
+	position: relative;
+	background-color: #000;
+	width: 480px;
+	height: 240px;
 
 	video {
+		position: absolute;
+		top: 0;
+		left: 0;
 		width: 480px;
 		height: 240px;
-		background: #000;
 	}
 }
 

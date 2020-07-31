@@ -6,6 +6,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import PreviewTrack from './PreviewTrack';
+import TimelineModel from './TimelineModel';
 
 export default class Preview extends Component {
 
@@ -15,16 +16,22 @@ export default class Preview extends Component {
 	}
 
 	render() {
+		const timestamp = TimelineModel.dateToString(this.props.time);
+
 		return (
 			<div id='preview'>
 				<h3><i className="material-icons" aria-hidden={true}> movie_filter </i>Náhled</h3>
-				{typeof this.props.items.video !== 'undefined' && Object.keys(this.props.items.video).map(key =>
-					<PreviewTrack
-						track={this.props.items.video[key]}
-						key={this.props.items.video[key]['id']}
-						time={this.props.time}
-						playing={this.props.playing} />
-				)}
+				<div id='preview-player'>
+					{typeof this.props.items.video !== 'undefined' && Object.keys(this.props.items.video).map(key =>
+						<PreviewTrack
+							project={this.props.project}
+							resources={this.props.resources}
+							track={this.props.items.video[key]}
+							key={this.props.items.video[key]['id']}
+							time={timestamp}
+							playing={this.props.playing} />
+					)}
+				</div>
 				<br/>
 				<div className="prev-toolbar">
 					<button onClick={this.stop} className="no-border" title="Zastavit přehrávání">
@@ -51,12 +58,14 @@ export default class Preview extends Component {
 	}
 
 	stop() {
-		this.props.setTime(new Date(1970, 0, 1));
+		this.props.setTime(new Date(Date.UTC(1970, 0, 1)));
 	}
 
 }
 
 Preview.propTypes = {
+	project: PropTypes.string.isRequired,
+	resources: PropTypes.object.isRequired,
 	items: PropTypes.object.isRequired,
 	time: PropTypes.object.isRequired,
 	playing: PropTypes.bool.isRequired,

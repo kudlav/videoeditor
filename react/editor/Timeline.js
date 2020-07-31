@@ -4,7 +4,8 @@
  */
 
 import React, { Component } from 'react';
-import { Timeline as Vis } from 'vis-timeline/standalone';
+import { Timeline as Vis } from 'vis-timeline/esnext';
+import Moment from 'moment';
 import timeManager from '../../models/timeManager';
 import TimelineModel from './TimelineModel';
 import AddFilterDialog from './AddFilterDialog';
@@ -40,8 +41,8 @@ export default class Timeline extends Component {
 		const container = document.getElementById('timeline');
 		const options = {
 			orientation: 'top',
-			min: new Date(1970, 0, 1),
-			max: new Date(1970, 0, 1, 23, 59, 59, 999),
+			min: 0,
+			max: Date.UTC(1970, 0, 1, 23, 59, 59, 999),
 			showCurrentTime: false,
 			multiselect: false,
 			multiselectPerGroup: true,
@@ -77,10 +78,13 @@ export default class Timeline extends Component {
 					month:      '',
 					year:       ''
 				}
+			},
+			moment: function (date) {
+				return Moment(date).utc();
 			}
 		};
 		this.timeline = new Vis(container, [], [], options);
-		this.timeline.addCustomTime(new Date(1970, 0, 1));
+		this.timeline.addCustomTime(0);
 		this.timeline.setCustomTimeTitle('00:00:00,000');
 		this.timeline.on('select', this.onSelect);
 		this.timeline.on('timechange', this.onTimeChange);
@@ -258,8 +262,8 @@ export default class Timeline extends Component {
 	onTimeChange(event) {
 		const timePointer = TimelineModel.dateToString(event.time);
 
-		if (event.time.getFullYear() < 1970) {
-			this.props.setTime(new Date(1970, 0, 1));
+		if (event.time.getUTCFullYear() < 1970) {
+			this.props.setTime(new Date(Date.UTC(1970, 0, 1)));
 		}
 		else if (timePointer > this.state.duration) {
 			this.props.setTime(TimelineModel.dateFromString(this.state.duration));
@@ -327,7 +331,7 @@ export default class Timeline extends Component {
 	}
 
 	itemMove(item) {
-		if (item.start.getFullYear() < 1970) return null; // Deny move before zero time
+		if (item.start.getUTCFullYear() < 1970) return null; // Deny move before zero time
 		else {
 			const itemPath = item.id.split(':');
 

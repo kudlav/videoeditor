@@ -22,7 +22,7 @@ exports.resource = (req, res) => {
 	if (req.params.fileID.length !== config.fileIDlength) {
 		return res.sendStatus(404);
 	}
-	const ext = '.' + ((typeof req.query.ext !== 'undefined') ? req.query.ext : 'mp4')
+	const ext = '.' + ((typeof req.query.ext !== 'undefined') ? req.query.ext : 'mp4');
 	const outputFile = path.resolve(path.join(config.projectPath, req.params.projectID, req.params.fileID) + ext);
 	fs.access(outputFile, fs.constants.R_OK, (err) => {
 		if (err) res.sendStatus(404);

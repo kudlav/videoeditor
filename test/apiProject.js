@@ -67,7 +67,9 @@ describe('API: project - everything about project', function () {
 					assert.equal(data.timeline.video.length, 1, 'there should be one default video track');
 					assert.equal(data.timeline.audio.length, 1, 'there should be one default audio track');
 					assert.equal(data.timeline.video[0].id, 'videotrack0', 'wrong name of default video track');
-					assert.equal(data.timeline.audio[0].id, 'audiotrack0', 'wrong name of default video track');
+					assert.equal(data.timeline.audio[0].id, 'audiotrack0', 'wrong name of default audio track');
+					assert.equal(data.timeline.video[0].duration, '00:00:00,000', 'wrong duration of default video track');
+					assert.equal(data.timeline.audio[0].duration, '00:00:00,000', 'wrong duration of default audio track');
 					assert.ok(Array.isArray(data.timeline.video[0].items), 'missing default video track items');
 					assert.ok(Array.isArray(data.timeline.video[0].items), 'missing default audio track items');
 					assert.equal(data.timeline.video[0].items.length, 0, 'default video track should be empty');

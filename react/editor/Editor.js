@@ -49,7 +49,7 @@ export default class Editor extends Component {
 			showSubmitDialog: false,
 			showFetchError: false,
 			fetchError: '',
-			time: new Date(1970, 0, 1),
+			time: new Date(Date.UTC(1970, 0, 1)),
 			playing: false
 		};
 
@@ -80,6 +80,8 @@ export default class Editor extends Component {
 							fetchError={this.openFetchErrorDialog}
 						/>
 						<Preview
+							project={this.state.project}
+							resources={this.state.resources}
 							items={this.state.timeline}
 							time={this.state.time}
 							playing={this.state.playing}
@@ -288,8 +290,10 @@ export default class Editor extends Component {
 
 	pause() {
 		clearInterval(this.timerFunction);
-		this.playing();
-		this.setState({ playing: false });
+		this.setState({
+			playing: false,
+			time: new Date(this.timerStart.getTime() + Date.now() - this.datetimeStart.getTime())
+		});
 	}
 
 	setTime(time) {

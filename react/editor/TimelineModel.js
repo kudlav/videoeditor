@@ -59,12 +59,12 @@ export default {
 	 * @return {string} Duration in format '00:00:00,000'
 	 */
 	dateToString(date) {
-		let string = `${date.getHours()}:`;
+		let string = `${date.getUTCHours()}:`;
 		if (string.length < 3) string = '0' + string;
 
-		string += `00${date.getMinutes()}:`.slice(-3);
-		string += `00${date.getSeconds()},`.slice(-3);
-		string += `${date.getMilliseconds()}000`.slice(0,3);
+		string += `00${date.getUTCMinutes()}:`.slice(-3);
+		string += `00${date.getUTCSeconds()},`.slice(-3);
+		string += `${date.getUTCMilliseconds()}000`.slice(0,3);
 		return string;
 	},
 
@@ -76,7 +76,7 @@ export default {
 	 */
 	dateFromString(string) {
 		const parsed = string.match(/^(\d{2,}):(\d{2}):(\d{2}),(\d{3})$/);
-		return (parsed !== null) ? new Date(1970, 0, 1, parsed[1], parsed[2], parsed[3], parsed[4]) : null;
+		return (parsed !== null) ? new Date(Date.UTC(1970, 0, 1, parsed[1], parsed[2], parsed[3], parsed[4])) : null;
 	}
 
 };
