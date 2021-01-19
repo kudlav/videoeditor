@@ -65,3 +65,7 @@ $ npm install
 $ npm run build
 $ npm start
 ```
+
+Server now running at port 8080. You can access it using `localhost:8080`. This can be changed in `config.js`.
+
+Note: this project doesn't require web server and videoeditor folder and it's subfolders should be stored outside of webserver (for security purpose).
