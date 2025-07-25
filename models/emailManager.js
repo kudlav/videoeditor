@@ -19,7 +19,7 @@ export default {
 				pass: config.emailPasswd,
 			},
 			tls: {
-				rejectUnauthorized: false // do not fail on invalid certs
+				rejectUnauthorized: true // ensure valid certs
 			}
 		});
 
